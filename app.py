@@ -1,3 +1,9 @@
+def setup_database():
+    with app.app_context():
+        # Принудительно пересоздаем таблицы
+        db.drop_all()
+        db.create_all()
+
 from app import create_app, db
 from app.models import User, Category, Product
 import json
