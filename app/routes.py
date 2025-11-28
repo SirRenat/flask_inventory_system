@@ -16,9 +16,11 @@ def simple_test():
 def index():
     category_id = request.args.get('category_id')
     if category_id:
-        products = Product.query.filter_by(status='active', category_id=category_id).all()
+        # ИСПРАВЛЕНО: убран фильтр по status
+        products = Product.query.filter_by(category_id=category_id).all()
     else:
-        products = Product.query.filter_by(status='active').all()
+        # ИСПРАВЛЕНО: убран фильтр по status
+        products = Product.query.all()
     
     categories = Category.query.all()
     return render_template('main.html', products=products, categories=categories)
