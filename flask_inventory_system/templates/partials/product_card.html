@@ -1,0 +1,26 @@
+<div class="product-card" onclick="window.location='{{ url_for('main.product_detail', product_id=product.id) }}'">
+    <div class="product-image">
+        {% if product.images and product.images[0] %}
+            <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" 
+                 alt="{{ product.title }}"
+                 onerror="this.style.display='none';">
+            <div class="image-fallback" style="display: none;">
+                <i class="fas fa-image"></i>
+            </div>
+        {% else %}
+            <i class="fas fa-{{ 'mobile-alt' if product.category and product.category.name == 'Электроника' else 'tshirt' if product.category and 'Одежда' in product.category.name else 'book' if product.category and 'Книги' in product.category.name else 'home' if product.category and 'Мебель' in product.category.name else 'football-ball' if product.category and 'Спорт' in product.category.name else 'box' }}"></i>
+        {% endif %}
+    </div>
+    <div class="product-info">
+        <div class="product-category">{{ product.category.name if product.category else 'Без категории' }}</div>
+        <h3 class="product-name">{{ product.title }}</h3>
+        
+        <div class="product-price">
+            <span class="current-price">{{ "%.2f"|format(product.price) }} ₽</span>
+        </div>
+        
+        <div class="product-meta">
+            <span>{{ product.created_at.strftime('%d.%m.%Y') }}</span>
+        </div>
+    </div>
+</div>

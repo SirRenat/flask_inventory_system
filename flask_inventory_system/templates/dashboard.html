@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет - Система продажи неликвидов{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Личный кабинет - {{ current_user.company_name }}</h1>
+    <p class="page-subtitle">Управление вашими товарами</p>
+</div>
+
+<div style="margin-bottom: 24px;">
+    <a href="{{ url_for('main.add_product') }}" class="btn-primary">
+        <i class="fas fa-plus"></i>
+        Добавить товар
+    </a>
+</div>
+
+<h2 style="font-size: 24px; font-weight: 600; margin-bottom: 24px;">📦 Мои объявления</h2>
+
+{% if products %}
+    <div class="products-grid">
+        {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+   			 {% if product.images and product.images[0] %}
+       			 <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" 
+           		  alt="{{ product.title }}" 
+            			 style="width: 100%; height: 100%; object-fit: cover;">
+   			 {% else %}
+     			   <i class="fas fa-box" style="font-size: 48px; color: #666;"></i>
+   			 {% endif %}
+</div>
+
+                <div class="product-info">
+                    <div class="product-category">{{ product.category.name if product.category else 'Без категории' }}</div>
+                    <h3 class="product-name">{{ product.title }}</h3>
+                    
+                    <div class="product-price">
+                        <span class="current-price">{{ "%.2f"|format(product.price) }} ₽</span>
+                    </div>
+                    
+                    <div class="product-meta">
+                        <span>Статус: 
+                            <span style="color: {% if product.status == 'active' %}#28a745{% else %}#6c757d{% endif %}; font-weight: 500;">
+                                {{ 'Активно' if product.status == 'active' else 'Неактивно' }}
+                            </span>
+                        </span>
+                        <span>{{ product.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    
+                    <div style="margin-top: 12px; display: flex; gap: 8px;">
+                        <a href="#" class="btn-secondary" style="padding: 8px 16px; font-size: 14px;">
+                            <i class="fas fa-edit"></i>
+                            Редактировать
+                        </a>
+                        <a href="#" class="btn-secondary" style="padding: 8px 16px; font-size: 14px; background: #ff4444; color: white; border: none;">
+                            <i class="fas fa-trash"></i>
+                            Удалить
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div style="text-align: center; padding: 64px 0; background: white; border-radius: 12px; box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);">
+        <i class="fas fa-box-open" style="font-size: 64px; color: #E6E6E6; margin-bottom: 16px;"></i>
+        <h3 style="color: var(--text-secondary); margin-bottom: 16px;">У вас пока нет товаров</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 24px;">Добавьте первый товар для продажи</p>
+        <a href="{{ url_for('main.add_product') }}" class="btn-primary">
+            <i class="fas fa-plus"></i>
+            Добавить первый товар
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

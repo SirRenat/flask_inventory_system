@@ -1,0 +1,266 @@
+<!-- templates/main.html -->
+{% extends "base.html" %}
+
+{% block title %}Неликвиды - Главная{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <h1 class="page-title">Неликвиды</h1>
+        <p class="page-subtitle">Продажа неликвидов для юридических лиц</p>
+        <p class="hero-description">Эффективная площадка для реализации остатков товаров между компаниями</p>
+        
+        {% if not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.register') }}" class="btn-primary" style="margin-top: 20px;">
+                Начать продавать
+            </a>
+        {% else %}
+            <a href="{{ url_for('main.add_product') }}" class="btn-primary" style="margin-top: 20px;">
+                + Разместить объявление
+            </a>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Search Section -->
+<section class="search-section">
+    <div class="container">
+        <div class="search-row">
+            <select class="category-select" onchange="handleCategoryChange(this)">
+                <option value="">Все категории</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+            <input type="text" class="search-input" placeholder="Поиск по товарам..." id="searchInput">
+            <button type="button" class="search-button" onclick="handleSearch()">Найти</button>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content -->
+<div class="container" style="margin-top: 24px; display: grid; grid-template-columns: 250px 1fr; gap: 24px;">
+    <!-- Sidebar with Categories -->
+    <aside class="sidebar">
+        <h3 class="sidebar-title">Все категории</h3>
+        <ul class="categories-list">
+            <li class="category-item active" data-category="">Все категории</li>
+            {% for category in categories %}
+                <li class="category-item" data-category="{{ category.id }}">{{ category.name }}</li>
+            {% endfor %}
+        </ul>
+    </aside>
+
+    <!-- Listings -->
+    <section class="listings-section">
+        <h2 class="section-title">Активные объявления</h2>
+        
+        {% if products %}
+            {% for product in products %}
+            <div class="listing-item">
+                <div class="listing-image">
+                    {% if product.images and product.images|length > 0 %}
+                        <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" 
+                             alt="{{ product.title }}"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div style="display: none; align-items: center; justify-content: center; color: #7F7F7F;">
+                            📦
+                        </div>
+                    {% else %}
+                        <div style="display: flex; align-items: center; justify-content: center; color: #7F7F7F;">
+                            📦
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="listing-content">
+                    <div class="listing-price">{{ "%.2f"|format(product.price) }} руб.</div>
+                    <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="listing-title">{{ product.title }}</a>
+                    <div class="listing-details">{{ product.category.name if product.category else 'Без категории' }}</div>
+                    <div class="listing-details">{{ product.author.company_name if product.author else 'Компания не указана' }}</div>
+                    <div class="listing-details">{{ product.description[:100] }}{% if product.description and product.description|length > 100 %}...{% endif %}</div>
+                    <div class="listing-date">{{ product.created_at.strftime('%d.%m.%Y') if product.created_at else 'Дата не указана' }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Статические объявления если нет реальных -->
+            <div class="listing-item">
+                <div class="listing-image">
+                    <img src="{{ url_for('static', filename='uploads/172eeda8fd4e4dbdaa35298df2af1527.jpg') }}" 
+                         alt="Кот">
+                </div>
+                <div class="listing-content">
+                    <div class="listing-price">2.00 руб.</div>
+                    <a href="#" class="listing-title">Кот</a>
+                    <div class="listing-details">Разное оборудование</div>
+                    <div class="listing-details">ООО Бизнес</div>
+                    <div class="listing-details">Продам актуального кота</div>
+                    <div class="listing-date">27.11.2025</div>
+                </div>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<style>
+    /* Hero Section Styles */
+    .hero-section {
+        background: linear-gradient(135deg, var(--avito-blue) 0%, #0045CC 100%);
+        padding: 60px 0;
+        color: white;
+        text-align: center;
+    }
+    
+    .hero-description {
+        font-size: 18px;
+        margin-bottom: 32px;
+        opacity: 0.9;
+    }
+    
+    /* Search Section */
+    .search-section {
+        background: var(--background);
+        padding: 24px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .search-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .category-select, .search-input {
+        padding: 12px 16px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 16px;
+    }
+    
+    .category-select {
+        min-width: 200px;
+    }
+    
+    .search-input {
+        flex: 1;
+    }
+    
+    .search-button {
+        background: var(--avito-blue);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+    
+    /* Sidebar */
+    .sidebar {
+        background: var(--background);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: var(--shadow);
+        height: fit-content;
+    }
+    
+    .sidebar-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 16px;
+    }
+    
+    .categories-list {
+        list-style: none;
+    }
+    
+    .category-item {
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    
+    .category-item.active {
+        color: var(--avito-blue);
+        font-weight: 600;
+    }
+    
+    /* Listings */
+    .listings-section {
+        background: var(--background);
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+    }
+    
+    .listing-item {
+        display: flex;
+        gap: 16px;
+        padding: 20px 0;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .listing-image {
+        width: 120px;
+        height: 120px;
+        background: #F8F9FA;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    
+    .listing-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+
+<script>
+function handleCategoryChange(select) {
+    const categoryId = select.value;
+    if (categoryId) {
+        window.location.href = `{{ url_for('main.index') }}?category_id=${categoryId}`;
+    } else {
+        window.location.href = `{{ url_for('main.index') }}`;
+    }
+}
+
+function handleSearch() {
+    const searchText = document.getElementById('searchInput').value;
+    if (searchText) {
+        // Здесь можно добавить логику поиска
+        alert(`Поиск: ${searchText} - функция в разработке`);
+    }
+}
+
+// Обработка кликов по категориям в сайдбаре
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryItems = document.querySelectorAll('.category-item');
+    
+    categoryItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const categoryId = this.dataset.category;
+            
+            // Обновляем активный элемент
+            categoryItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
+            
+            // Перенаправляем на страницу с фильтром
+            if (categoryId) {
+                window.location.href = `{{ url_for('main.index') }}?category_id=${categoryId}`;
+            } else {
+                window.location.href = `{{ url_for('main.index') }}`;
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

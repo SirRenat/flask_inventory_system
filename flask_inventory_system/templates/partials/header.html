@@ -1,0 +1,70 @@
+<!-- templates/partials/header.html -->
+<header class="header">
+    <div class="container">
+        <div class="header-content">
+            <a href="{{ url_for('main.index') }}" class="logo">
+                <i class="fas fa-boxes"></i>
+                Неликвиды
+            </a>
+            
+            <nav class="nav-links">
+                <a href="{{ url_for('main.index') }}" class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    Главная
+                </a>
+                
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Личный кабинет
+                    </a>
+                    <a href="{{ url_for('main.add_product') }}" class="nav-link {% if request.endpoint == 'main.add_product' %}active{% endif %}">
+                        <i class="fas fa-plus"></i>
+                        Добавить товар
+                    </a>
+                    
+                    {% if current_user.role == 'admin' %}
+                        <a href="{{ url_for('admin.admin_panel') }}" class="nav-link {% if request.endpoint == 'admin.admin_panel' %}active{% endif %}">
+                            <i class="fas fa-cog"></i>
+                            Админка
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </nav>
+            
+            <div class="nav-user">
+                {% if current_user.is_authenticated %}
+                    <span class="user-info" style="margin-right: 15px; color: var(--text-secondary);">
+                        {{ current_user.company_name }}
+                    </span>
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Выйти
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Войти
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}">
+                        <i class="fas fa-user-plus"></i>
+                        Регистрация
+                    </a>
+                {% endif %}
+                
+                <!-- Кнопка "Разместить товар" - отдельно -->
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.register', next=url_for('main.add_product')) }}" class="btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Разместить товар
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('main.add_product') }}" class="btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Разместить товар
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</header>

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>👑 Панель администратора</h2>
+    
+    <div class="admin-tabs">
+        <button class="tab-btn active" onclick="openTab('users')">👥 Пользователи</button>
+        <button class="tab-btn" onclick="openTab('categories')">📂 Категории</button>
+    </div>
+
+    <!-- Вкладка пользователей -->
+    <div id="users" class="tab-content active">
+        <h3>Управление пользователями</h3>
+        <div class="users-list">
+            {% for user in users %}
+            <div class="user-card {% if not user.is_active %}user-inactive{% endif %}">
+                <div class="user-info">
+                    <h4>{{ user.company_name }}</h4>
+                    <p>📧 {{ user.email }}</p>
+                    <p>📞 {{ user.phone or 'Не указан' }}</p>
+                    <p>🏢 ИНН: {{ user.inn or 'Не указан' }}</p>
+                    <p>📅 Зарегистрирован: {{ user.created_at.strftime('%d.%m.%Y') }}</p>
+                    <p>🎯 Роль: <span class="role-{{ user.role }}">{{ 'Администратор' if user.role == 'admin' else 'Пользователь' }}</span></p>
+                </div>
+                <div class="user-actions">
+                    <form method="POST" action="{{ url_for('admin_users') }}" class="inline-form">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="toggle_active">
+                        <button type="submit" class="btn {% if user.is_active %}btn-warning{% else %}btn-success{% endif %}">
+                            {% if user.is_active %}🚫 Заблокировать{% else %}✅ Разблокировать{% endif %}
+                        </button>
+                    </form>
+                    {% if user.role != 'admin' %}
+                    <form method="POST" action="{{ url_for('admin_users') }}" class="inline-form">
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <input type="hidden" name="action" value="make_admin">
+                        <button type="submit" class="btn btn-info">👑 Сделать админом</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Вкладка категорий -->
+    <div id="categories" class="tab-content">
+        <h3>Управление категориями</h3>
+        
+        <!-- Форма добавления категории -->
+        <div class="category-form">
+            <h4>Добавить категорию</h4>
+            <form method="POST" action="{{ url_for('admin_categories') }}">
+                <input type="hidden" name="action" value="add">
+                <div class="form-group">
+                    <label>Название категории:</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Родительская категория:</label>
+                    <select name="parent_id">
+                        <option value="">-- Без родительской категории --</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Описание:</label>
+                    <textarea name="description" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn">➕ Добавить категорию</button>
+            </form>
+        </div>
+
+        <!-- Список категорий -->
+        <div class="categories-tree">
+            <h4>Дерево категорий</h4>
+        {% for category in categories %}
+        {% include '_category_item.html' %}
+        {% endfor %}
+</div>
+    </div>
+</div>
+
+<script>
+function openTab(tabName) {
+    // Скрыть все вкладки
+    var tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(function(tab) {
+        tab.classList.remove('active');
+    });
+    
+    // Показать выбранную вкладку
+    document.getElementById(tabName).classList.add('active');
+    
+    // Обновить активные кнопки
+    var buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    event.currentTarget.classList.add('active');
+}
+</script>
+{% endblock %}

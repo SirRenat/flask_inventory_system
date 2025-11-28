@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h1>Продажа неликвидов для юридических лиц</h1>
+    <p>Эффективная площадка для реализации остатков товаров между компаниями</p>
+    {% if not current_user.is_authenticated %}
+        <a href="{{ url_for('auth.register') }}" class="btn">Начать продавать</a>
+    {% endif %}
+</div>
+
+<!-- Поиск и фильтры -->
+<div class="search-filters">
+    <div class="search-container">
+        <form method="GET" action="{{ url_for('main.index') }}" class="search-form">
+            <!-- Фильтр по категориям -->
+            <div class="category-filter">
+                <select name="category_id" onchange="this.form.submit()">
+                    <option value="">Все категории</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" 
+                                {% if selected_category_id == category.id|string %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <!-- Поисковая строка -->
+            <div class="search-box">
+                <input type="text" 
+                       name="search" 
+                       placeholder="Поиск по товарам..." 
+                       value="{{ search_query }}"
+                       class="search-input">
+                <button type="submit" class="search-btn">🔍</button>
+            </div>
+            
+            <!-- Кнопка сброса -->
+            {% if search_query or selected_category_id %}
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Сбросить</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="products-grid">
+    <h2>
+        {% if search_query or selected_category_id %}
+            🔍 Результаты поиска
+            {% if search_query %}"{{ search_query }}"{% endif %}
+            {% if products|length > 0 %}({{ products|length }} найдено){% endif %}
+        {% else %}
+            🔥 Активные объявления
+        {% endif %}
+    </h2>
+    
+    {% if products %}
+        <div class="products-list">
+            {% for product in products %}
+            <div class="product-card">
+                <div class="product-image">
+                    {% if product.images %}
+                        <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" 
+                             alt="{{ product.title }}" 
+                             style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                    {% else %}
+                        📦
+                    {% endif %}
+                </div>
+                <div class="product-info">
+                    <h3>{{ product.title }}</h3>
+                    <p class="price">{{ "%.2f"|format(product.price) }} руб.</p>
+                    {% if product.category %}
+                        <p class="category">📂 {{ product.category.name }}</p>
+                    {% endif %}
+                    <p class="company">🏭 {{ product.author.company_name }}</p>
+                    <p class="description">{{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}</p>
+                    <p class="date">📅 {{ product.created_at.strftime('%d.%m.%Y') }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-results">
+            <p>😔 Товары не найдены</p>
+            {% if search_query or selected_category_id %}
+                <p>Попробуйте изменить параметры поиска или <a href="{{ url_for('index') }}">сбросить фильтры</a></p>
+            {% else %}
+                <p>Пока нет активных объявлений. Будьте первым!</p>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

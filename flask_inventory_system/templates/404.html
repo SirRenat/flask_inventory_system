@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="text-align: center; padding: 4rem 0; color: white;">
+    <h1 style="font-size: 4rem; margin-bottom: 1rem;">404</h1>
+    <h2 style="margin-bottom: 2rem;">Страница не найдена</h2>
+    <p style="margin-bottom: 2rem; font-size: 1.2rem;">Извините, запрашиваемая страница не существует.</p>
+    <a href="{{ url_for('index') }}" class="btn">🏠 На главную</a>
+</div>
+{% endblock %}

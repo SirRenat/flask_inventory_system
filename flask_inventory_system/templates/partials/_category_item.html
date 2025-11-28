@@ -1,0 +1,24 @@
+<div class="category-item {% if category.parent_id %}category-child{% endif %}">
+    <div class="category-header">
+        <div class="category-info">
+            <strong>{{ category.name }}</strong>
+            {% if category.description %}
+                <p class="category-description">{{ category.description }}</p>
+            {% endif %}
+        </div>
+        <div class="category-actions">
+            <form method="POST" action="{{ url_for('admin_categories') }}">
+                <input type="hidden" name="category_id" value="{{ category.id }}">
+                <input type="hidden" name="action" value="delete">
+                <button type="submit" class="btn btn-warning" onclick="return confirm('Удалить категорию?')">🗑️ Удалить</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Рекурсивно выводим дочерние категории -->
+    {% for child in category.children %}
+        {% with category=child %}
+            {% include '_category_item.html' %}
+        {% endwith %}
+    {% endfor %}
+</div>
