@@ -40,6 +40,8 @@ def create_app():
     app.register_blueprint(auth)
     app.register_blueprint(admin)
 
+    # ❌ ВРЕМЕННО ЗАКОММЕНТИРУЙТЕ ЭТОТ БЛОК:
+    '''
     # ✅ СОВРЕМЕННЫЙ СПОСОБ ИНИЦИАЛИЗАЦИИ ДАННЫХ
     with app.app_context():
         # Создаем таблицы (только для разработки)
@@ -88,5 +90,6 @@ def create_app():
             
         except Exception as e:
             print(f"❌ Ошибка инициализации данных: {e}")
+    '''
 
     return app

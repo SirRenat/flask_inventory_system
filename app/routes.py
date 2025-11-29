@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app import db
 from app.models import Product, Category
 from app.utils import save_uploaded_files
+from datetime import datetime, timedelta
 import os
 
 main = Blueprint('main', __name__, template_folder='../templates')
@@ -12,8 +13,8 @@ def index():
     category_id = request.args.get('category_id')
     search_term = request.args.get('search', '').strip()
     
-    # Базовый запрос
-    query = Product.query
+    # Базовый запрос - только опубликованные товары
+    query = Product.query.filter_by(status=Product.STATUS_PUBLISHED)
     
     # Фильтрация по категории
     if category_id:
@@ -37,12 +38,25 @@ def index():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    user_products = Product.query.filter_by(user_id=current_user.id).all()
+    # Показываем все товары пользователя (включая неопубликованные)
+    user_products = Product.query.filter_by(user_id=current_user.id).order_by(Product.created_at.desc()).all()
+    
+    # Обновляем статусы товаров при загрузке дашборда
+    for product in user_products:
+        if product.update_status():
+            db.session.commit()
+    
     return render_template('dashboard.html', products=user_products)
 
 @main.route('/product/<int:product_id>')
 def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
+    
+    # Проверяем, может ли пользователь видеть товар
+    if not product.can_be_viewed_by_public and (not current_user.is_authenticated or current_user.id != product.user_id):
+        flash('Этот товар недоступен для просмотра', 'error')
+        return redirect(url_for('main.index'))
+    
     return render_template('product_detail.html', product=product)
 
 @main.route('/add_product', methods=['GET', 'POST'])
@@ -67,19 +81,126 @@ def add_product():
             price=price,
             user_id=current_user.id,
             category_id=category_id if category_id else None,
-            images=saved_images
+            images=saved_images,
+            status=Product.STATUS_PUBLISHED,
+            expires_at=datetime.utcnow() + timedelta(days=30)
         )
         
         db.session.add(new_product)
         db.session.commit()
         
-        flash('Товар успешно добавлен!', 'success')
+        flash('Товар успешно добавлен! Срок размещения - 30 дней', 'success')
         return redirect(url_for('main.dashboard'))
     
     categories = Category.query.all()
     return render_template('add_product.html', categories=categories)
 
-# Тестовый маршрут для отладки загрузки файлов
+@main.route('/product/<int:product_id>/renew', methods=['POST'])
+@login_required
+def renew_product(product_id):
+    """Продление публикации товара"""
+    product = Product.query.get_or_404(product_id)
+    
+    # Проверяем права доступа
+    if product.user_id != current_user.id:
+        flash('У вас нет прав для продления этого товара', 'error')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    # Проверяем, что товар готов к публикации или снят
+    if product.status not in [Product.STATUS_READY_FOR_PUBLICATION, Product.STATUS_UNPUBLISHED]:
+        flash('Этот товар нельзя опубликовать', 'error')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    try:
+        product.publish()
+        db.session.commit()
+        flash('Товар успешно опубликован! Срок размещения - 30 дней', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Ошибка при публикации товара', 'error')
+    
+    return redirect(url_for('main.dashboard'))
+
+@main.route('/product/<int:product_id>/unpublish', methods=['POST'])
+@login_required
+def unpublish_product(product_id):
+    """Снятие товара с публикации"""
+    product = Product.query.get_or_404(product_id)
+    
+    # Проверяем права доступа
+    if product.user_id != current_user.id:
+        flash('У вас нет прав для снятия этого товара с публикации', 'error')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    # Проверяем, что товар опубликован
+    if product.status != Product.STATUS_PUBLISHED:
+        flash('Этот товар уже не опубликован', 'error')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    try:
+        product.unpublish()
+        db.session.commit()
+        flash('Товар снят с публикации. Теперь он виден только вам.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Ошибка при снятии товара с публикации', 'error')
+    
+    return redirect(url_for('main.dashboard'))
+
+@main.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    if product.user_id != current_user.id:
+        flash('У вас нет прав для редактирования этого товара', 'error')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    if request.method == 'POST':
+        # Логика обновления товара
+        product.title = request.form.get('title')
+        product.description = request.form.get('description')
+        product.price = float(request.form.get('price'))
+        product.category_id = request.form.get('category_id')
+        
+        db.session.commit()
+        flash('Товар успешно обновлен', 'success')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    categories = Category.query.all()
+    return render_template('edit_product.html', product=product, categories=categories)
+
+@main.route('/product/<int:product_id>/delete', methods=['POST'])
+@login_required
+def delete_product(product_id):
+    product = Product.query.get_or_404(product_id)
+    
+    # Проверяем права доступа
+    if product.user_id != current_user.id and current_user.role != 'admin':
+        flash('У вас нет прав для удаления этого товара', 'error')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    try:
+        # Удаляем изображения товара из файловой системы
+        if product.images:
+            for image_filename in product.images:
+                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+                if os.path.exists(image_path):
+                    os.remove(image_path)
+                    print(f"🗑️ Удалено изображение: {image_filename}")
+        
+        # Удаляем товар из базы данных
+        db.session.delete(product)
+        db.session.commit()
+        
+        flash('Товар успешно удален', 'success')
+        return redirect(url_for('main.dashboard'))
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"❌ Ошибка при удалении товара: {e}")
+        flash('Ошибка при удалении товара', 'error')
+        return redirect(url_for('main.product_detail', product_id=product_id))
+
 @main.route('/test_upload', methods=['GET', 'POST'])
 def test_upload():
     if request.method == 'POST':
@@ -232,60 +353,6 @@ def profile():
         return redirect(url_for('main.profile'))
     
     return render_template('profile.html')
-
-@main.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
-@login_required
-def edit_product(product_id):
-    product = Product.query.get_or_404(product_id)
-    if product.user_id != current_user.id:
-        flash('У вас нет прав для редактирования этого товара', 'error')
-        return redirect(url_for('main.product_detail', product_id=product_id))
-    
-    if request.method == 'POST':
-        # Логика обновления товара
-        product.title = request.form.get('title')
-        product.description = request.form.get('description')
-        product.price = float(request.form.get('price'))
-        product.category_id = request.form.get('category_id')
-        
-        db.session.commit()
-        flash('Товар успешно обновлен', 'success')
-        return redirect(url_for('main.product_detail', product_id=product_id))
-    
-    categories = Category.query.all()
-    return render_template('edit_product.html', product=product, categories=categories)
-
-@main.route('/product/<int:product_id>/delete', methods=['POST'])
-@login_required
-def delete_product(product_id):
-    product = Product.query.get_or_404(product_id)
-    
-    # Проверяем права доступа
-    if product.user_id != current_user.id and current_user.role != 'admin':
-        flash('У вас нет прав для удаления этого товара', 'error')
-        return redirect(url_for('main.product_detail', product_id=product_id))
-    
-    try:
-        # Удаляем изображения товара из файловой системы
-        if product.images:
-            for image_filename in product.images:
-                image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
-                if os.path.exists(image_path):
-                    os.remove(image_path)
-                    print(f"🗑️ Удалено изображение: {image_filename}")
-        
-        # Удаляем товар из базы данных
-        db.session.delete(product)
-        db.session.commit()
-        
-        flash('Товар успешно удален', 'success')
-        return redirect(url_for('main.dashboard'))
-        
-    except Exception as e:
-        db.session.rollback()
-        print(f"❌ Ошибка при удалении товара: {e}")
-        flash('Ошибка при удалении товара', 'error')
-        return redirect(url_for('main.product_detail', product_id=product_id))
 
 @main.route('/admin/categories')
 @login_required

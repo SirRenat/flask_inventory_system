@@ -3,6 +3,19 @@
 {% block content %}
 <div class="container mt-4">
     <div class="product-details-container">
+        <!-- Баннер статуса -->
+        {% if product.status != product.STATUS_PUBLISHED %}
+        <div class="status-banner {% if product.status == product.STATUS_READY_FOR_PUBLICATION %}status-ready{% elif product.status == product.STATUS_UNPUBLISHED %}status-unpublished{% else %}status-review{% endif %}">
+            {% if product.status == product.STATUS_READY_FOR_PUBLICATION %}
+            ⏰ Срок публикации истек. Товар виден только вам.
+            {% elif product.status == product.STATUS_UNPUBLISHED %}
+            🚫 Товар снят с публикации. Виден только вам.
+            {% else %}
+            🔍 Товар находится на проверке
+            {% endif %}
+        </div>
+        {% endif %}
+        
         <div class="product-layout">
             <!-- Галерея изображений -->
             <div class="product-gallery">
@@ -41,6 +54,15 @@
                 
                 <div class="product-meta-info">
                     <div class="product-meta-item">
+                        <span class="product-meta-label">Статус:</span>
+                        <span class="product-meta-value status-badge status-{{ product.status }}">
+                            {{ product.status_text }}
+                            {% if product.status == product.STATUS_PUBLISHED and product.days_remaining > 0 %}
+                            (осталось {{ product.days_remaining }} дн.)
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="product-meta-item">
                         <span class="product-meta-label">Категория:</span>
                         <span class="product-meta-value">{{ product.category.name if product.category else 'Без категории' }}</span>
                     </div>
@@ -48,6 +70,12 @@
                         <span class="product-meta-label">Дата публикации:</span>
                         <span class="product-meta-value">{{ product.created_at.strftime('%d.%m.%Y') }}</span>
                     </div>
+                    {% if product.status == product.STATUS_PUBLISHED %}
+                    <div class="product-meta-item">
+                        <span class="product-meta-label">Действует до:</span>
+                        <span class="product-meta-value">{{ product.expires_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    {% endif %}
                     <div class="product-meta-item">
                         <span class="product-meta-label">Продавец:</span>
                         <span class="product-meta-value">{{ product.user.username }}</span>
@@ -61,6 +89,7 @@
                     </div>
                 </div>
                 
+                {% if product.status == product.STATUS_PUBLISHED or current_user.id == product.user_id %}
                 <div class="contact-section">
                     <h3>📞 Связаться с продавцом</h3>
                     <div class="contact-info">
@@ -80,6 +109,7 @@
                         </div>
                     </div>
                 </div>
+                {% endif %}
                 
                 {% if current_user.id == product.user_id or current_user.role == 'admin' %}
                 <div class="product-actions">
@@ -88,6 +118,40 @@
                        class="btn-edit">
                         ✏️ Редактировать
                     </a>
+                    {% endif %}
+                    
+                    <!-- Кнопка снять с публикации -->
+                    {% if product.status == product.STATUS_PUBLISHED and current_user.id == product.user_id %}
+                    <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" 
+                          method="POST" 
+                          style="display: inline;"
+                          onsubmit="return confirm('Снять товар с публикации? Он станет виден только вам.')">
+                        <button type="submit" class="btn-unpublish">
+                            🚫 Снять с публикации
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <!-- Кнопка опубликовать для архивных товаров -->
+                    {% if product.status == product.STATUS_READY_FOR_PUBLICATION and current_user.id == product.user_id %}
+                    <form action="{{ url_for('main.renew_product', product_id=product.id) }}" 
+                          method="POST" 
+                          style="display: inline;">
+                        <button type="submit" class="btn-publish">
+                            📢 Опубликовать
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    <!-- Кнопка опубликовать для снятых товаров -->
+                    {% if product.status == product.STATUS_UNPUBLISHED and current_user.id == product.user_id %}
+                    <form action="{{ url_for('main.renew_product', product_id=product.id) }}" 
+                          method="POST" 
+                          style="display: inline;">
+                        <button type="submit" class="btn-publish">
+                            📢 Опубликовать
+                        </button>
+                    </form>
                     {% endif %}
                     
                     <form action="{{ url_for('main.delete_product', product_id=product.id) }}" 
@@ -106,6 +170,44 @@
 </div>
 
 <style>
+.status-banner {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 500;
+    text-align: center;
+}
+
+.status-banner.status-ready {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.status-banner.status-unpublished {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    color: #c62828;
+}
+
+.status-banner.status-review {
+    background: #cce7ff;
+    border: 1px solid #99ceff;
+    color: #0066cc;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.status-1 { background: #d4edda; color: #155724; }
+.status-2 { background: #fff3cd; color: #856404; }
+.status-3 { background: #f8d7da; color: #721c24; }
+.status-4 { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
 .product-details-container {
     background: white;
     border-radius: 12px;
@@ -337,6 +439,52 @@
     text-decoration: none;
 }
 
+.btn-unpublish {
+    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-unpublish:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(255, 152, 0, 0.4);
+    color: white;
+}
+
+.btn-publish {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: var(--radius);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-publish:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.4);
+    color: white;
+}
+
 .btn-delete {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     color: white;
@@ -399,6 +547,8 @@
     }
     
     .btn-edit,
+    .btn-unpublish,
+    .btn-publish,
     .btn-delete {
         width: 100%;
         justify-content: center;
