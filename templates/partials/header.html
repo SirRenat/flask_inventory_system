@@ -33,7 +33,9 @@
             
             {% if current_user.is_authenticated %}
                 <div class="user-menu">
-                    <span class="user-name">{{ current_user.username }}</span>
+                    <a href="{{ url_for('main.profile') }}" class="user-name-link">
+                        <span class="user-name">{{ current_user.username }}</span>
+                    </a>
                 </div>
             {% endif %}
         </div>

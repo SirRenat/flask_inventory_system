@@ -203,7 +203,36 @@ def serve_uploaded_file(filename):
         print(f"❌ Файл не найден: {filename}")
         return "File not found", 404
 
-# ✅ ПРАВИЛЬНО ВЫНЕСЕНО ИЗ ФУНКЦИИ serve_uploaded_file
+@main.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    if request.method == 'POST':
+        # Обновление данных пользователя
+        current_user.username = request.form.get('username')
+        current_user.company_name = request.form.get('company_name')
+        current_user.inn = request.form.get('inn')
+        current_user.legal_address = request.form.get('legal_address')
+        current_user.contact_person = request.form.get('contact_person')
+        current_user.position = request.form.get('position')
+        current_user.phone = request.form.get('phone')
+        current_user.industry = request.form.get('industry')
+        current_user.about = request.form.get('about')
+        
+        # Если указан новый пароль
+        new_password = request.form.get('new_password')
+        if new_password and new_password.strip():
+            if len(new_password) < 6:
+                flash('Пароль должен содержать минимум 6 символов', 'error')
+                return redirect(url_for('main.profile'))
+            current_user.set_password(new_password)
+            flash('Пароль успешно изменен', 'success')
+        
+        db.session.commit()
+        flash('Данные успешно обновлены', 'success')
+        return redirect(url_for('main.profile'))
+    
+    return render_template('profile.html')
+
 @main.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_product(product_id):

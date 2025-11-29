@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1 class="page-title">Личный кабинет</h1>
+            <p class="profile-subtitle">Управление вашими данными</p>
+        </div>
+
+        <div class="profile-content">
+            <form method="POST" class="profile-form">
+                <div class="form-section">
+                    <h3 class="section-title">Основная информация</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Имя пользователя *</label>
+                            <input type="text" 
+                                   name="username" 
+                                   value="{{ current_user.username }}" 
+                                   class="form-control" 
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email *</label>
+                            <input type="email" 
+                                   value="{{ current_user.email }}" 
+                                   class="form-control" 
+                                   disabled
+                                   title="Email нельзя изменить">
+                            <small class="form-text">Email нельзя изменить</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Название компании *</label>
+                        <input type="text" 
+                               name="company_name" 
+                               value="{{ current_user.company_name or '' }}" 
+                               class="form-control" 
+                               required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">ИНН *</label>
+                            <input type="text" 
+                                   name="inn" 
+                                   value="{{ current_user.inn or '' }}" 
+                                   class="form-control" 
+                                   required 
+                                   maxlength="12">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Отрасль</label>
+                            <select name="industry" class="form-control">
+                                <option value="">Выберите отрасль</option>
+                                <option value="it" {% if current_user.industry == 'it' %}selected{% endif %}>IT</option>
+                                <option value="production" {% if current_user.industry == 'production' %}selected{% endif %}>Производство</option>
+                                <option value="trade" {% if current_user.industry == 'trade' %}selected{% endif %}>Торговля</option>
+                                <option value="services" {% if current_user.industry == 'services' %}selected{% endif %}>Услуги</option>
+                                <option value="construction" {% if current_user.industry == 'construction' %}selected{% endif %}>Строительство</option>
+                                <option value="other" {% if current_user.industry == 'other' %}selected{% endif %}>Другое</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Контактная информация</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Контактное лицо *</label>
+                            <input type="text" 
+                                   name="contact_person" 
+                                   value="{{ current_user.contact_person or '' }}" 
+                                   class="form-control" 
+                                   required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Должность</label>
+                            <input type="text" 
+                                   name="position" 
+                                   value="{{ current_user.position or '' }}" 
+                                   class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Телефон *</label>
+                            <input type="tel" 
+                                   name="phone" 
+                                   value="{{ current_user.phone or '' }}" 
+                                   class="form-control" 
+                                   required 
+                                   placeholder="+7 (999) 999-99-99">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Юридический адрес</label>
+                        <textarea name="legal_address" 
+                                  class="form-control" 
+                                  rows="3">{{ current_user.legal_address or '' }}</textarea>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3 class="section-title">Безопасность</h3>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Новый пароль</label>
+                        <input type="password" 
+                               name="new_password" 
+                               class="form-control" 
+                               placeholder="Оставьте пустым, если не хотите менять пароль">
+                        <small class="form-text">Минимум 6 символов</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Подтверждение пароля</label>
+                        <input type="password" 
+                               name="confirm_password" 
+                               class="form-control" 
+                               placeholder="Повторите новый пароль">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Сохранить изменения</button>
+                    <a href="{{ url_for('main.dashboard') }}" class="btn-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    overflow: hidden;
+}
+
+.profile-header {
+    background: linear-gradient(135deg, var(--avito-blue) 0%, var(--avito-blue-hover) 100%);
+    color: white;
+    padding: 32px;
+    text-align: center;
+}
+
+.profile-header .page-title {
+    color: white;
+    margin-bottom: 8px;
+    font-size: 32px;
+}
+
+.profile-subtitle {
+    opacity: 0.9;
+    font-size: 16px;
+}
+
+.profile-content {
+    padding: 32px;
+}
+
+.form-section {
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.form-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--avito-blue);
+    border-radius: 2px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    transition: all 0.2s;
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--avito-blue);
+    box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
+}
+
+.form-control:disabled {
+    background: var(--background-secondary);
+    color: var(--text-tertiary);
+    cursor: not-allowed;
+}
+
+.form-text {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-light);
+}
+
+@media (max-width: 768px) {
+    .profile-container {
+        margin: 0 16px;
+    }
+    
+    .profile-content {
+        padding: 20px;
+    }
+    
+    .profile-header {
+        padding: 24px 20px;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.profile-form');
+    const newPassword = form.querySelector('input[name="new_password"]');
+    const confirmPassword = form.querySelector('input[name="confirm_password"]');
+    
+    form.addEventListener('submit', function(e) {
+        if (newPassword.value && newPassword.value.length < 6) {
+            e.preventDefault();
+            alert('Пароль должен содержать минимум 6 символов');
+            newPassword.focus();
+            return;
+        }
+        
+        if (newPassword.value !== confirmPassword.value) {
+            e.preventDefault();
+            alert('Пароли не совпадают');
+            confirmPassword.focus();
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

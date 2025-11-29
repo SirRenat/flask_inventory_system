@@ -1131,3 +1131,50 @@ select:focus-visible {
 .mt-24 {
     margin-top: 24px;
 }
+
+/* Стили для кликабельного имени пользователя */
+.user-name-link {
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+}
+
+.user-name-link:hover {
+    color: var(--avito-blue);
+    background: var(--avito-blue-light);
+    border-color: var(--avito-blue);
+    text-decoration: none;
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.user-name-link:hover .user-name {
+    color: var(--avito-blue);
+}
+
+/* Добавляем иконку профиля */
+.user-name-link::before {
+    content: '👤';
+    font-size: 14px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .user-name-link::before {
+        content: ''; /* Скрываем иконку на мобильных */
+    }
+    
+    .user-name-link {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+}
