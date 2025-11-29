@@ -25,16 +25,28 @@ class Category(db.Model):
                               backref=db.backref('parent', remote_side=[id]),
                               lazy='dynamic')
 
+# ⭐ ДОБАВЛЯЕМ МОДЕЛЬ ЕДИНИЦ ИЗМЕРЕНИЯ
+class Unit(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)  # шт, кг, м, упаковка
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return self.name
+
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
     price = db.Column(db.Float)
+    quantity = db.Column(db.Float, default=1)  # ⭐ ДОБАВИТЬ количество
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
+    unit_id = db.Column(db.Integer, db.ForeignKey('unit.id'), nullable=True)  # ⭐ ДОБАВИТЬ единицу измерения
     images = db.Column(db.JSON, default=[])
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     category = db.relationship('Category', backref='products')
+    unit = db.relationship('Unit', backref='products')  # ⭐ ДОБАВИТЬ связь
