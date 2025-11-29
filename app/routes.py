@@ -11,6 +11,18 @@ main = Blueprint('main', __name__, template_folder='../templates')
 @main.route('/simple_test')
 def simple_test():
     return "SIMPLE TEST WORKS!"
+@main.route('/health')
+def health():
+    return "✅ Приложение работает!"
+
+@main.route('/create-tables')
+def create_tables():
+    try:
+        from app import db
+        db.create_all()
+        return "✅ Таблицы созданы!"
+    except Exception as e:
+        return f"❌ Ошибка: {str(e)}"
 
 @main.route('/')
 def index():
