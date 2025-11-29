@@ -1,3 +1,6 @@
+def create_app():
+    app = Flask(__name__)
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -34,9 +37,11 @@ def create_app():
     # Регистрация blueprint
     from app.routes import main
     from app.auth import auth
+    from app.admin import admin
     
     app.register_blueprint(main)
     app.register_blueprint(auth)
+    app.register_blueprint(admin)
 
     # ⭐ ДОБАВЛЯЕМ СОЗДАНИЕ ДАННЫХ ДЛЯ ПРОДАКШЕНА
     with app.app_context():
@@ -85,4 +90,4 @@ def create_app():
         
         print("🎉 Продакшен база данных инициализирована")
 
-    return app  # ⭐ ТОЛЬКО ОДИН RETURN
+    return app  

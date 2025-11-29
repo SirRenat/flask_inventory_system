@@ -1,7 +1,7 @@
-from flask import Blueprint
+from flask import Blueprint, render_template
 
-admin = Blueprint('admin', __name__)
+admin = Blueprint('admin', __name__, url_prefix='/admin')
 
-@admin.route('/admin')
+@admin.route('/')
 def admin_panel():
-    return "Админ панель - скоро будет готова"
+    return render_template('admin.html')  # или временная заглушка
