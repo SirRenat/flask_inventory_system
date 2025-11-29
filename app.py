@@ -126,46 +126,7 @@ with app.app_context():
             print(f"  - {f}")
     print("=" * 50)
 
-# ROUTES - теперь app определена
-
-@app.route('/')
-def index():
-    from app.models import Product, Category
-    from flask import render_template
-    
-    # Получаем данные из БД
-    products = Product.query.filter_by(status='active').order_by(Product.created_at.desc()).all()
-    categories = Category.query.all()
-    
-    # Рендерим шаблон с данными
-    return render_template('main.html', products=products, categories=categories)
-
 setup_database()
-
-# ⚠️ УДАЛИ ЭТОТ КУСОК КОДА - он вызывает ошибку отступов
-# @app.before_first_request
-# def create_default_data():
-#     """Создает начальные категории и единицы измерения"""
-#     # Базовые категории
-#     default_categories = [
-#         'Электроника', 'Оборудование', 'Мебель', 
-#         'Стройматериалы', 'Тара и упаковка', 'Офисная техника',
-#         'Инструменты', 'Химия', 'Текстиль', 'Прочее'
-#     ]
-#     
-#     for cat_name in default_categories:
-#         if not Category.query.filter_by(name=cat_name).first():
-#             db.session.add(Category(name=cat_name))
-#     
-#     # Единицы измерения
-#     default_units = ['шт', 'кг', 'г', 'т', 'м', 'м²', 'м³', 'л', 'уп', 'упаковка']
-#     
-#     for unit_name in default_units:
-#         if not Unit.query.filter_by(name=unit_name).first():
-#             db.session.add(Unit(name=unit_name))
-#     
-#     db.session.commit()
-#     print("✅ Созданы базовые категории и единицы измерения")
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
