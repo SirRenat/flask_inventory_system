@@ -1,3 +1,4 @@
+
 /* Avito-specific styles */
 :root {
     --avito-blue: #0057FF;
@@ -471,9 +472,10 @@
     justify-content: space-between;
     width: 100%;
     cursor: pointer;
-    padding: 8px 0;
+    padding: 8px 12px;
     margin-bottom: 0;
     transition: all 0.2s;
+    border-radius: var(--radius);
 }
 
 .category-arrow {
@@ -485,18 +487,29 @@
 
 .category-item.has-children:hover .category-arrow {
     transform: rotate(90deg);
-    color: var(--avito-blue);
+    color: white;
 }
 
-/* ВЫДЕЛЕНИЕ РОДИТЕЛЬСКОЙ КАТЕГОРИИ ПРИ НАВЕДЕНИИ НА ПОДКАТЕГОРИИ */
-.category-item.has-children:hover {
-    color: var(--avito-blue);
-    background: var(--avito-blue-light);
-    border-radius: var(--radius);
+/* ВЫДЕЛЕНИЕ ПРИ НАВЕДЕНИИ - СИНИЙ ФОН И БЕЛЫЙ ТЕКСТ КАК НА АВИТО */
+.category-item.has-children:hover .category-main {
+    background: var(--avito-blue);
+    color: white;
 }
 
 .category-item.has-children:hover .category-name {
-    color: var(--avito-blue);
+    color: white;
+    font-weight: 500;
+}
+
+.category-item.has-children:hover .category-arrow {
+    color: white;
+}
+
+/* Стили для подкатегорий при наведении */
+.subcategory-item:hover {
+    background: var(--avito-blue);
+    color: white;
+    font-weight: 500;
 }
 
 .subcategories-list {
@@ -534,49 +547,42 @@
     position: relative;
     margin: 0;
     border: none !important;
-}
-
-.subcategory-item:hover {
-    color: var(--avito-blue);
-    background: var(--avito-blue-light);
-}
-
-/* ВЫДЕЛЕНИЕ РОДИТЕЛЬСКОЙ КАТЕГОРИИ ПРИ НАВЕДЕНИИ НА ПОДКАТЕГОРИЮ */
-.category-item.has-children .subcategories-list:hover ~ .category-main {
-    color: var(--avito-blue);
-    background: var(--avito-blue-light);
-}
-
-/* Активные состояния категорий - СИНЕЕ ОБРАМЛЕНИЕ И БЕЛЫЙ ФОН */
-.category-item.active,
-.subcategory-item.active {
-    background: var(--avito-blue) !important;
-    color: white !important;
-    font-weight: 600;
-    border: 2px solid var(--avito-blue);
     border-radius: var(--radius);
-    margin: 2px 0;
-    padding: 6px 12px;
+}
+
+/* УБРАНО СИНЕЕ ВЫДЕЛЕНИЕ ДЛЯ ВЫБРАННЫХ КАТЕГОРИЙ */
+/* Активные состояния категорий - ТОЛЬКО ТЕКСТ */
+.category-item.active .category-main,
+.subcategory-item.active {
+    color: var(--avito-blue) !important;
+    font-weight: 600;
+    background: transparent !important;
+    border: none !important;
 }
 
 .category-item.active .category-arrow,
 .subcategory-item.active {
-    color: white !important;
+    color: var(--avito-blue) !important;
 }
 
 .category-item.has-children.active .category-arrow {
     transform: rotate(90deg);
-    color: white !important;
+    color: var(--avito-blue) !important;
 }
 
-.category-item.active:hover,
+/* При наведении на активную категорию - синий фон и белый текст */
+.category-item.active:hover .category-main,
 .subcategory-item.active:hover {
     background: var(--avito-blue) !important;
     color: white !important;
-    border-color: var(--avito-blue);
 }
 
-/* Базовые стили для всех категорий - УБРАНЫ ЛИНИИ И УМЕНЬШЕНЫ ОТСТУПЫ */
+.category-item.active:hover .category-arrow,
+.subcategory-item.active:hover {
+    color: white !important;
+}
+
+/* Базовые стили для всех категорий */
 .categories-list {
     list-style: none;
     padding: 0;
@@ -584,7 +590,7 @@
 }
 
 .category-item {
-    padding: 6px 0;
+    padding: 2px 0;
     cursor: pointer;
     transition: all 0.2s;
     color: var(--text-primary);
@@ -596,8 +602,6 @@
 
 .category-item:hover {
     color: var(--avito-blue);
-    background: var(--avito-blue-light);
-    border-radius: var(--radius);
 }
 
 /* Стили для сайдбара */
@@ -825,9 +829,9 @@
     }
 
     /* Активное состояние для мобильных */
-    .category-item.active,
+    .category-item.active .category-main,
     .subcategory-item.active {
-        padding: 6px 12px;
+        padding: 8px 12px;
         margin: 2px 0;
     }
     
