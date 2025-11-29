@@ -1,59 +1,241 @@
 {% extends "base.html" %}
 
-{% block title %}{{ product.title }} - Система продажи неликвидов{% endblock %}
-
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
-    <div style="margin-bottom: 24px;">
-        <a href="{{ url_for('main.index') }}" class="btn-secondary">
-            <i class="fas fa-arrow-left"></i>
-            Назад к списку
-        </a>
-    </div>
-
-    <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
-            <div>
-                {% if product.images and product.images[0] %}
-                    <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" 
-                         alt="{{ product.title }}" 
-                         style="width: 100%; border-radius: 8px;">
+<div class="container mt-4">
+    <div class="product-detail">
+        <div class="product-layout">
+            <!-- Галерея изображений -->
+            <div class="product-gallery">
+                {% if product.images and product.images|length > 0 %}
+                    <div class="main-image">
+                        <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" 
+                             alt="{{ product.title }}" 
+                             id="mainImage">
+                    </div>
+                    {% if product.images|length > 1 %}
+                    <div class="image-thumbnails">
+                        {% for image in product.images %}
+                        <img src="{{ url_for('static', filename='uploads/' + image) }}" 
+                             alt="{{ product.title }}" 
+                             class="thumbnail {% if loop.first %}active{% endif %}"
+                             onclick="changeImage(this)">
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 {% else %}
-                    <div class="product-image" style="border-radius: 8px;">
-                        <i class="fas fa-box" style="font-size: 64px; color: #666;"></i>
+                    <div class="main-image no-image">
+                        <div class="no-image-placeholder">
+                            <i>📷</i>
+                            <span>Нет изображения</span>
+                        </div>
                     </div>
                 {% endif %}
             </div>
             
-            <div>
-                <span class="product-category">{{ product.category.name if product.category else 'Без категории' }}</span>
-                <h1 style="font-size: 28px; font-weight: 700; margin: 8px 0 16px 0;">{{ product.title }}</h1>
-                
-                <div style="margin-bottom: 24px;">
-                    <span style="font-size: 32px; font-weight: 700; color: var(--avito-blue);">
-                        {{ "%.2f"|format(product.price) }} ₽
-                    </span>
+            <!-- Информация о товаре -->
+            <div class="product-info">
+                <div class="product-header">
+                    <h1 class="product-title">{{ product.title }}</h1>
+                    <div class="product-price">{{ "%.2f"|format(product.price) }} ₽</div>
                 </div>
                 
-                <div style="margin-bottom: 24px;">
-                    <p><strong>Продавец:</strong> {{ product.author.company_name }}</p>
-                    <p><strong>Дата добавления:</strong> {{ product.created_at.strftime('%d.%m.%Y') }}</p>
-                    <p><strong>Статус:</strong> {{ 'Активно' if product.status == 'active' else 'Неактивно' }}</p>
+                <div class="product-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Категория:</span>
+                        <span class="meta-value">{{ product.category.name if product.category else 'Без категории' }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Дата публикации:</span>
+                        <span class="meta-value">{{ product.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Продавец:</span>
+                        <span class="meta-value">{{ product.user.username }}</span>
+                    </div>
                 </div>
                 
-                <button class="btn-primary" style="font-size: 18px; padding: 16px 32px;">
-                    <i class="fas fa-shopping-cart"></i>
-                    Купить сейчас
-                </button>
+                <div class="product-description">
+                    <h3>Описание</h3>
+                    <p>{{ product.description or 'Описание отсутствует' }}</p>
+                </div>
+                
+                <div class="product-actions">
+                    <button class="btn-primary btn-large">📞 Связаться с продавцом</button>
+                    {% if current_user.id == product.user_id %}
+                    <div class="owner-actions">
+                        <a href="#" class="btn-secondary">Редактировать</a>
+                        <a href="#" class="btn-warning">Удалить</a>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        
-        {% if product.description %}
-            <div>
-                <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">Описание</h3>
-                <p style="color: var(--text-primary); line-height: 1.6; white-space: pre-line;">{{ product.description }}</p>
-            </div>
-        {% endif %}
     </div>
 </div>
+
+<style>
+.product-detail {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+}
+
+.product-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+}
+
+.product-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.main-image {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.image-thumbnails {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.thumbnail {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    object-fit: cover;
+}
+
+.thumbnail.active,
+.thumbnail:hover {
+    border-color: var(--avito-blue);
+}
+
+.no-image-placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.no-image-placeholder i {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.product-header {
+    margin-bottom: 24px;
+}
+
+.product-title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.product-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--avito-blue);
+}
+
+.product-meta {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.meta-item {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.meta-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+    min-width: 120px;
+}
+
+.meta-value {
+    color: var(--text-primary);
+}
+
+.product-description h3 {
+    margin-bottom: 12px;
+    color: var(--text-primary);
+}
+
+.product-description p {
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.product-actions {
+    margin-top: 24px;
+}
+
+.btn-large {
+    padding: 16px 32px;
+    font-size: 18px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
+.owner-actions {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-warning {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #c82333;
+}
+
+@media (max-width: 768px) {
+    .product-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .main-image {
+        height: 300px;
+    }
+}
+</style>
+
+<script>
+function changeImage(thumb) {
+    const mainImage = document.getElementById('mainImage');
+    if (mainImage) {
+        mainImage.src = thumb.src;
+    }
+    
+    // Update active thumbnail
+    document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+    thumb.classList.add('active');
+}
+</script>
 {% endblock %}

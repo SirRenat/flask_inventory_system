@@ -10,13 +10,29 @@ main = Blueprint('main', __name__, template_folder='../templates')
 @main.route('/')
 def index():
     category_id = request.args.get('category_id')
-    if category_id:
-        products = Product.query.filter_by(category_id=category_id).all()
-    else:
-        products = Product.query.all()
+    search_term = request.args.get('search', '').strip()  # Добавляем поиск
     
+    # Базовый запрос
+    query = Product.query
+    
+    # Фильтрация по категории
+    if category_id:
+        query = query.filter_by(category_id=category_id)
+    
+    # Поиск по тексту
+    if search_term:
+        query = query.filter(
+            Product.title.ilike(f'%{search_term}%') | 
+            Product.description.ilike(f'%{search_term}%')
+        )
+    
+    products = query.all()
     categories = Category.query.all()
-    return render_template('main.html', products=products, categories=categories)
+    
+    return render_template('main.html', 
+                         products=products, 
+                         categories=categories,
+                         search_term=search_term)  # Передаем поисковый запрос в шаблон
 
 @main.route('/dashboard')
 @login_required
