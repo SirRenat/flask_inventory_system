@@ -1,9 +1,11 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_migrate import Migrate
 import os
 
 db = SQLAlchemy()
+migrate = Migrate()
 login_manager = LoginManager()
 
 @login_manager.user_loader
@@ -17,6 +19,7 @@ def create_app():
     
     # Инициализация расширений
     db.init_app(app)
+    migrate.init_app(app, db) 
     login_manager.init_app(app)
     
     # Создаем папку для загрузок если её нет
@@ -34,5 +37,7 @@ def create_app():
     
     app.register_blueprint(main)
     app.register_blueprint(auth)
+
+    return app
     
     return app
