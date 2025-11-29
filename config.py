@@ -16,3 +16,7 @@ class Config:
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+    
+    # ⭐ ДОБАВЛЯЕМ НАСТРОЙКИ ДЛЯ ЗАГРУЗКИ ФАЙЛОВ
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
