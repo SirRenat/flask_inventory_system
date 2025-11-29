@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Отладка регистрации{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>🔧 Отладка регистрации</h2>
+    
+    <form method="POST" action="{{ url_for('auth.register') }}">
+        <div class="form-group">
+            <label class="form-label">Email (для теста):</label>
+            <input type="email" name="email" class="form-control" value="test@company.ru" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Пароль:</label>
+            <input type="password" name="password" class="form-control" value="123456" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Подтверждение пароля:</label>
+            <input type="password" name="confirm_password" class="form-control" value="123456" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Название организации:</label>
+            <input type="text" name="company_name" class="form-control" value="Тестовая компания" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">ИНН:</label>
+            <input type="text" name="inn" class="form-control" value="1234567890" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Юридический адрес:</label>
+            <input type="text" name="legal_address" class="form-control" value="г. Москва" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Контактное лицо:</label>
+            <input type="text" name="contact_person" class="form-control" value="Иван Иванов" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Должность:</label>
+            <input type="text" name="position" class="form-control" value="Менеджер" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Телефон:</label>
+            <input type="tel" name="phone" class="form-control" value="+79991234567" required>
+        </div>
+        
+        <div class="form-group">
+            <div class="form-check">
+                <input type="checkbox" name="agree_terms" class="form-check-input" id="agree_terms" checked required>
+                <label class="form-check-label" for="agree_terms">Согласен с условиями</label>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn-primary">Тест регистрации</button>
+    </form>
+    
+    <div class="mt-4">
+        <h4>Проверка формы:</h4>
+        <button onclick="testForm()" class="btn-secondary">Проверить JavaScript</button>
+        <div id="testResult" class="mt-2"></div>
+    </div>
+</div>
+
+<script>
+function testForm() {
+    const form = document.querySelector('form');
+    const result = document.getElementById('testResult');
+    
+    // Проверяем обязательные поля
+    const requiredFields = form.querySelectorAll('[required]');
+    let missingFields = [];
+    
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            missingFields.push(field.name);
+        }
+    });
+    
+    if (missingFields.length > 0) {
+        result.innerHTML = `<p style="color: red;">❌ Отсутствуют поля: ${missingFields.join(', ')}</p>`;
+    } else {
+        result.innerHTML = `<p style="color: green;">✅ Все обязательные поля заполнены</p>`;
+    }
+    
+    // Проверяем чекбокс
+    const checkbox = document.getElementById('agree_terms');
+    if (!checkbox.checked) {
+        result.innerHTML += `<p style="color: red;">❌ Не отмечен чекбокс согласия</p>`;
+    }
+}
+
+// Автопроверка при загрузке
+document.addEventListener('DOMContentLoaded', testForm);
+</script>
+{% endblock %}

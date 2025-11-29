@@ -46,7 +46,7 @@ def create_app():
         db.create_all()
         
         # Импортируем функции создания данных
-        from app.models import Category, Unit, User
+        from app.models import Category, User
         from werkzeug.security import generate_password_hash
         
         # Создаем категории если их нет
@@ -58,32 +58,27 @@ def create_app():
                 db.session.add(Category(name=cat_name))
             db.session.commit()
             print("✅ Категории созданы")
-        
-        # Создаем единицы измерения если их нет
-        if Unit.query.count() == 0:
-            print("🔄 Создаем единицы измерения на продакшене...")
-            units = ['шт', 'кг', 'м', 'упаковка']
-            for unit_name in units:
-                db.session.add(Unit(name=unit_name))
-            db.session.commit()
-            print("✅ Единицы измерения созданы")
-        
+          
         # Создаем администратора если его нет
         admin_email = 'admin@example.com'
         if not User.query.filter_by(email=admin_email).first():
-            print("🔄 Создаем администратора на продакшене...")
-            hashed_password = generate_password_hash('admin123')
+            print("🔄 Создаем администратора...")
             admin_user = User(
-                company_name='Администратор системы',
                 email=admin_email,
-                password_hash=hashed_password,
-                phone='+7 (999) 123-45-67',
-                inn='1234567890',
-                role='admin'
+                company_name='Администратор системы',
+                inn='0000000000',
+                legal_address='г. Москва',
+                contact_person='Администратор',
+                position='Системный администратор',
+                phone='+79990000000',
+                industry='it',
+                username='admin'
             )
+            admin_user.set_password('admin123')
+            
             db.session.add(admin_user)
             db.session.commit()
-            print('✅ Администратор создан')
+            print("✅ Администратор создан")
         
         print("🎉 Продакшен база данных инициализирована")
 

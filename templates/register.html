@@ -5,40 +5,89 @@
 {% block content %}
 <div class="form-container">
     <div class="page-header text-center mb-4">
-        <h1 class="page-title">Регистрация</h1>
-        <p class="page-subtitle">Создайте новый аккаунт</p>
+        <h1 class="page-title">Регистрация организации</h1>
+        <p class="page-subtitle">Создайте аккаунт для вашей компании</p>
     </div>
     
     <form method="POST">
         <div class="form-group">
-            <label class="form-label">Имя пользователя</label>
+            <label class="form-label">Название организации *</label>
             <input type="text" 
-                   name="username" 
+                   name="company_name" 
                    class="form-control" 
-                   placeholder="Ваше имя" 
+                   placeholder="ООО 'Ромашка'" 
                    required>
         </div>
         
         <div class="form-group">
-            <label class="form-label">Email</label>
+            <label class="form-label">ИНН *</label>
+            <input type="text" 
+                   name="inn" 
+                   class="form-control" 
+                   placeholder="1234567890" 
+                   maxlength="12"
+                   pattern="[0-9]{10,12}"
+                   required>
+            <small class="text-muted">10 цифр для юрлиц, 12 для ИП</small>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Юридический адрес *</label>
+            <input type="text" 
+                   name="legal_address" 
+                   class="form-control" 
+                   placeholder="г. Москва, ул. Примерная, д. 1" 
+                   required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">ФИО контактного лица *</label>
+            <input type="text" 
+                   name="contact_person" 
+                   class="form-control" 
+                   placeholder="Иванов Иван Иванович" 
+                   required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Должность *</label>
+            <input type="text" 
+                   name="position" 
+                   class="form-control" 
+                   placeholder="Менеджер по закупкам" 
+                   required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Телефон *</label>
+            <input type="tel" 
+                   name="phone" 
+                   class="form-control" 
+                   placeholder="+7 (999) 123-45-67" 
+                   required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Email *</label>
             <input type="email" 
                    name="email" 
                    class="form-control" 
-                   placeholder="your@email.com" 
+                   placeholder="contact@company.ru" 
                    required>
         </div>
         
         <div class="form-group">
-            <label class="form-label">Пароль</label>
+            <label class="form-label">Пароль *</label>
             <input type="password" 
                    name="password" 
                    class="form-control" 
-                   placeholder="Придумайте пароль" 
+                   placeholder="Придумайте надежный пароль" 
+                   minlength="6"
                    required>
         </div>
         
         <div class="form-group">
-            <label class="form-label">Подтверждение пароля</label>
+            <label class="form-label">Подтверждение пароля *</label>
             <input type="password" 
                    name="confirm_password" 
                    class="form-control" 
@@ -46,8 +95,45 @@
                    required>
         </div>
         
+        <div class="form-group">
+            <label class="form-label">Сфера деятельности</label>
+            <select name="industry" class="form-select">
+                <option value="">-- Выберите сферу деятельности --</option>
+                <option value="production">Производство</option>
+                <option value="wholesale">Оптовая торговля</option>
+                <option value="retail">Розничная торговля</option>
+                <option value="services">Услуги</option>
+                <option value="logistics">Логистика</option>
+                <option value="construction">Строительство</option>
+                <option value="it">IT-технологии</option>
+                <option value="other">Другое</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">О компании</label>
+            <textarea name="about" 
+                      class="form-control" 
+                      rows="3" 
+                      placeholder="Краткое описание деятельности компании"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <div class="form-check">
+                <input type="checkbox" 
+                       name="agree_terms" 
+                       class="form-check-input" 
+                       id="agree_terms" 
+                       required>
+                <label class="form-check-label" for="agree_terms">
+                    Я согласен с <a href="#" class="text-avito-blue">условиями использования</a> 
+                    и <a href="#" class="text-avito-blue">политикой конфиденциальности</a> *
+                </label>
+            </div>
+        </div>
+        
         <button type="submit" class="btn-primary" style="width: 100%;">
-            Зарегистрироваться
+            Зарегистрировать организацию
         </button>
     </form>
     
@@ -60,4 +146,21 @@
         </p>
     </div>
 </div>
+
+<style>
+.form-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.form-check-input {
+    margin-top: 0.2rem;
+}
+
+.form-check-label {
+    font-size: 14px;
+    line-height: 1.4;
+}
+</style>
 {% endblock %}

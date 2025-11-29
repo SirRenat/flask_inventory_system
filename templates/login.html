@@ -5,8 +5,8 @@
 {% block content %}
 <div class="form-container">
     <div class="page-header text-center mb-4">
-        <h1 class="page-title">Вход в систему</h1>
-        <p class="page-subtitle">Войдите в свой аккаунт</p>
+        <h1 class="page-title">Вход для организаций</h1>
+        <p class="page-subtitle">Войдите в корпоративный аккаунт</p>
     </div>
     
     <form method="POST">
@@ -15,7 +15,7 @@
             <input type="email" 
                    name="email" 
                    class="form-control" 
-                   placeholder="your@email.com" 
+                   placeholder="contact@company.ru" 
                    required>
         </div>
         
@@ -29,15 +29,15 @@
         </div>
         
         <button type="submit" class="btn-primary" style="width: 100%;">
-            Войти
+            Войти в систему
         </button>
     </form>
     
     <div class="text-center mt-4">
         <p class="text-muted">
-            Нет аккаунта? 
+            Нет корпоративного аккаунта? 
             <a href="{{ url_for('auth.register') }}" class="text-avito-blue">
-                Зарегистрируйтесь
+                Зарегистрируйте организацию
             </a>
         </p>
     </div>

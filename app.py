@@ -1,50 +1,13 @@
 from app import create_app, db
-from app.models import User, Category, Product, Unit  # ← ДОБАВИТЬ Unit
+from app.models import User, Category, Product  # ← УДАЛЕН Unit
 import json
 from werkzeug.security import generate_password_hash
 from flask import render_template
+import os
 
 app = create_app()
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.jinja_env.auto_reload = True
-
-def setup_database():
-    with app.app_context():
-        # Создаем структуру категорий если её нет
-        create_default_categories()
-        
-        # Создаем единицы измерения если их нет
-        create_default_units()  # ← ДОБАВИТЬ
-        
-        # Создаем первого администратора если его нет
-        admin_email = 'admin@example.com'
-        admin_user = User.query.filter_by(email=admin_email).first()
-        if not admin_user:
-            hashed_password = generate_password_hash('admin123')
-            admin_user = User(
-                company_name='Администратор системы',
-                email=admin_email,
-                password_hash=hashed_password,
-                phone='+7 (999) 123-45-67',
-                inn='1234567890',
-                role='admin'
-            )
-            db.session.add(admin_user)
-            db.session.commit()
-            print('✅ Создан администратор: admin@example.com / admin123')
-        
-        print("✅ База данных готова к работе")
-
-def create_default_units():  # ← ДОБАВИТЬ ЭТУ ФУНКЦИЮ
-    """Создает единицы измерения"""
-    default_units = ['шт', 'кг', 'г', 'т', 'м', 'м²', 'м³', 'л', 'уп', 'упаковка']
-    
-    for unit_name in default_units:
-        if not Unit.query.filter_by(name=unit_name).first():
-            db.session.add(Unit(name=unit_name))
-            print(f"✅ Создана единица измерения: {unit_name}")
-    
-    db.session.commit()
 
 def create_default_categories():
     """Создает готовую структуру категорий для неликвидов из JSON файла"""
@@ -100,17 +63,39 @@ def create_default_categories():
     else:
         print('ℹ️ Категории уже существуют в базе данных')
 
-# Затем все остальное в контексте приложения
+def setup_database():
+    with app.app_context():
+        # Создаем структуру категорий если её нет
+        create_default_categories()
+        
+        # Создаем первого администратора если его нет
+        admin_email = 'admin@example.com'
+        admin_user = User.query.filter_by(email=admin_email).first()
+        if not admin_user:
+            hashed_password = generate_password_hash('admin123')
+            admin_user = User(
+                company_name='Администратор системы',
+                email=admin_email,
+                password_hash=hashed_password,
+                phone='+7 (999) 123-45-67',
+                inn='1234567890',
+                role='admin'
+            )
+            db.session.add(admin_user)
+            db.session.commit()
+            print('✅ Создан администратор: admin@example.com / admin123')
+        
+        print("✅ База данных готова к работе")
+
+# Диагностика путей в контексте приложения
 with app.app_context():
-    # ДОБАВЬТЕ ЭТОТ КОД ДЛЯ ПРОВЕРКИ
-    import os
     print("=" * 50)
     print("🔍 ДИАГНОСТИКА ПУТЕЙ:")
     print(f"Текущая рабочая папка: {os.getcwd()}")
     print(f"Папка проекта: {os.path.dirname(os.path.abspath(__file__))}")
 
     # Проверим конфигурацию
-    upload_folder = app.config['UPLOAD_FOLDER']
+    upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
     print(f"UPLOAD_FOLDER из конфига: {upload_folder}")
     print(f"Папка существует: {os.path.exists(upload_folder)}")
     
