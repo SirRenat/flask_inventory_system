@@ -40,46 +40,53 @@ def create_app():
     app.register_blueprint(auth)
     app.register_blueprint(admin)
 
-    # ⭐ ДОБАВЛЯЕМ СОЗДАНИЕ ДАННЫХ ДЛЯ ПРОДАКШЕНА
+    # ✅ СОВРЕМЕННЫЙ СПОСОБ ИНИЦИАЛИЗАЦИИ ДАННЫХ
     with app.app_context():
-        # Создаем таблицы
-        db.create_all()
+        # Создаем таблицы (только для разработки)
+        if app.config.get('DEBUG', False):
+            db.create_all()
+            print("✅ Таблицы созданы (режим разработки)")
         
-        # Импортируем функции создания данных
-        from app.models import Category, User
-        from werkzeug.security import generate_password_hash
-        
-        # Создаем категории если их нет
-        if Category.query.count() == 0:
-            print("🔄 Создаем категории на продакшене...")
-            # Базовые категории
-            categories = ['Электроника', 'Оборудование', 'Мебель', 'Стройматериалы']
-            for cat_name in categories:
-                db.session.add(Category(name=cat_name))
-            db.session.commit()
-            print("✅ Категории созданы")
-          
-        # Создаем администратора если его нет
-        admin_email = 'admin@example.com'
-        if not User.query.filter_by(email=admin_email).first():
-            print("🔄 Создаем администратора...")
-            admin_user = User(
-                email=admin_email,
-                company_name='Администратор системы',
-                inn='0000000000',
-                legal_address='г. Москва',
-                contact_person='Администратор',
-                position='Системный администратор',
-                phone='+79990000000',
-                industry='it',
-                username='admin'
-            )
-            admin_user.set_password('admin123')
+        # Инициализация данных
+        try:
+            from app.models import Category, User
+            import os
             
-            db.session.add(admin_user)
-            db.session.commit()
-            print("✅ Администратор создан")
-        
-        print("🎉 Продакшен база данных инициализирована")
+            # Создаем категории если их нет
+            if Category.query.count() == 0:
+                print("🔄 Создаем категории...")
+                categories = ['Электроника', 'Оборудование', 'Мебель', 'Стройматериалы']
+                for cat_name in categories:
+                    db.session.add(Category(name=cat_name))
+                db.session.commit()
+                print("✅ Категории созданы")
+            
+            # Создаем администратора если его нет
+            admin_email = os.environ.get('ADMIN_EMAIL', 'admin@example.com')
+            admin_password = os.environ.get('ADMIN_PASSWORD', 'admin123')
+            
+            if not User.query.filter_by(email=admin_email).first():
+                print("🔄 Создаем администратора...")
+                admin_user = User(
+                    email=admin_email,
+                    company_name='Администратор системы',
+                    inn='0000000000',
+                    legal_address='г. Москва',
+                    contact_person='Администратор',
+                    position='Системный администратор',
+                    phone='+79990000000',
+                    industry='it',
+                    username='admin'
+                )
+                admin_user.set_password(admin_password)
+                
+                db.session.add(admin_user)
+                db.session.commit()
+                print("✅ Администратор создан")
+            
+            print("🎉 База данных инициализирована")
+            
+        except Exception as e:
+            print(f"❌ Ошибка инициализации данных: {e}")
 
     return app

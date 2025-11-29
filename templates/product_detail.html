@@ -8,14 +8,14 @@
             <div class="product-gallery">
                 {% if product.images and product.images|length > 0 %}
                     <div class="main-image">
-                        <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" 
+                        <img src="/uploads/{{ product.images[0] }}" 
                              alt="{{ product.title }}" 
                              id="mainImage">
                     </div>
                     {% if product.images|length > 1 %}
                     <div class="image-thumbnails">
                         {% for image in product.images %}
-                        <img src="{{ url_for('static', filename='uploads/' + image) }}" 
+                        <img src="/uploads/{{ image }}" 
                              alt="{{ product.title }}" 
                              class="thumbnail {% if loop.first %}active{% endif %}"
                              onclick="changeImage(this)">
