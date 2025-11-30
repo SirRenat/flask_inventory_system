@@ -22,3 +22,19 @@ class ProductForm(FlaskForm):
         self.unit_id.choices = [(0, 'Выберите единицу')] + [
             (unit.id, unit.name) for unit in Unit.query.order_by('name').all()
         ]
+        
+class EditProductForm(FlaskForm):
+    title = StringField('Название товара', validators=[DataRequired()])
+    description = TextAreaField('Описание')
+    price = FloatField('Цена', validators=[DataRequired()])
+    category_id = SelectField('Категория', coerce=int, validators=[Optional()])
+    images = StringField('Изображения (URL через запятую)')
+    status = SelectField('Статус', choices=[
+        ('1', 'Опубликован'),
+        ('2', 'Готов к публикации'), 
+        ('3', 'На проверке'),
+        ('4', 'Не опубликован')
+    ], validators=[DataRequired()])
+    expires_at = DateTimeField('Действует до', format='%Y-%m-%dT%H:%M', validators=[Optional()])
+    is_active = BooleanField('Активный товар')
+    submit = SubmitField('Сохранить изменения')

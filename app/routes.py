@@ -152,20 +152,57 @@ def unpublish_product(product_id):
 @login_required
 def edit_product(product_id):
     product = Product.query.get_or_404(product_id)
-    if product.user_id != current_user.id:
+    
+    # Проверка прав доступа
+    if product.user_id != current_user.id and not current_user.is_admin():
         flash('У вас нет прав для редактирования этого товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
     
     if request.method == 'POST':
-        # Логика обновления товара
-        product.title = request.form.get('title')
-        product.description = request.form.get('description')
-        product.price = float(request.form.get('price'))
-        product.category_id = request.form.get('category_id')
-        
-        db.session.commit()
-        flash('Товар успешно обновлен', 'success')
-        return redirect(url_for('main.product_detail', product_id=product_id))
+        try:
+            # Обработка данных формы
+            product.title = request.form.get('title')
+            product.description = request.form.get('description')
+            product.price = float(request.form.get('price'))
+            product.category_id = request.form.get('category_id') if request.form.get('category_id') else None
+            product.status = int(request.form.get('status'))
+            
+            # Обработка expires_at
+            expires_at_str = request.form.get('expires_at')
+            if expires_at_str:
+                product.expires_at = datetime.strptime(expires_at_str, '%Y-%m-%dT%H:%M')
+            else:
+                product.expires_at = None
+                
+            product.is_active = 'is_active' in request.form
+            
+            # Обработка изображений
+            images_input = request.form.get('images', '').strip()
+            if images_input:
+                # Если введены новые URL изображений
+                product.images = images_input
+            # Если поле images пустое - сохраняем текущие изображения
+            # Не перезаписываем product.images если поле пустое
+            
+            # Обработка загруженных файлов
+            uploaded_files = request.files.getlist('image_files')
+            if uploaded_files and any(f.filename for f in uploaded_files):
+                saved_images = save_uploaded_files(uploaded_files)
+                if saved_images:
+                    # Добавляем новые изображения к существующим
+                    current_images = product.images if product.images else []
+                    if isinstance(current_images, str):
+                        # Если images хранится как строка, преобразуем в список
+                        current_images = [img.strip() for img in current_images.split(',') if img.strip()]
+                    product.images = current_images + saved_images
+            
+            db.session.commit()
+            flash('Товар успешно обновлен', 'success')
+            return redirect(url_for('main.product_detail', product_id=product_id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ошибка при обновлении товара: {str(e)}', 'error')
     
     categories = Category.query.all()
     return render_template('edit_product.html', product=product, categories=categories)
@@ -434,6 +471,11 @@ def clear_categories():
     from app.models import Category
     
     try:
+        # Сначала обнуляем category_id у всех продуктов
+        Product.query.update({Product.category_id: None})
+        db.session.commit()
+        
+        # Затем удаляем категории
         count = Category.query.count()
         Category.query.delete()
         db.session.commit()
