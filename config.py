@@ -1,3 +1,4 @@
+# config.py
 import os
 
 class Config:
@@ -11,12 +12,12 @@ class Config:
         SQLALCHEMY_DATABASE_URI = DATABASE_URL
         DEBUG = False
         print(f"🚀 ПРОДАКШЕН: Используется PostgreSQL с Render")
-        print(f"🔗 DATABASE_URL: {DATABASE_URL}")
     else:
-        # Для локальной разработки - наш новый PostgreSQL
-        SQLALCHEMY_DATABASE_URI = 'postgresql://dev_user:dev_password@localhost:5432/nelikvidy_dev'
+        # Для локальной разработки - с указанием client_encoding
+        SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@localhost:5432/flask_inventory?client_encoding=utf8'
         DEBUG = True
-        print("💻 РАЗРАБОТКА: Используется локальный PostgreSQL")
+        print("💻 РАЗРАБОТКА: Используется локальный PostgreSQL с UTF-8")
+        print(f"🔗 База: flask_inventory")
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
