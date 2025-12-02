@@ -16,9 +16,8 @@ def index():
     category_id = request.args.get('category_id')
     search_term = request.args.get('search', '').strip()
     
-    # ВРЕМЕННО: показываем все товары до завершения миграции
-    query = Product.query
-    # ПОТОМ ВЕРНУТЬ: query = Product.query.filter_by(status=Product.STATUS_PUBLISHED)
+    # ТЕПЕРЬ ФИЛЬТРУЕМ ТОЛЬКО ОПУБЛИКОВАННЫЕ ТОВАРЫ
+    query = Product.query.filter_by(status=Product.STATUS_PUBLISHED)
     
     # Фильтрация по категории
     if category_id:
@@ -31,14 +30,15 @@ def index():
             Product.description.ilike(f'%{search_term}%')
         )
     
-    products = query.all()
+    # Сортируем по дате создания (новые первыми)
+    products = query.order_by(Product.created_at.desc()).all()
     categories = Category.query.all()
     
     return render_template('main.html', 
                          products=products, 
                          categories=categories,
                          search_term=search_term)
-
+                         
 @main.route('/dashboard')
 @login_required
 def dashboard():
@@ -57,9 +57,22 @@ def product_detail(product_id):
     product = Product.query.get_or_404(product_id)
     
     # Проверяем, может ли пользователь видеть товар
-    if not product.can_be_viewed_by_public and (not current_user.is_authenticated or current_user.id != product.user_id):
-        flash('Этот товар недоступен для просмотра', 'error')
-        return redirect(url_for('main.index'))
+    # 1. Опубликованные товары видны всем
+    # 2. Неопубликованные товары видны только владельцу или администратору
+    # 3. Товары "готов к публикации" видны только владельцу или администратору
+    
+    if product.status == Product.STATUS_PUBLISHED:
+        # Опубликованные товары видны всем
+        pass
+    else:
+        # Для неопубликованных товаров проверяем права
+        if not current_user.is_authenticated:
+            flash('Этот товар недоступен для просмотра', 'error')
+            return redirect(url_for('main.index'))
+        
+        if current_user.id != product.user_id and current_user.role != 'admin':
+            flash('Этот товар недоступен для просмотра', 'error')
+            return redirect(url_for('main.index'))
     
     return render_template('product_detail.html', product=product)
 
@@ -260,7 +273,7 @@ def edit_product(product_id):
     
     categories = Category.query.all()
     return render_template('edit_product.html', product=product, categories=categories)
-    
+
 @main.route('/product/<int:product_id>/delete', methods=['POST'])
 @login_required
 def delete_product(product_id):

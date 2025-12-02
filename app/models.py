@@ -148,3 +148,23 @@ class Product(db.Model):
     
     def __repr__(self):
         return f'<Product {self.title}>'
+
+    def is_visible_to(self, user):
+        """Проверяет, может ли пользователь видеть товар"""
+        # Опубликованные товары видны всем
+        if self.status == self.STATUS_PUBLISHED:
+            return True
+        
+        # Если пользователь не авторизован
+        if not user or not user.is_authenticated:
+            return False
+        
+        # Владелец и администраторы могут видеть все свои товары
+        if user.id == self.user_id or user.role == 'admin':
+            return True
+        
+        return False
+    
+    def can_be_viewed_by_public(self):
+        """Может ли товар быть просмотрен другими пользователями"""
+        return self.status == self.STATUS_PUBLISHED
