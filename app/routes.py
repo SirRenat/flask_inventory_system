@@ -90,17 +90,27 @@ def add_product():
             quantity = request.form.get('quantity', 1)
             manufacturer = request.form.get('manufacturer')
             
+            # ВАЛИДАЦИЯ: проверяем все обязательные поля
             if not title:
                 flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.add_product'))
             if not price:
                 flash('Цена товара обязательна для заполнения', 'error')
                 return redirect(url_for('main.add_product'))
-            if not category_id:
+
+            # Валидация category_id с преобразованием в int
+            category_id_str = request.form.get('category_id', '').strip()
+            if not category_id_str:
                 flash('Категория товара обязательна для выбора', 'error')
                 return redirect(url_for('main.add_product'))
-            
-            category = Category.query.get(int(category_id))
+
+            try:
+                category_id_int = int(category_id_str)
+            except (ValueError, TypeError):
+                flash('Некорректный выбор категории', 'error')
+                return redirect(url_for('main.add_product'))
+
+            category = Category.query.get(category_id_int)
             if not category:
                 flash('Выбранная категория не существует', 'error')
                 return redirect(url_for('main.add_product'))
@@ -136,7 +146,7 @@ def add_product():
                 price=float(price),
                 quantity=int(quantity),
                 manufacturer=manufacturer,
-                category_id=int(category_id),
+                category_id=category_id_int,
                 user_id=current_user.id,
                 images=saved_images if saved_images else None,
                 status=Product.STATUS_PUBLISHED

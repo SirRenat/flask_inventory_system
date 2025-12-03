@@ -513,7 +513,7 @@
                             </div>
                             <div class="product-info">
                                 <div class="product-category">
-                                    {{ product.category.name if product.category else 'Без категории' }}
+                                    {{ product.product_category.name if product.product_category else 'Без категории' }}
                                 </div>
                                 <div class="product-name">{{ product.title }}</div>
                                 <!-- Добавлено количество просмотров -->
@@ -524,7 +524,7 @@
                                     <span class="current-price">{{ "%.2f"|format(product.price) }} ₽</span>
                                 </div>
                                 <div class="product-meta">
-                                    <span class="category">{{ product.category.name if product.category else 'Без категории' }}</span>
+                                    <span class="category">{{ product.product_category.name if product.product_category else 'Без категории' }}</span>
                                     <span class="date">{{ product.created_at.strftime('%d.%m.%Y') }}</span>
                                 </div>
                             </div>

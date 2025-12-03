@@ -88,7 +88,7 @@
                             
                             <div class="spec-item">
                                 <span class="spec-label">Категория</span>
-                                <span class="spec-value">{{ product.category.name if product.category else 'Не указана' }}</span>
+                                <span class="spec-value">{{ product.product_category.name if product.product_category else 'Не указана' }}</span>
                             </div>
                             
                             <div class="spec-item">
@@ -135,7 +135,7 @@
                             
                             <span class="meta-tag category-tag">
                                 <i class="tag-icon">📂</i>
-                                {{ product.category.name if product.category else 'Без категории' }}
+                                {{ product.product_category.name if product.product_category else 'Без категории' }}
                             </span>
                             
                             <span class="meta-tag date-tag">
