@@ -1,4 +1,4 @@
-<!-- edit_product.html -->
+<!-- edit_product.html - с поддержкой обрезки изображений -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -14,7 +14,7 @@
             </a>
         </div>
         
-        <form method="POST" enctype="multipart/form-data" class="edit-product-form">
+        <form method="POST" enctype="multipart/form-data" class="edit-product-form" id="editProductForm">
              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-grid">
                 <!-- Основная информация -->
@@ -92,7 +92,7 @@
                         <div class="alert-icon">ℹ️</div>
                         <div class="alert-content">
                             <strong>Максимум 8 изображений всего</strong>
-                            <span>Текущие: {{ product.images|length if product.images else 0 }}/8</span>
+                            <span id="image-counter">Текущие: {{ product.images|length if product.images else 0 }}/8</span>
                         </div>
                     </div>
                     
@@ -113,6 +113,19 @@
                         </div>
                     </div>
                     
+                    <!-- Croppie Modal -->
+                    <div id="cropper-modal" class="cropper-modal" style="display: none;">
+                        <div class="cropper-content">
+                            <h3>Обрежьте изображение</h3>
+                            <p class="cropper-hint">Подгоните изображение под карточку (соотношение 3:2)</p>
+                            <div id="cropper-container" style="width: 100%; max-width: 400px; margin: 0 auto;"></div>
+                            <div class="cropper-actions">
+                                <button type="button" class="btn btn-secondary" onclick="closeCropper()">Отмена</button>
+                                <button type="button" class="btn btn-primary" onclick="applyCrop()">Применить</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Предпросмотр новых изображений -->
                     <div id="new-images-preview" class="new-images-preview" style="display: none;">
                         <h4>Новые изображения:</h4>
@@ -123,13 +136,17 @@
                     {% if product.images and product.images|length > 0 %}
                     <div class="existing-images">
                         <h4>Текущие изображения:</h4>
-                        <div class="existing-images-grid">
+                        <div class="existing-images-grid" id="existing-images-grid">
                             {% for image in product.images %}
-                            <div class="existing-image-item" id="image-{{ loop.index0 }}">
+                            <div class="existing-image-item" id="existing-image-{{ loop.index0 }}">
                                 <div class="existing-image-wrapper">
                                     <img src="/uploads/{{ image }}" 
                                         alt="Изображение {{ loop.index }}"
                                         onerror="this.src='/static/images/no-image.png'">
+                                    <button type="button" class="btn-edit-existing" 
+                                            onclick="editExistingImage('{{ image }}', {{ loop.index0 }})">
+                                        ✏️
+                                    </button>
                                     <button type="button" class="btn-remove-existing" 
                                             onclick="removeExistingImage('{{ image }}', {{ loop.index0 }})">
                                         <svg width="16" height="16" viewBox="0 0 16 16">
@@ -143,6 +160,8 @@
                         </div>
                         <!-- Скрытое поле для удаленных изображений -->
                         <input type="hidden" name="removed_images" id="removed_images" value="">
+                        <!-- Скрытое поле для отредактированных изображений -->
+                        <input type="hidden" name="edited_images_data" id="edited_images_data" value="">
                     </div>
                     {% endif %}
                 </div>  
@@ -508,22 +527,38 @@
     transform: scale(1.05);
 }
 
-.btn-remove-existing {
+.btn-edit-existing, .btn-remove-existing {
     position: absolute;
     top: 4px;
-    right: 4px;
-    background: rgba(255, 59, 48, 0.9);
-    color: white;
     border: none;
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 0;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.btn-edit-existing {
+    right: 30px;
+    background: rgba(0, 87, 255, 0.8);
+    color: white;
+}
+
+.btn-edit-existing:hover {
+    background: var(--avito-blue);
+    transform: scale(1.1);
+}
+
+.btn-remove-existing {
+    right: 4px;
+    background: rgba(255, 59, 48, 0.9);
+    color: white;
 }
 
 .btn-remove-existing:hover {
@@ -547,8 +582,46 @@
     border: 2px dashed #FF3B30;
 }
 
-.existing-image-item.removed .btn-remove-existing {
+.existing-image-item.removed .btn-remove-existing,
+.existing-image-item.removed .btn-edit-existing {
     display: none;
+}
+
+/* Croppie Modal */
+.cropper-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.cropper-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    text-align: center;
+}
+
+.cropper-hint {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin: 0 0 15px 0;
+}
+
+.cropper-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
 }
 
 /* Кнопки действий */
@@ -662,205 +735,260 @@
         width: 80px;
         height: 80px;
     }
+    
+    .btn-edit-existing {
+        right: 24px;
+        width: 18px;
+        height: 18px;
+    }
+    
+    .btn-remove-existing {
+        right: 2px;
+        width: 18px;
+        height: 18px;
+    }
 }
 </style>
 
+<!-- Подключаем Croppie -->
+<link rel="stylesheet" href="https://unpkg.com/croppie@2.6.5/croppie.css">
+<script src="https://unpkg.com/croppie@2.6.5/croppie.min.js"></script>
+
 <script>
 let removedExistingImages = [];
-let newImages = [];
-
-// Предпросмотр новых изображений
-function previewNewImages(input) {
-    const previewContainer = document.getElementById('new-images-container');
-    const previewMainContainer = document.getElementById('new-images-preview');
-    
-    if (input.files && input.files.length > 0) {
-        // Получаем количество текущих изображений (не удаленных)
-        const currentImagesCount = document.querySelectorAll('.existing-image-item:not(.removed)').length;
-        const totalImages = currentImagesCount + input.files.length;
-        
-        if (totalImages > 8) {
-            alert('Максимальное количество изображений - 8! У вас уже есть ' + currentImagesCount + ' изображений.');
-            input.value = '';
-            return;
-        }
-        
-        if (input.files.length > 8) {
-            alert('Можно выбрать не более 8 изображений!');
-            input.value = '';
-            return;
-        }
-        
-        newImages = Array.from(input.files);
-        previewContainer.innerHTML = '';
-        previewMainContainer.style.display = 'block';
-        
-        newImages.forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const div = document.createElement('div');
-                div.className = 'existing-image-item';
-                div.innerHTML = `
-                    <div class="existing-image-wrapper">
-                        <img src="${e.target.result}" alt="Новое изображение ${index + 1}">
-                    </div>
-                    <div class="image-number">Новое ${index + 1}</div>
-                `;
-                previewContainer.appendChild(div);
-            };
-            reader.readAsDataURL(file);
-        });
-    }
-}
-
-// Удаление существующих изображений
-function removeExistingImage(imageName, index) {
-    if (confirm('Удалить это изображение?')) {
-        removedExistingImages.push(imageName);
-        
-        const hiddenInput = document.getElementById('removed_images');
-        hiddenInput.value = removedExistingImages.join(',');
-        
-        // Показываем эффект удаления
-        const imageElement = document.getElementById(`image-${index}`);
-        if (imageElement) {
-            imageElement.style.opacity = '0.5';
-            imageElement.classList.add('removed');
-            imageElement.querySelector('.btn-remove-existing').style.display = 'none';
-            imageElement.querySelector('.existing-image-wrapper').style.border = '2px dashed #FF3B30';
-        }
-        
-        alert('Изображение будет удалено после сохранения изменений');
-    }
-}
-
-// Drag & drop для новых файлов
-const uploadArea = document.getElementById('file-upload-area');
-const fileInput = document.getElementById('image_files');
-
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = 'var(--avito-blue)';
-    uploadArea.style.background = 'rgba(0, 87, 255, 0.1)';
-});
-
-uploadArea.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = 'var(--border)';
-    uploadArea.style.background = 'var(--background-secondary)';
-});
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.style.borderColor = 'var(--border)';
-    uploadArea.style.background = 'var(--background-secondary)';
-    
-    if (e.dataTransfer.files.length) {
-        fileInput.files = e.dataTransfer.files;
-        previewNewImages(fileInput);
-    }
-});
+let newImages = []; // {file, croppedBlob, croppedFile}
+let editedExistingImages = {}; // filename => {blob, file}
+let croppieInstance = null;
+let currentCropMode = null; // 'new' или 'existing'
+let currentFileIndex = null;
+let currentExistingFilename = null;
 
 // Инициализация
 document.addEventListener('DOMContentLoaded', function() {
-    fileInput.addEventListener('change', function() {
-        previewNewImages(this);
+    const fileInput = document.getElementById('image_files');
+    const uploadArea = document.getElementById('file-upload-area');
+
+    fileInput.addEventListener('change', handleNewFileSelect);
+
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = 'var(--avito-blue)';
+        uploadArea.style.background = 'rgba(0, 87, 255, 0.1)';
     });
-    
-    // Инициализируем скрытое поле для удаленных изображений, если его нет
-    if (!document.getElementById('removed_images')) {
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'removed_images';
-        hiddenInput.id = 'removed_images';
-        hiddenInput.value = '';
-        document.querySelector('form').appendChild(hiddenInput);
-    }
-});
-// Проверка и обновление счетчика изображений при изменении
-function updateImageCounter() {
-    const currentCount = document.querySelectorAll('.existing-image-item:not(.removed)').length;
-    const newCount = document.querySelectorAll('#new-images-container .existing-image-item').length;
-    const total = currentCount + newCount;
-    
-    // Обновляем отображение счетчика
-    const alertElement = document.querySelector('.alert-content span');
-    if (alertElement) {
-        alertElement.textContent = `Текущие: ${currentCount} + новые: ${newCount} = ${total}/8`;
-    }
-    
-    // Подсвечиваем если превышен лимит
-    if (total > 8) {
-        uploadArea.style.borderColor = '#FF3B30';
-        uploadArea.style.background = 'rgba(255, 59, 48, 0.1)';
-    } else {
+
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
         uploadArea.style.borderColor = 'var(--border)';
         uploadArea.style.background = 'var(--background-secondary)';
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.style.borderColor = 'var(--border)';
+        uploadArea.style.background = 'var(--background-secondary)';
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleNewFileSelect({ target: fileInput });
+        }
+    });
+
+    uploadArea.addEventListener('click', function(e) {
+        if (e.target === uploadArea || e.target.closest('.upload-placeholder')) {
+            fileInput.click();
+        }
+    });
+
+    updateImageCounter();
+});
+
+function handleNewFileSelect(event) {
+    const files = Array.from(event.target.files);
+    const currentCount = getActualImageCount();
+    const total = currentCount + files.length;
+
+    if (total > 8) {
+        alert(`Максимум 8 изображений! У вас уже ${currentCount}, вы пытаетесь добавить ${files.length}.`);
+        event.target.value = '';
+        return;
     }
+
+    if (files.some(f => f.size > 5 * 1024 * 1024)) {
+        alert('Файл слишком большой! Максимум 5 МБ.');
+        event.target.value = '';
+        return;
+    }
+
+    newImages = files.map(file => ({
+        originalFile: file,
+        croppedBlob: null,
+        croppedFile: null,
+        url: URL.createObjectURL(file)
+    }));
+
+    renderNewImagesPreview();
+    document.getElementById('new-images-preview').style.display = 'block';
+    updateImageCounter();
 }
 
-// Обновляем функцию removeExistingImage
+function renderNewImagesPreview() {
+    const container = document.getElementById('new-images-container');
+    container.innerHTML = '';
+
+    newImages.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'existing-image-item';
+        div.innerHTML = `
+            <div class="existing-image-wrapper" onclick="openCropperForNew(${index})">
+                <img src="${item.croppedBlob ? URL.createObjectURL(item.croppedBlob) : item.url}" alt="Новое">
+                <button type="button" class="btn-edit-existing" style="right:30px;">✏️</button>
+            </div>
+            <div class="image-number">Новое ${index + 1}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function editExistingImage(filename, index) {
+    const imageUrl = `/uploads/${filename}`;
+    currentCropMode = 'existing';
+    currentExistingFilename = filename;
+    openCropper(imageUrl);
+}
+
+function openCropperForNew(index) {
+    currentCropMode = 'new';
+    currentFileIndex = index;
+    const imageUrl = newImages[index].url;
+    openCropper(imageUrl);
+}
+
+function openCropper(imageUrl) {
+    const container = document.getElementById('cropper-container');
+    container.innerHTML = '';
+
+    croppieInstance = new Croppie(container, {
+        viewport: { width: 300, height: 200, type: 'rectangle' },
+        boundary: { width: 350, height: 250 },
+        enableOrientation: true,
+        enableZoom: true,
+        mouseWheelZoom: true
+    });
+
+    croppieInstance.bind({ url: imageUrl });
+    document.getElementById('cropper-modal').style.display = 'flex';
+}
+
+function closeCropper() {
+    if (croppieInstance) {
+        croppieInstance.destroy();
+        croppieInstance = null;
+    }
+    document.getElementById('cropper-modal').style.display = 'none';
+    currentCropMode = null;
+    currentFileIndex = null;
+    currentExistingFilename = null;
+}
+
+function applyCrop() {
+    if (!croppieInstance) return;
+
+    croppieInstance.result({
+        type: 'blob',
+        size: { width: 600, height: 400 },
+        format: 'jpeg',
+        quality: 0.92
+    }).then(blob => {
+        const now = new Date().getTime();
+        if (currentCropMode === 'new' && currentFileIndex !== null) {
+            const originalFile = newImages[currentFileIndex].originalFile;
+            const newFile = new File([blob], originalFile.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: now
+            });
+            newImages[currentFileIndex].croppedBlob = blob;
+            newImages[currentFileIndex].croppedFile = newFile;
+            renderNewImagesPreview();
+        } else if (currentCropMode === 'existing' && currentExistingFilename) {
+            const newFile = new File([blob], currentExistingFilename.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: now
+            });
+            editedExistingImages[currentExistingFilename] = {
+                blob: blob,
+                file: newFile
+            };
+            // Обновим превью
+            const img = document.querySelector(`#existing-image-${Object.keys(editedExistingImages).indexOf(currentExistingFilename)} img`);
+            if (img) {
+                img.src = URL.createObjectURL(blob);
+            }
+        }
+
+        closeCropper();
+        updateImageCounter();
+    });
+}
+
 function removeExistingImage(imageName, index) {
     if (confirm('Удалить это изображение?')) {
         removedExistingImages.push(imageName);
-        
-        const hiddenInput = document.getElementById('removed_images');
-        hiddenInput.value = removedExistingImages.join(',');
-        
-        // Показываем эффект удаления
-        const imageElement = document.getElementById(`image-${index}`);
-        if (imageElement) {
-            imageElement.classList.add('removed');
-            updateImageCounter();
-        }
-        
-        alert('Изображение будет удалено после сохранения изменений');
+        document.getElementById('removed_images').value = removedExistingImages.join(',');
+
+        const el = document.getElementById(`existing-image-${index}`);
+        if (el) el.classList.add('removed');
+
+        // Удаляем из edited, если редактировалось
+        delete editedExistingImages[imageName];
+
+        updateImageCounter();
+        alert('Изображение будет удалено после сохранения');
     }
 }
 
-// Обновляем функцию previewNewImages
-function previewNewImages(input) {
-    const previewContainer = document.getElementById('new-images-container');
-    const previewMainContainer = document.getElementById('new-images-preview');
+function getActualImageCount() {
+    const existingCount = document.querySelectorAll('#existing-images-grid .existing-image-item:not(.removed)').length;
+    const newCount = newImages.length;
+    return existingCount + newCount;
+}
+
+function updateImageCounter() {
+    const count = getActualImageCount();
+    document.getElementById('image-counter').textContent = `Текущие: ${count}/8`;
     
-    if (input.files && input.files.length > 0) {
-        // Получаем количество текущих изображений (не удаленных)
-        const currentImagesCount = document.querySelectorAll('.existing-image-item:not(.removed)').length;
-        const totalImages = currentImagesCount + input.files.length;
-        
-        if (totalImages > 8) {
-            alert('Максимальное количество изображений - 8! У вас уже есть ' + currentImagesCount + ' изображений.');
-            input.value = '';
-            updateImageCounter();
-            return;
-        }
-        
-        newImages = Array.from(input.files);
-        previewContainer.innerHTML = '';
-        previewMainContainer.style.display = 'block';
-        
-        newImages.forEach((file, index) => {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const div = document.createElement('div');
-                div.className = 'existing-image-item';
-                div.innerHTML = `
-                    <div class="existing-image-wrapper">
-                        <img src="${e.target.result}" alt="Новое изображение ${index + 1}">
-                    </div>
-                    <div class="image-number">Новое ${index + 1}</div>
-                `;
-                previewContainer.appendChild(div);
-                updateImageCounter();
-            };
-            reader.readAsDataURL(file);
-        });
+    const uploadArea = document.getElementById('file-upload-area');
+    if (count >= 8) {
+        uploadArea.style.pointerEvents = 'none';
+        uploadArea.style.opacity = '0.6';
+    } else {
+        uploadArea.style.pointerEvents = 'auto';
+        uploadArea.style.opacity = '1';
     }
 }
 
-// Вызываем updateImageCounter при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    updateImageCounter();
+// Перед отправкой — подменяем файлы и сохраняем отредактированные
+document.getElementById('editProductForm').addEventListener('submit', function(e) {
+    const dataTransfer = new DataTransfer();
+
+    // Добавляем новые изображения (обрезанные или оригиналы)
+    newImages.forEach(item => {
+        if (item.croppedFile) {
+            dataTransfer.items.add(item.croppedFile);
+        } else {
+            dataTransfer.items.add(item.originalFile);
+        }
+    });
+
+    // Добавляем отредактированные существующие изображения
+    Object.values(editedExistingImages).forEach(item => {
+        dataTransfer.items.add(item.file);
+    });
+
+    // Обновляем input файлов
+    document.getElementById('image_files').files = dataTransfer.files;
+
+    // Сохраняем имена отредактированных файлов (чтобы сервер знал, что заменить)
+    const editedFilenames = Object.keys(editedExistingImages).join(',');
+    document.getElementById('edited_images_data').value = editedFilenames;
 });
 </script>
 {% endblock %}
