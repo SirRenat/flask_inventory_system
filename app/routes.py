@@ -1,4 +1,3 @@
-# routes.py
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory, current_app
 from flask_login import login_required, current_user
 from app import db
@@ -7,30 +6,32 @@ from datetime import datetime
 import os
 import uuid
 from werkzeug.utils import secure_filename
+from sqlalchemy.orm import joinedload
 
 # Создаем Blueprint ДО определения маршрутов
 main = Blueprint('main', __name__, template_folder='../templates')
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 @main.route('/')
 def index():
     category_id = request.args.get('category_id')
     search_term = request.args.get('search', '').strip()
     
-    # ТЕПЕРЬ ФИЛЬТРУЕМ ТОЛЬКО ОПУБЛИКОВАННЫЕ ТОВАРЫ
     query = Product.query.filter_by(status=Product.STATUS_PUBLISHED)
     
-    # Фильтрация по категории
     if category_id:
         query = query.filter_by(category_id=category_id)
     
-    # Поиск по тексту
     if search_term:
         query = query.filter(
             Product.title.ilike(f'%{search_term}%') | 
             Product.description.ilike(f'%{search_term}%')
         )
     
-    # Сортируем по дате создания (новые первыми)
+    query = query.options(joinedload(Product.product_category))
     products = query.order_by(Product.created_at.desc()).all()
     categories = Category.query.all()
     
@@ -42,34 +43,31 @@ def index():
 @main.route('/dashboard')
 @login_required
 def dashboard():
-    """Личный кабинет пользователя с его товарами"""
-    # Показываем все товары пользователя (включая неопубликованные)
-    user_products = Product.query.filter_by(user_id=current_user.id).order_by(Product.created_at.desc()).all()
+    user_products = Product.query.options(joinedload(Product.product_category)).filter_by(user_id=current_user.id).order_by(Product.created_at.desc()).all()
     
-    # Обновляем статусы товаров при загрузке дашборда
-    for product in user_products:
-        if product.update_status():
-            db.session.commit()
+    expired_count = Product.query.filter(
+        Product.user_id == current_user.id,
+        Product.status == Product.STATUS_PUBLISHED,
+        Product.expires_at <= datetime.utcnow()
+    ).update({Product.status: Product.STATUS_READY_FOR_PUBLICATION})
     
-    # Передаем текущее время в шаблон для вычисления дней
+    if expired_count > 0:
+        db.session.commit()
+    
     return render_template('dashboard.html', 
                          products=user_products,
                          now=datetime.utcnow())
 
 @main.route('/product/<int:product_id>')
 def product_detail(product_id):
-    product = Product.query.get_or_404(product_id)
-    
-    # Проверяем, может ли пользователь видеть товар
-    # 1. Опубликованные товары видны всем
-    # 2. Неопубликованные товары видны только владельцу или администратору
-    # 3. Товары "готов к публикации" видны только владельцу или администратору
+    product = Product.query.options(
+        joinedload(Product.product_category),
+        joinedload(Product.owner)
+    ).get_or_404(product_id)
     
     if product.status == Product.STATUS_PUBLISHED:
-        # Опубликованные товары видны всем
         pass
     else:
-        # Для неопубликованных товаров проверяем права
         if not current_user.is_authenticated:
             flash('Этот товар недоступен для просмотра', 'error')
             return redirect(url_for('main.index'))
@@ -89,12 +87,9 @@ def add_product():
             description = request.form.get('description')
             price = request.form.get('price')
             category_id = request.form.get('category_id')
-            
-            # НОВЫЕ ПОЛЯ
             quantity = request.form.get('quantity', 1)
             manufacturer = request.form.get('manufacturer')
             
-            # ВАЛИДАЦИЯ: проверяем все обязательные поля
             if not title:
                 flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.add_product'))
@@ -105,13 +100,11 @@ def add_product():
                 flash('Категория товара обязательна для выбора', 'error')
                 return redirect(url_for('main.add_product'))
             
-            # Проверяем, что категория существует
             category = Category.query.get(int(category_id))
             if not category:
                 flash('Выбранная категория не существует', 'error')
                 return redirect(url_for('main.add_product'))
             
-            # Обработка загруженных файлов
             uploaded_files = request.files.getlist('image_files')
             saved_images = []
             
@@ -122,6 +115,10 @@ def add_product():
                 
                 for file in uploaded_files:
                     if file and file.filename:
+                        if not allowed_file(file.filename):
+                            flash('Недопустимый тип файла. Разрешены: png, jpg, jpeg, gif, webp', 'error')
+                            return redirect(url_for('main.add_product'))
+                        
                         filename = secure_filename(file.filename)
                         unique_filename = f"{uuid.uuid4().hex}_{filename}"
                         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
@@ -133,14 +130,13 @@ def add_product():
                 url_list = [url.strip() for url in image_urls.split(',') if url.strip()]
                 saved_images = url_list[:4]
             
-            # Создаем новый товар
             new_product = Product(
                 title=title,
                 description=description,
                 price=float(price),
                 quantity=int(quantity),
                 manufacturer=manufacturer,
-                category_id=int(category_id),  # Теперь категория обязательна
+                category_id=int(category_id),
                 user_id=current_user.id,
                 images=saved_images if saved_images else None,
                 status=Product.STATUS_PUBLISHED
@@ -160,7 +156,6 @@ def add_product():
             flash(f'Ошибка при добавлении товара: {str(e)}', 'error')
             return redirect(url_for('main.add_product'))
     
-    # Проверяем, что есть хотя бы одна категория
     categories = Category.query.all()
     if not categories:
         flash('Прежде чем добавлять товары, создайте хотя бы одну категорию', 'warning')
@@ -171,15 +166,12 @@ def add_product():
 @main.route('/product/<int:product_id>/renew', methods=['POST'])
 @login_required
 def renew_product(product_id):
-    """Продление публикации товара"""
     product = Product.query.get_or_404(product_id)
     
-    # Проверяем права доступа
     if product.user_id != current_user.id:
         flash('У вас нет прав для продления этого товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
     
-    # Проверяем, что товар готов к публикации или снят
     if product.status not in [Product.STATUS_READY_FOR_PUBLICATION, Product.STATUS_UNPUBLISHED]:
         flash('Этот товар нельзя опубликовать', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
@@ -197,15 +189,12 @@ def renew_product(product_id):
 @main.route('/product/<int:product_id>/unpublish', methods=['POST'])
 @login_required
 def unpublish_product(product_id):
-    """Снятие товара с публикации"""
     product = Product.query.get_or_404(product_id)
     
-    # Проверяем права доступа
     if product.user_id != current_user.id:
         flash('У вас нет прав для снятия этого товара с публикации', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
     
-    # Проверяем, что товар опубликован
     if product.status != Product.STATUS_PUBLISHED:
         flash('Этот товар уже не опубликован', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
@@ -231,7 +220,6 @@ def edit_product(product_id):
     
     if request.method == 'POST':
         try:
-            # ВАЛИДАЦИЯ: проверяем обязательные поля
             title = request.form.get('title')
             description = request.form.get('description')
             price = request.form.get('price')
@@ -247,27 +235,23 @@ def edit_product(product_id):
                 flash('Категория товара обязательна для выбора', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
             
-            # Проверяем, что категория существует
             category = Category.query.get(int(category_id))
             if not category:
                 flash('Выбранная категория не существует', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
             
-            # Обновляем данные
             product.title = title
             product.description = description
             product.price = float(price)
             product.quantity = int(request.form.get('quantity', 1))
             product.manufacturer = request.form.get('manufacturer')
-            product.category_id = int(category_id)  # Теперь категория обязательна
+            product.category_id = int(category_id)
             product.status = int(request.form.get('status'))
             
-            # Обработка expires_at
             expires_at_str = request.form.get('expires_at')
             if expires_at_str:
                 product.expires_at = datetime.strptime(expires_at_str, '%Y-%m-%dT%H:%M')
             
-            # Обработка изображений
             current_images = product.images if product.images else []
             if isinstance(current_images, str):
                 current_images = [img.strip() for img in current_images.split(',') if img.strip()]
@@ -287,6 +271,10 @@ def edit_product(product_id):
                 
                 for file in uploaded_files:
                     if file and file.filename:
+                        if not allowed_file(file.filename):
+                            flash('Недопустимый тип файла. Разрешены: png, jpg, jpeg, gif, webp', 'error')
+                            return redirect(url_for('main.edit_product', product_id=product_id))
+                        
                         filename = secure_filename(file.filename)
                         unique_filename = f"{uuid.uuid4().hex}_{filename}"
                         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
@@ -324,22 +312,18 @@ def edit_product(product_id):
 def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
     
-    # Проверяем права доступа
     if product.user_id != current_user.id and current_user.role != 'admin':
         flash('У вас нет прав для удаления этого товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
     
     try:
-        # Удаляем изображения товара из файловой системы
         if product.images:
             for image_filename in product.images:
                 if isinstance(image_filename, str) and not image_filename.startswith('http'):
                     image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
                     if os.path.exists(image_path):
                         os.remove(image_path)
-                        print(f"🗑️ Удалено изображение: {image_filename}")
         
-        # Удаляем товар из базы данных
         db.session.delete(product)
         db.session.commit()
         
@@ -348,143 +332,12 @@ def delete_product(product_id):
         
     except Exception as e:
         db.session.rollback()
-        print(f"❌ Ошибка при удалении товара: {e}")
         flash('Ошибка при удаления товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
 
-@main.route('/test_upload', methods=['GET', 'POST'])
-def test_upload():
-    if request.method == 'POST':
-        print("=" * 50)
-        print("🔍 ТЕСТ ЗАГРУЗКИ - НАЧАЛО")
-        
-        # Пробуем получить файлы из разных полей
-        uploaded_files = request.files.getlist('images')  # Старое поле
-        image_files = request.files.getlist('image_files')  # Новое поле
-        
-        print(f"🔍 Получено файлов из поля 'images': {len(uploaded_files)}")
-        print(f"🔍 Получено файлов из поля 'image_files': {len(image_files)}")
-        
-        # Используем новое поле
-        files_to_process = image_files if image_files else uploaded_files
-        
-        # Проверяем каждый файл
-        for i, file in enumerate(files_to_process):
-            if file and file.filename:
-                file.seek(0, 2)  # Переходим в конец файла
-                file_size = file.tell()
-                file.seek(0)  # Возвращаемся в начало
-                print(f"🔍 Файл {i}: '{file.filename}', размер: {file_size} байт")
-            else:
-                print(f"🔍 Файл {i}: ПУСТОЙ или без имени")
-        
-        upload_folder = current_app.config['UPLOAD_FOLDER']
-        print(f"🔍 Конфигурация UPLOAD_FOLDER: '{upload_folder}'")
-        
-        # Проверяем существование папки
-        print(f"🔍 Папка существует: {os.path.exists(upload_folder)}")
-        
-        # Показываем что в папке ДО сохранения
-        if os.path.exists(upload_folder):
-            files_before = os.listdir(upload_folder)
-            print(f"🔍 Файлов в папке ДО сохранения: {len(files_before)}")
-            for f in files_before[:5]:  # Показываем только первые 5
-                print(f"   - {f}")
-        
-        # Пробуем сохранить файлы
-        saved_files = []
-        for file in files_to_process:
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                unique_filename = f"{uuid.uuid4().hex}_{filename}"
-                file_path = os.path.join(upload_folder, unique_filename)
-                file.save(file_path)
-                saved_files.append(unique_filename)
-        
-        print(f"🔍 Сохранено файлов: {len(saved_files)}")
-        
-        # Показываем что в папке ПОСЛЕ сохранения
-        if os.path.exists(upload_folder):
-            files_after = os.listdir(upload_folder)
-            print(f"🔍 Файлов в папке ПОСЛЕ сохранения: {len(files_after)}")
-            new_files = set(files_after) - set(files_before)
-            for f in new_files:
-                full_path = os.path.join(upload_folder, f)
-                print(f"   - {f} (существует: {os.path.exists(full_path)})")
-        
-        print("🔍 ТЕСТ ЗАГРУЗКИ - КОНЕЦ")
-        print("=" * 50)
-        
-        return f'''
-        <h2>Результат теста</h2>
-        <p>Получено файлов: {len(files_to_process)}</p>
-        <p>Сохранено файлов: {len(saved_files)}</p>
-        <p>Проверьте консоль Python для подробной информации</p>
-        <a href="/test_upload">Еще раз</a>
-        '''
-    
-    return '''
-    <h2>Тест загрузки файлов - УЛУЧШЕННАЯ ВЕРСИЯ</h2>
-    <form method="POST" enctype="multipart/form-data">
-        <h3>Тест нового поля (image_files):</h3>
-        <input type="file" name="image_files" multiple>
-        <h3>Тест старого поля (images):</h3>
-        <input type="file" name="images" multiple>
-        <br><br>
-        <button type="submit">Тест загрузки</button>
-    </form>
-    '''
-
-@main.route('/debug_products')
-def debug_products():
-    products = Product.query.all()
-    result = []
-    for product in products:
-        images = product.images
-        if isinstance(images, str):
-            images = [img.strip() for img in images.split(',') if img.strip()]
-        
-        result.append({
-            'id': product.id,
-            'title': product.title,
-            'images': images,
-            'has_images': bool(images and len(images) > 0),
-            'image_count': len(images) if images else 0,
-            'category': product.category.name if product.category else 'No category'
-        })
-    return {'products': result}
-
-@main.route('/check_uploads')
-def check_uploads():
-    upload_folder = current_app.config['UPLOAD_FOLDER']
-    
-    result = {
-        'config_path': upload_folder,
-        'folder_exists': os.path.exists(upload_folder),
-        'files': []
-    }
-    
-    if os.path.exists(upload_folder):
-        files = os.listdir(upload_folder)
-        result['file_count'] = len(files)
-        
-        for filename in files[:20]:  # Ограничиваем вывод
-            full_path = os.path.join(upload_folder, filename)
-            result['files'].append({
-                'name': filename,
-                'exists': os.path.exists(full_path),
-                'size': os.path.getsize(full_path) if os.path.exists(full_path) else 0,
-                'full_path': full_path
-            })
-    
-    return result
-
 @main.route('/uploads/<filename>')
 def serve_uploaded_file(filename):
-    """Обслуживает загруженные файлы из папки uploads"""
     upload_folder = current_app.config['UPLOAD_FOLDER']
-    
-    # Проверяем существование файла
     file_path = os.path.join(upload_folder, filename)
     if os.path.exists(file_path):
         return send_from_directory(upload_folder, filename)
@@ -495,7 +348,6 @@ def serve_uploaded_file(filename):
 @login_required
 def profile():
     if request.method == 'POST':
-        # Обновление данных пользователя
         current_user.username = request.form.get('username')
         current_user.company_name = request.form.get('company_name')
         current_user.inn = request.form.get('inn')
@@ -506,7 +358,6 @@ def profile():
         current_user.industry = request.form.get('industry')
         current_user.about = request.form.get('about')
         
-        # Если указан новый пароль
         new_password = request.form.get('new_password')
         if new_password and new_password.strip():
             if len(new_password) < 6:
@@ -524,13 +375,10 @@ def profile():
 @main.route('/admin/categories', methods=['GET', 'POST'])
 @login_required
 def admin_categories():
-    """Админка управления категориями"""
-    
     if request.method == 'POST':
         action = request.form.get('action')
         
         if action == 'add_category':
-            # Добавить новую категорию
             name = request.form.get('name')
             parent_id = request.form.get('parent_id') or None
             description = request.form.get('description')
@@ -539,7 +387,6 @@ def admin_categories():
                 flash('Название категории обязательно', 'error')
                 return redirect(url_for('main.admin_categories'))
             
-            # Проверяем, не существует ли уже такая категория
             existing_category = Category.query.filter_by(name=name, parent_id=parent_id).first()
             if existing_category:
                 flash('Такая категория уже существует', 'error')
@@ -559,22 +406,18 @@ def admin_categories():
                 flash(f'Ошибка при добавлении категории: {str(e)}', 'error')
         
         elif action == 'edit_category':
-            # Редактировать категорию (заглушка)
             category_id = request.form.get('category_id')
             flash('Редактирование категорий пока недоступно', 'info')
         
         elif action == 'delete_category':
-            # Удалить категорию
             category_id = request.form.get('category_id')
             if category_id:
                 category = Category.query.get(category_id)
                 if category:
-                    # Проверяем, есть ли дочерние категории
                     children = Category.query.filter_by(parent_id=category_id).all()
                     if children:
                         flash(f'Нельзя удалить категорию "{category.name}" - у нее есть дочерние категории', 'error')
                     else:
-                        # Проверяем, есть ли товары в этой категории
                         products_in_category = Product.query.filter_by(category_id=category_id).count()
                         if products_in_category > 0:
                             flash(f'Нельзя удалить категорию "{category.name}" - в ней есть товары', 'error')
@@ -586,11 +429,9 @@ def admin_categories():
                     flash('Категория не найдена', 'error')
         
         elif action == 'clear_empty':
-            # Удалить пустые категории
             categories = Category.query.all()
             deleted_count = 0
             for cat in categories:
-                # Проверяем, нет ли товаров и дочерних категорий
                 products_count = Product.query.filter_by(category_id=cat.id).count()
                 children_count = Category.query.filter_by(parent_id=cat.id).count()
                 
@@ -606,11 +447,8 @@ def admin_categories():
         
         return redirect(url_for('main.admin_categories'))
     
-    # GET запрос - показать страницу
     categories = Category.query.all()
     parent_categories = Category.query.filter_by(parent_id=None).all()
-    
-    # Подсчитываем общее количество товаров
     total_products = Product.query.count()
     
     return render_template('admin_categories.html', 
@@ -621,7 +459,6 @@ def admin_categories():
 @main.route('/admin/upload-categories', methods=['POST'])
 @login_required
 def upload_categories():
-    """Загрузка категорий из JSON файла"""
     import json
     
     if 'categories_file' not in request.files:
@@ -638,13 +475,9 @@ def upload_categories():
         return redirect(url_for('main.admin_categories'))
     
     try:
-        # Читаем и парсим JSON
         categories_data = json.load(file)
-        
-        # Очищаем старые категории
         Category.query.delete()
         
-        # Создаем новые категории
         parent_count = 0
         child_count = 0
         
@@ -667,7 +500,6 @@ def upload_categories():
                 child_count += 1
         
         db.session.commit()
-        
         flash(f'✅ Загружено {parent_count} родительских и {child_count} дочерних категорий!', 'success')
         
     except Exception as e:
@@ -679,14 +511,10 @@ def upload_categories():
 @main.route('/admin/clear-categories', methods=['POST'])
 @login_required
 def clear_categories():
-    """Очистка всех категорий"""
-    
     try:
-        # Сначала обнуляем category_id у всех продуктов
         Product.query.update({Product.category_id: None})
         db.session.commit()
         
-        # Затем удаляем категории
         count = Category.query.count()
         Category.query.delete()
         db.session.commit()
@@ -699,7 +527,6 @@ def clear_categories():
 
 @main.route('/update_expired_products')
 def update_expired_products():
-    """Обновление статусов просроченных товаров"""
     expired_products = Product.query.filter(
         Product.status == Product.STATUS_PUBLISHED,
         Product.expires_at < datetime.utcnow()

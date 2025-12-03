@@ -1,3 +1,4 @@
+# auth.py
 from flask import Blueprint, render_template, request, flash, redirect, url_for
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -10,38 +11,30 @@ auth = Blueprint('auth', __name__)
 def register():
     if request.method == 'POST':
         try:
-            # Получаем данные из формы
             email = request.form['email']
             password = request.form['password']
             confirm_password = request.form['confirm_password']
-            username = request.form.get('username') or email.split('@')[0]  # ✅ Получаем username
+            username = request.form.get('username') or email.split('@')[0]
             
-            # Проверяем пароли
             if password != confirm_password:
                 flash('Пароли не совпадают', 'error')
                 return redirect(url_for('auth.register'))
             
-            # Проверяем, существует ли пользователь
-            existing_user_by_email = User.query.filter_by(email=email).first()
-            if existing_user_by_email:
+            if User.query.filter_by(email=email).first():
                 flash('Пользователь с таким email уже существует', 'error')
                 return redirect(url_for('auth.register'))
             
-            # Проверяем, существует ли username
-            existing_user_by_username = User.query.filter_by(username=username).first()
-            if existing_user_by_username:
+            if User.query.filter_by(username=username).first():
                 flash('Пользователь с таким именем пользователя уже существует', 'error')
                 return redirect(url_for('auth.register'))
             
-            # Проверяем согласие с условиями
             if 'agree_terms' not in request.form:
                 flash('Необходимо согласие с условиями использования', 'error')
                 return redirect(url_for('auth.register'))
             
-            # Создаем нового пользователя
             new_user = User(
                 email=email,
-                username=username,  # ✅ Сохраняем username
+                username=username,
                 company_name=request.form['company_name'],
                 inn=request.form['inn'],
                 legal_address=request.form['legal_address'],
@@ -53,12 +46,13 @@ def register():
             )
             new_user.set_password(password)
             
-            # Сохраняем в базу
             db.session.add(new_user)
             db.session.commit()
             
-            flash('Регистрация успешна! Теперь вы можете войти в систему.', 'success')
-            return redirect(url_for('auth.login'))
+            # Автоматический вход после регистрации
+            login_user(new_user)
+            flash('Регистрация успешна! Вы вошли в систему.', 'success')
+            return redirect(url_for('main.dashboard'))
             
         except Exception as e:
             db.session.rollback()

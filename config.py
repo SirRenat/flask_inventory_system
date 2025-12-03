@@ -1,4 +1,3 @@
-# config.py - ОБНОВЛЕННАЯ ВЕРСИЯ
 import os
 import tempfile
 
@@ -33,8 +32,8 @@ class Config:
         DEBUG = True
         print("💻 РАЗРАБОТКА: Локальный PostgreSQL")
         
-        # Локальная папка
-        UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+        # ← ИСПРАВЛЕНО: путь внутри app/static/uploads (чтобы Flask мог обслуживать)
+        UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app', 'static', 'uploads')
     
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024

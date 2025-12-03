@@ -9,7 +9,7 @@ def load_user(user_id):
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=True)  # ✅ ДОБАВЛЕНО
+    username = db.Column(db.String(80), unique=True, nullable=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
     company_name = db.Column(db.String(100))
@@ -24,7 +24,6 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Связь с товарами
     products = db.relationship('Product', backref='owner', lazy=True)
     
     def set_password(self, password):
@@ -33,7 +32,6 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
     
-    # ✅ ДОБАВЛЕНО: свойства для обратной совместимости
     @property
     def is_admin(self):
         return self.role == 'admin'
@@ -47,7 +45,6 @@ class Category(db.Model):
     description = db.Column(db.Text)
     parent_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
     
-    # Измените имя обратной ссылки, чтобы избежать конфликта
     category_products = db.relationship('Product', backref='product_category', lazy=True)
     
     children = db.relationship(
@@ -60,7 +57,6 @@ class Category(db.Model):
         return f'<Category {self.name}>'
 
 class Product(db.Model):
-    # Константы статусов
     STATUS_PUBLISHED = 1
     STATUS_UNPUBLISHED = 2
     STATUS_READY_FOR_PUBLICATION = 3
@@ -71,15 +67,13 @@ class Product(db.Model):
     price = db.Column(db.Float, nullable=False)
     quantity = db.Column(db.Integer, default=1)
     manufacturer = db.Column(db.String(100))
-    
-    # Внешний ключ для категории
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    images = db.Column(db.JSON)  # Список путей к изображениям
+    images = db.Column(db.JSON)
     status = db.Column(db.Integer, default=STATUS_PUBLISHED)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime)
+    view_count = db.Column(db.Integer, default=0)  # ← ДОБАВЛЕНО для совместимости с dashboard.html
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -87,7 +81,6 @@ class Product(db.Model):
             self.expires_at = datetime.utcnow() + timedelta(days=30)
     
     def update_status(self):
-        """Обновление статуса товара на основе даты истечения"""
         if self.status == self.STATUS_PUBLISHED and self.expires_at:
             if datetime.utcnow() > self.expires_at:
                 self.status = self.STATUS_READY_FOR_PUBLICATION
@@ -95,17 +88,14 @@ class Product(db.Model):
         return False
     
     def publish(self):
-        """Публикация товара"""
         self.status = self.STATUS_PUBLISHED
         self.expires_at = datetime.utcnow() + timedelta(days=30)
     
     def unpublish(self):
-        """Снятие товара с публикации"""
         self.status = self.STATUS_UNPUBLISHED
     
     @property
     def days_remaining(self):
-        """Количество оставшихся дней публикации"""
         if self.status == self.STATUS_PUBLISHED and self.expires_at:
             remaining = self.expires_at - datetime.utcnow()
             return max(0, remaining.days)
@@ -113,14 +103,12 @@ class Product(db.Model):
     
     @property
     def is_expired(self):
-        """Проверка, истек ли срок публикации"""
         if self.status == self.STATUS_PUBLISHED and self.expires_at:
             return datetime.utcnow() > self.expires_at
         return False
     
     @property
     def status_text(self):
-        """Текстовое представление статуса"""
         status_map = {
             self.STATUS_PUBLISHED: 'Опубликован',
             self.STATUS_UNPUBLISHED: 'Снят с публикации',

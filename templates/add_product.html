@@ -12,6 +12,7 @@
         </div>
         
         <form method="POST" action="{{ url_for('main.add_product') }}" enctype="multipart/form-data" id="addProductForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-grid">
                 <!-- Основная информация -->
                 <div class="form-section">

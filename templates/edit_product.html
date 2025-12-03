@@ -15,6 +15,7 @@
         </div>
         
         <form method="POST" enctype="multipart/form-data" class="edit-product-form">
+             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-grid">
                 <!-- Основная информация -->
                 <div class="form-section">
@@ -775,6 +776,91 @@ document.addEventListener('DOMContentLoaded', function() {
         hiddenInput.value = '';
         document.querySelector('form').appendChild(hiddenInput);
     }
+});
+// Проверка и обновление счетчика изображений при изменении
+function updateImageCounter() {
+    const currentCount = document.querySelectorAll('.existing-image-item:not(.removed)').length;
+    const newCount = document.querySelectorAll('#new-images-container .existing-image-item').length;
+    const total = currentCount + newCount;
+    
+    // Обновляем отображение счетчика
+    const alertElement = document.querySelector('.alert-content span');
+    if (alertElement) {
+        alertElement.textContent = `Текущие: ${currentCount} + новые: ${newCount} = ${total}/8`;
+    }
+    
+    // Подсвечиваем если превышен лимит
+    if (total > 8) {
+        uploadArea.style.borderColor = '#FF3B30';
+        uploadArea.style.background = 'rgba(255, 59, 48, 0.1)';
+    } else {
+        uploadArea.style.borderColor = 'var(--border)';
+        uploadArea.style.background = 'var(--background-secondary)';
+    }
+}
+
+// Обновляем функцию removeExistingImage
+function removeExistingImage(imageName, index) {
+    if (confirm('Удалить это изображение?')) {
+        removedExistingImages.push(imageName);
+        
+        const hiddenInput = document.getElementById('removed_images');
+        hiddenInput.value = removedExistingImages.join(',');
+        
+        // Показываем эффект удаления
+        const imageElement = document.getElementById(`image-${index}`);
+        if (imageElement) {
+            imageElement.classList.add('removed');
+            updateImageCounter();
+        }
+        
+        alert('Изображение будет удалено после сохранения изменений');
+    }
+}
+
+// Обновляем функцию previewNewImages
+function previewNewImages(input) {
+    const previewContainer = document.getElementById('new-images-container');
+    const previewMainContainer = document.getElementById('new-images-preview');
+    
+    if (input.files && input.files.length > 0) {
+        // Получаем количество текущих изображений (не удаленных)
+        const currentImagesCount = document.querySelectorAll('.existing-image-item:not(.removed)').length;
+        const totalImages = currentImagesCount + input.files.length;
+        
+        if (totalImages > 8) {
+            alert('Максимальное количество изображений - 8! У вас уже есть ' + currentImagesCount + ' изображений.');
+            input.value = '';
+            updateImageCounter();
+            return;
+        }
+        
+        newImages = Array.from(input.files);
+        previewContainer.innerHTML = '';
+        previewMainContainer.style.display = 'block';
+        
+        newImages.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const div = document.createElement('div');
+                div.className = 'existing-image-item';
+                div.innerHTML = `
+                    <div class="existing-image-wrapper">
+                        <img src="${e.target.result}" alt="Новое изображение ${index + 1}">
+                    </div>
+                    <div class="image-number">Новое ${index + 1}</div>
+                `;
+                previewContainer.appendChild(div);
+                updateImageCounter();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+}
+
+// Вызываем updateImageCounter при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    updateImageCounter();
 });
 </script>
 {% endblock %}
