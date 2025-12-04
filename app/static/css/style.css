@@ -1759,3 +1759,21 @@ select:focus-visible {
     padding-left: 16px;
     margin-top: 4px;
 }
+
+.vat-label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.vat-included {
+    color: #28a745; /* Зелёный */
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.vat-excluded {
+    color: #dc3545; /* Красный */
+    background: rgba(220, 53, 69, 0.1);
+}

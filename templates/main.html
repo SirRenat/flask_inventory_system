@@ -522,6 +522,11 @@
                                 </div>
                                 <div class="product-price">
                                     <span class="current-price">{{ "%.2f"|format(product.price) }} ₽</span>
+                                    {% if product.vat_included %}
+                                        <span class="vat-label vat-included">С НДС</span>
+                                    {% else %}
+                                        <span class="vat-label vat-excluded">Без НДС</span>
+                                    {% endif %}
                                 </div>
                                 <div class="product-meta">
                                     <span class="category">{{ product.product_category.name if product.product_category else 'Без категории' }}</span>
