@@ -22,7 +22,9 @@ def index():
     
     query = Product.query.filter_by(status=Product.STATUS_PUBLISHED)
     
-    if category_id:
+    # ← ИСПРАВЛЕНИЕ: приводим к int, если есть
+    if category_id and category_id.isdigit():
+        category_id = int(category_id)
         query = query.filter_by(category_id=category_id)
     
     if search_term:
@@ -75,7 +77,7 @@ def product_detail(product_id):
         if current_user.id != product.user_id and current_user.role != 'admin':
             flash('Этот товар недоступен для просмотра', 'error')
             return redirect(url_for('main.index'))
-            
+
      # Проверяем, что товар можно показывать
     can_view = False
     if product.status == Product.STATUS_PUBLISHED:
