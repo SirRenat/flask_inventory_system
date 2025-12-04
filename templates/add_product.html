@@ -1,4 +1,4 @@
-<!-- add_product.html - версия с интерактивной обрезкой изображений -->
+<!-- add_product.html - исправленная версия с НДС и без дублей -->
 {% extends "base.html" %}
 
 {% block title %}Добавить товар - Система продажи неликвидов{% endblock %}
@@ -66,20 +66,28 @@
                         </div>
                     </div>
                     
+                    <!-- ЕДИНСТВЕННОЕ ПОЛЕ ЦЕНЫ С НДС -->
                     <div class="form-group">
-                        <label class="form-label" for="price">
-                            Цена (руб.) <span class="required">*</span>
-                        </label>
-                        <div class="price-input-container">
-                            <input type="number" 
-                                   name="price" 
-                                   id="price"
-                                   class="form-control" 
-                                   step="0.01" 
-                                   min="0"
-                                   placeholder="0.00" 
-                                   required>
+                        <label class="form-label">Цена (руб.) <span class="required">*</span></label>
+                        <div class="price-input-wrapper">
+                            <div class="price-input-container">
+                                <input type="number" 
+                                       name="price" 
+                                       id="price"
+                                       class="form-control" 
+                                       step="0.01" 
+                                       min="0"
+                                       placeholder="0.00" 
+                                       required>
+                            </div>
                             <span class="price-currency">₽</span>
+                            <div class="vat-checkbox-container">
+                                <input type="checkbox" 
+                                       name="vat_included" 
+                                       id="vat_included"
+                                       class="vat-checkbox">
+                                <label for="vat_included" class="vat-label">с НДС</label>
+                            </div>
                         </div>
                     </div>
                     
@@ -178,7 +186,7 @@
                                   class="form-control" 
                                   rows="2" 
                                   placeholder="Введите URL изображений через запятую
-Пример: https://example.com/image1.jpg  , https://example.com/image2.jpg  "></textarea>
+Пример: https://example.com/image1.jpg    , https://example.com/image2.jpg    "></textarea>
                         <div class="form-text">
                             Укажите URL изображений через запятую, если нет файлов для загрузки.
                             Ссылки должны быть доступны публично.
@@ -296,17 +304,45 @@
     outline: none;
 }
 
+/* Цена + НДС — горизонтальный контейнер */
+.price-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+}
+
 .price-input-container {
+    flex: 1;
     position: relative;
 }
 
+.price-input-container .form-control {
+    padding-right: 40px;
+    width: 100%;
+}
+
 .price-currency {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
     color: var(--text-secondary);
     font-weight: 500;
+    font-size: 16px;
+    white-space: nowrap;
+}
+
+.vat-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.vat-checkbox {
+    margin: 0;
+}
+
+.vat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
 }
 
 /* Стили для загрузки файлов */
@@ -698,6 +734,13 @@
     .image-preview-grid {
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     }
+    
+    /* Цена и НДС на мобильных — в колонку */
+    .price-input-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -845,7 +888,7 @@ function applyCrop() {
         selectedFiles[currentFileIndex].croppedFile = newFile;
 
         closeCropper();
-        renderPreview(); // обновим превью на обрезанное
+        renderPreview();
     });
 }
 
