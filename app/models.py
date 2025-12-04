@@ -73,7 +73,8 @@ class Product(db.Model):
     status = db.Column(db.Integer, default=STATUS_PUBLISHED)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime)
-    view_count = db.Column(db.Integer, default=0)  # ← ДОБАВЛЕНО для совместимости с dashboard.html
+    view_count = db.Column(db.Integer, default=0)
+    vat_included = db.Column(db.Boolean, default=False)  # ← ДОБАВЛЕНО: признак "с НДС"
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
