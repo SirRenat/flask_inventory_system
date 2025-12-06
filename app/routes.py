@@ -56,8 +56,40 @@ def dashboard():
     if expired_count > 0:
         db.session.commit()
     
+    # Преобразуем продукты в список словарей для JSON
+    products_data = []
+    for product in user_products:
+        product_dict = {
+            'id': product.id,
+            'title': product.title,
+            'description': product.description,
+            'price': product.price,
+            'quantity': product.quantity,
+            'manufacturer': product.manufacturer,
+            'category_id': product.category_id,
+            'images': product.images,
+            'status': product.status,
+            'status_text': product.status_text,
+            'created_at': product.created_at.isoformat() if product.created_at else None,
+            'expires_at': product.expires_at.isoformat() if product.expires_at else None,
+            'view_count': product.view_count,
+            'vat_included': product.vat_included,
+            'condition': product.condition,
+            'region': product.region,
+            'city': product.city,
+            'delivery': product.delivery,
+            'days_remaining': product.days_remaining,
+            'is_expired': product.is_expired,
+            'product_category': {
+                'id': product.product_category.id if product.product_category else None,
+                'name': product.product_category.name if product.product_category else None
+            } if product.product_category else None
+        }
+        products_data.append(product_dict)
+    
     return render_template('dashboard.html', 
                          products=user_products,
+                         products_json=products_data,  # ← ЭТО ВАЖНО!
                          now=datetime.utcnow())
 
 @main.route('/product/<int:product_id>')
