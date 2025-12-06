@@ -81,7 +81,11 @@ class Product(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     expires_at = db.Column(db.DateTime)
     view_count = db.Column(db.Integer, default=0)
-    vat_included = db.Column(db.Boolean, default=False)  # ← ДОБАВЛЕНО: признак "с НДС"
+    vat_included = db.Column(db.Boolean, default=False)
+    condition = db.Column(db.String(10), default='new')  # 'new' или 'used'
+    region = db.Column(db.String(100))
+    city = db.Column(db.String(100))
+    delivery = db.Column(db.Boolean, default=False)
     
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

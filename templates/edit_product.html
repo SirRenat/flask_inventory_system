@@ -80,7 +80,43 @@
                             </div>
                         </div>
                     </div>
-                    
+                                        <!-- Состояние товара -->
+                    <div class="form-group">
+                        <label class="form-label">Состояние</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="condition" id="conditionNew" value="new" 
+                                {% if product.condition == 'new' or not product.condition %}checked{% endif %}>
+                            <label class="form-check-label" for="conditionNew">Новое</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="condition" id="conditionUsed" value="used"
+                                {% if product.condition == 'used' %}checked{% endif %}>
+                            <label class="form-check-label" for="conditionUsed">Б/у</label>
+                        </div>
+                    </div>
+
+                    <!-- Регион и город -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="region">Регион</label>
+                            <input type="text" class="form-control" id="region" name="region" 
+                                value="{{ product.region or '' }}" placeholder="Например: Московская область">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="city">Город</label>
+                            <input type="text" class="form-control" id="city" name="city" 
+                                value="{{ product.city or '' }}" placeholder="Например: Москва">
+                        </div>
+                    </div>
+
+                    <!-- Доставка -->
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="delivery" id="delivery" value="on"
+                                {% if product.delivery %}checked{% endif %}>
+                            <label class="form-check-label" for="delivery">Возможна доставка</label>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label class="form-label" for="description">Описание</label>
                         <textarea class="form-control" id="description" name="description" 

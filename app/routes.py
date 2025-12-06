@@ -168,7 +168,11 @@ def add_product():
                 user_id=current_user.id,
                 images=saved_images if saved_images else None,
                 status=Product.STATUS_PUBLISHED,
-                vat_included=request.form.get('vat_included') == 'on' 
+                vat_included=request.form.get('vat_included') == 'on', 
+                condition=request.form.get('condition', 'new'),
+                region=request.form.get('region'),
+                city=request.form.get('city'),
+                delivery=request.form.get('delivery') == 'on'
             )
             
             db.session.add(new_product)
@@ -277,6 +281,10 @@ def edit_product(product_id):
             product.category_id = int(category_id)
             product.status = int(request.form.get('status'))
             product.vat_included = request.form.get('vat_included') == 'on' 
+            product.condition = request.form.get('condition', 'new')
+            product.region = request.form.get('region')
+            product.city = request.form.get('city')
+            product.delivery = request.form.get('delivery') == 'on'
             
             expires_at_str = request.form.get('expires_at')
             if expires_at_str:
