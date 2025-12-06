@@ -419,16 +419,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Активация текущего пункта меню
+    // Активация текущего пункта меню (только для пунктов без реальных ссылок)
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', function(e) {
-            e.preventDefault();
-            navItems.forEach(i => i.classList.remove('active'));
-            this.classList.add('active');
+            const link = this.querySelector('a');
+            
+            // Если ссылка есть и она не ведет на реальную страницу (# или пустая)
+            if (link && (link.getAttribute('href') === '#' || !link.getAttribute('href'))) {
+                e.preventDefault(); // Блокируем переход только для заглушек
+                navItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            }
+            // Если ссылка ведет на реальную страницу (например, /profile) - разрешаем переход
+            // JavaScript не блокирует клик
         });
     });
-    
     // Функция для сортировки таблицы
     function initializeTableSorting() {
         const sortableHeaders = document.querySelectorAll('.products-data-table th.sortable');
