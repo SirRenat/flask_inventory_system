@@ -1,19 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <!-- Навигация "Хлебные крошки" -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
-            {% if product.category %}
-                <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}?category_id={{ product.category.id }}">
-                    {{ product.category.name }}
-                </a></li>
-            {% endif %}
-            <li class="breadcrumb-item active" aria-current="page">{{ product.title|truncate(50) }}</li>
-        </ol>
-    </nav>
+<div class="container mt-2"> <!-- Уменьшен отступ сверху -->
     
     <!-- Баннер статуса -->
     {% if product.status != product.STATUS_PUBLISHED %}
@@ -122,14 +110,19 @@
                 <div class="sticky-sidebar">
                     <!-- Цена и избранное -->
                     <div class="price-favorite-section mb-3">
-                        <div class="d-flex align-items-center justify-content-between">
-                            <div class="product-price-large">{{ "%.2f"|format(product.price) }} ₽</div>
-                            <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center justify-content-between gap-2">
+                            <!-- Цена с адаптивным размером -->
+                            <div class="price-container flex-grow-1">
+                                <div class="product-price" data-price="{{ product.price }}">
+                                    {{ "%.2f"|format(product.price) }} ₽
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-1 flex-shrink-0">
                                 <!-- Выпадающий список "..." для владельца/админа -->
                                 {% if current_user.id == product.user_id or current_user.role == 'admin' %}
                                 <div class="dropdown product-actions-dropdown">
                                     <button class="btn-actions-dropdown" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <circle cx="12" cy="5" r="1"></circle>
                                             <circle cx="12" cy="12" r="1"></circle>
                                             <circle cx="12" cy="19" r="1"></circle>
@@ -191,7 +184,7 @@
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="favorite-icon-btn {% if product in current_user.favorited_products %}active{% endif %}"
                                             title="{% if product in current_user.favorited_products %}Удалить из избранного{% else %}Добавить в избранное{% endif %}">
-                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="{% if product in current_user.favorited_products %}red{% else %}none{% endif %}" 
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="{% if product in current_user.favorited_products %}red{% else %}none{% endif %}" 
                                              stroke="{% if product in current_user.favorited_products %}red{% else %}gray{% endif %}" 
                                              stroke-width="2">
                                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -315,7 +308,7 @@
     </div>
 </div>
 
-<!-- Модальное окно для телефона -->
+<!-- Модальные окна -->
 <div id="phoneModal" class="modal" style="display: none;">
     <div class="modal-content">
         <span class="close" onclick="closePhoneModal()">&times;</span>
@@ -327,7 +320,6 @@
     </div>
 </div>
 
-<!-- Модальное окно для жалобы -->
 <div id="reportModal" class="modal" style="display: none;">
     <div class="modal-content">
         <span class="close" onclick="closeReportModal()">&times;</span>
@@ -350,64 +342,101 @@
 </div>
 
 <style>
-/* Липкий боковой блок */
+/* Уменьшаем отступ между header и контентом */
+.container {
+    padding-top: 16px !important;
+}
+
+/* Липкий блок */
 .sticky-sidebar {
     position: sticky;
-    top: 100px; /* Отступ от header */
+    top: 84px; /* Отступ от header */
     background: white;
     border: 1px solid #E6E6E6;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     z-index: 10;
+    width: 100%;
+    box-sizing: border-box; /* Важно для правильного расчета ширины */
 }
 
-/* Цена и избранное */
-.price-favorite-section {
-    padding-bottom: 16px;
-    border-bottom: 1px solid #f0f0f0;
+/* Цена с адаптивным размером */
+.price-container {
+    flex: 1;
+    min-width: 0; /* Позволяет элементу сжиматься */
+    overflow: hidden; /* Скрывает переполнение */
 }
 
-.product-price-large {
-    font-size: 32px;
+.product-price {
     font-weight: 800;
     color: #1F1F1F;
     line-height: 1;
+    font-size: 28px; /* Начальный размер */
+    white-space: nowrap; /* Текст в одну строку */
+    overflow: hidden; /* Скрываем переполнение */
+    text-overflow: ellipsis; /* Добавляем многоточие если не влезает */
+    max-width: 100%;
+    display: block;
 }
 
-/* Избранное */
-.favorite-form {
-    margin: 0;
-    padding: 0;
+/* Адаптивный размер шрифта цены */
+@media (max-width: 1200px) {
+    .product-price {
+        font-size: 24px;
+    }
 }
 
-.favorite-icon-btn {
+@media (max-width: 992px) {
+    .product-price {
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sticky-sidebar {
+        position: static;
+        margin-top: 20px;
+    }
+    
+    .product-price {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .product-price {
+        font-size: 18px;
+    }
+}
+
+/* Избранное и кнопки действий */
+.favorite-form, .product-actions-dropdown {
+    flex-shrink: 0;
+}
+
+.favorite-icon-btn, .btn-actions-dropdown {
     background: none;
     border: none;
-    padding: 8px;
+    padding: 6px;
     cursor: pointer;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     transition: all 0.2s ease;
-    position: relative;
+    flex-shrink: 0;
 }
 
-.favorite-icon-btn:hover {
+.favorite-icon-btn:hover, .btn-actions-dropdown:hover {
     background: #f5f5f5;
 }
 
-.favorite-icon-btn:active {
-    transform: scale(0.95);
-}
-
-.favorite-icon-btn svg {
-    width: 24px;
-    height: 24px;
-    transition: all 0.2s ease;
+.favorite-icon-btn svg, .btn-actions-dropdown svg {
+    width: 20px;
+    height: 20px;
 }
 
 .favorite-icon-btn.active svg {
@@ -418,80 +447,6 @@
     0% { transform: scale(1); }
     50% { transform: scale(1.2); }
     100% { transform: scale(1); }
-}
-
-/* Выпадающий список "..." */
-.product-actions-dropdown {
-    position: relative;
-}
-
-.btn-actions-dropdown {
-    background: none;
-    border: none;
-    padding: 8px;
-    cursor: pointer;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    transition: all 0.2s ease;
-    color: #666;
-}
-
-.btn-actions-dropdown:hover {
-    background: #f5f5f5;
-}
-
-.btn-actions-dropdown:active {
-    transform: scale(0.95);
-}
-
-.btn-actions-dropdown svg {
-    width: 24px;
-    height: 24px;
-}
-
-.dropdown-menu {
-    border: 1px solid #E6E6E6;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    padding: 8px;
-    min-width: 200px;
-}
-
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    transition: all 0.2s ease;
-    color: #1F1F1F;
-    text-decoration: none;
-}
-
-.dropdown-item:hover {
-    background: #f8f9fa;
-}
-
-.dropdown-item i {
-    margin-right: 8px;
-    font-size: 16px;
-}
-
-.dropdown-form {
-    margin: 0;
-    padding: 0;
-}
-
-.dropdown-form .dropdown-item {
-    width: 100%;
-    text-align: left;
-    background: none;
-    border: none;
-    cursor: pointer;
 }
 
 /* НДС */
@@ -513,22 +468,96 @@
     background: rgba(220, 53, 69, 0.1);
 }
 
-/* Количество */
-.product-quantity {
+/* Кнопки контактов в одну строку */
+.contact-buttons-row {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-contact {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.btn-phone {
+    background: #0057FF;
+    color: white;
+    border-color: #0057FF;
+}
+
+.btn-phone:hover {
+    background: #0045CC;
+    border-color: #0045CC;
+}
+
+.btn-write {
+    background: white;
+    color: #0057FF;
+    border-color: #0057FF;
+}
+
+.btn-write:hover {
+    background: #f0f7ff;
+}
+
+/* Заголовок товара */
+.product-title-section {
+    margin-bottom: 24px;
+}
+
+.product-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1F1F1F;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.product-manufacturer {
     font-size: 14px;
     color: #7F7F7F;
 }
 
-.quantity-icon {
-    margin-right: 8px;
+/* Баннер статуса */
+.status-banner {
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.status-banner.status-ready {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.status-banner.status-unpublished {
+    background: #ffebee;
+    border: 1px solid #ffcdd2;
+    color: #c62828;
+}
+
+.status-banner.status-review {
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    color: #1565c0;
 }
 
 /* Информация о продавце */
-.seller-info-card {
-    padding-bottom: 16px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
 .seller-avatar {
     width: 48px;
     height: 48px;
@@ -559,79 +588,6 @@
     font-size: 13px;
 }
 
-/* Кнопки контактов в одну строку */
-.contact-buttons-row {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-contact {
-    flex: 1;
-    padding: 12px;
-    border-radius: 8px;
-    font-weight: 500;
-    font-size: 14px;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 2px solid transparent;
-    white-space: nowrap;
-}
-
-.btn-phone {
-    background: #0057FF;
-    color: white;
-    border-color: #0057FF;
-}
-
-.btn-phone:hover {
-    background: #0045CC;
-    border-color: #0045CC;
-}
-
-.btn-write {
-    background: white;
-    color: #0057FF;
-    border-color: #0057FF;
-}
-
-.btn-write:hover {
-    background: #f0f7ff;
-}
-
-/* Информация о продавце (раздел) */
-.seller-info-section {
-    padding-top: 16px;
-    border-top: 1px solid #f0f0f0;
-}
-
-.section-header {
-    margin-bottom: 16px;
-}
-
-.section-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #1F1F1F;
-}
-
-.seller-stats {
-    font-size: 14px;
-}
-
-.seller-stats .stat-item {
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.seller-stats .stat-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-    margin-bottom: 0;
-}
-
 /* Жалоба */
 .btn-report {
     background: none;
@@ -652,93 +608,6 @@
     text-decoration: underline;
 }
 
-/* Заголовок товара */
-.product-title-section {
-    margin-bottom: 24px;
-}
-
-.product-title {
-    font-size: 28px;
-    font-weight: 700;
-    color: #1F1F1F;
-    line-height: 1.3;
-    margin-bottom: 8px;
-    word-break: break-word;
-}
-
-.product-manufacturer {
-    font-size: 14px;
-    color: #7F7F7F;
-}
-
-/* Модальные окна */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 400px;
-    position: relative;
-}
-
-.close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    color: #999;
-}
-
-.close:hover {
-    color: #333;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .sticky-sidebar {
-        position: static;
-        margin-top: 20px;
-    }
-    
-    .product-title {
-        font-size: 24px;
-    }
-    
-    .product-price-large {
-        font-size: 28px;
-    }
-    
-    .contact-buttons-row {
-        flex-direction: column;
-    }
-    
-    .favorite-icon-btn,
-    .btn-actions-dropdown {
-        width: 36px;
-        height: 36px;
-    }
-    
-    .favorite-icon-btn svg,
-    .btn-actions-dropdown svg {
-        width: 20px;
-        height: 20px;
-    }
-}
-
 /* Плавная прокрутка для липкого блока */
 @media (min-width: 769px) {
     .sticky-sidebar {
@@ -747,8 +616,51 @@
     
     /* При скролле уменьшаем отступ */
     .scrolled .sticky-sidebar {
-        top: 80px;
+        top: 68px;
     }
+}
+
+/* Гарантия, что контент не ломается */
+.price-favorite-section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.price-favorite-section > div:first-child {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 40px;
+}
+
+/* Улучшение для выпадающего меню */
+.dropdown-menu {
+    border: 1px solid #E6E6E6;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    min-width: 200px;
+    z-index: 1050;
+}
+
+/* Убираем прокрутку на липком блоке */
+.sticky-sidebar {
+    overflow: visible !important;
+}
+
+.product-right-column {
+    overflow: visible !important;
+}
+
+/* Утилиты */
+.flex-shrink-0 {
+    flex-shrink: 0;
+}
+
+.flex-grow-1 {
+    flex-grow: 1;
 }
 </style>
 
@@ -810,20 +722,64 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Обработчик скролла для липкого блока
+    // Автоматическая подгонка размера шрифта цены
+    function adjustPriceFontSize() {
+        const priceElements = document.querySelectorAll('.product-price');
+        priceElements.forEach(el => {
+            const container = el.parentElement;
+            const maxWidth = container.clientWidth - 20; // Оставляем немного места
+            let fontSize = 28; // Начальный размер
+            
+            // Создаем временный элемент для проверки
+            const temp = document.createElement('span');
+            temp.style.fontSize = fontSize + 'px';
+            temp.style.fontWeight = '800';
+            temp.style.visibility = 'hidden';
+            temp.style.position = 'absolute';
+            temp.style.whiteSpace = 'nowrap';
+            temp.textContent = el.textContent;
+            document.body.appendChild(temp);
+            
+            // Уменьшаем размер пока не влезет
+            while (temp.scrollWidth > maxWidth && fontSize > 14) {
+                fontSize -= 1;
+                temp.style.fontSize = fontSize + 'px';
+            }
+            
+            document.body.removeChild(temp);
+            
+            // Применяем найденный размер
+            el.style.fontSize = fontSize + 'px';
+            
+            // Если цена все еще не влезает, включаем ellipsis
+            if (el.scrollWidth > container.clientWidth) {
+                el.style.overflow = 'hidden';
+                el.style.textOverflow = 'ellipsis';
+            } else {
+                el.style.overflow = 'visible';
+                el.style.textOverflow = 'clip';
+            }
+        });
+    }
+    
+    // Вызываем при загрузке и изменении размера окна
+    adjustPriceFontSize();
+    window.addEventListener('resize', adjustPriceFontSize);
+    
+    // Обработчик скролла для липкого блока (только на десктопе)
     if (window.innerWidth >= 769) {
         const stickySidebar = document.querySelector('.sticky-sidebar');
         
         window.addEventListener('scroll', function() {
-            if (window.scrollY > 100) {
+            if (window.scrollY > 80) {
                 document.body.classList.add('scrolled');
                 if (stickySidebar) {
-                    stickySidebar.style.top = '80px';
+                    stickySidebar.style.top = '68px';
                 }
             } else {
                 document.body.classList.remove('scrolled');
                 if (stickySidebar) {
-                    stickySidebar.style.top = '100px';
+                    stickySidebar.style.top = '84px';
                 }
             }
         });
