@@ -69,7 +69,20 @@
                         {{ r.buyer.email.split('@')[0] }}
                     {% endif %}
                 </strong>
-                <span class="text-muted" style="font-size: 0.8125rem;">{{ r.created_at.strftime('%d.%m.%Y') }}</span>
+                <div>
+                    <!-- Показываем дату и, при необходимости, кнопку удаления -->
+                    <span class="text-muted" style="font-size: 0.8125rem;">{{ r.created_at.strftime('%d.%m.%Y') }}</span>
+                    {% if current_user.is_authenticated and current_user.id == r.buyer_id %}
+                    <form method="POST" action="{{ url_for('main.delete_review', review_id=r.id) }}" 
+                        style="display: inline;" 
+                        onsubmit="return confirm('Удалить ваш отзыв?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-link p-0 ms-2" style="font-size: 0.8125rem; color: #dc3545;">
+                            Удалить
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
             <div class="mb-1" style="font-size: 0.9375rem;">
                 {% for i in range(1, 6) %}

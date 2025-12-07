@@ -801,7 +801,34 @@ def user_reviews_content(user_id):
 
 @main.route('/user/<int:user_id>/review_form')
 def review_form(user_id):
-    from app.models import User
+    from app.models import User, Review
+    from app.forms import ReviewForm
     seller = User.query.get_or_404(user_id)
+
+    # Проверяем, оставлял ли текущий пользователь уже отзыв
+    if current_user.is_authenticated:
+        existing_review = Review.query.filter_by(
+            seller_id=seller.id,
+            buyer_id=current_user.id
+        ).first()
+        if existing_review:
+            # Если уже оставлял — показываем сообщение
+            return '<div class="p-3 text-center"><p class="text-muted">Вы уже оставили отзыв этому пользователю.</p><button class="btn btn-sm btn-secondary" onclick="closeReviewFormModal()">Закрыть</button></div>'
+
     form = ReviewForm()
     return render_template('partials/review_form.html', seller=seller, form=form)
+
+@main.route('/review/<int:review_id>/delete', methods=['POST'])
+@login_required
+def delete_review(review_id):
+    from app.models import Review
+    review = Review.query.get_or_404(review_id)
+    
+    if review.buyer_id != current_user.id:
+        flash('Вы не можете удалить чужой отзыв.', 'danger')
+        return redirect(request.referrer or url_for('main.index'))
+    
+    db.session.delete(review)
+    db.session.commit()
+    flash('Ваш отзыв удалён.', 'success')
+    return redirect(request.referrer or url_for('main.index'))
