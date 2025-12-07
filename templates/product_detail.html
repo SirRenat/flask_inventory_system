@@ -91,6 +91,11 @@
                         </div>
                         
                         <div class="spec-item">
+                            <span class="spec-label">Доставка</span>
+                            <span class="spec-value">{% if product.delivery %}Доступна{% else %}Не доступна{% endif %}</span>
+                        </div>
+
+                        <div class="spec-item">
                             <span class="spec-label">Категория</span>
                             <span class="spec-value">{{ product.category.name if product.category else 'Не указана' }}</span>
                         </div>
@@ -334,28 +339,12 @@
                                 <span class="fw-medium">{{ product.owner.company_name }}</span>
                             </div>
                             {% endif %}
+                            {% if product.owner.inn %}
                             <div class="stat-item d-flex justify-content-between mb-2">
-                                <span class="text-muted">Отзывы:</span>
-                                <span class="fw-medium text-success">
-                                    {% set avg_rating = product.owner.average_rating %}
-                                    {% if avg_rating > 0 %}
-                                        {% for i in range(1, 6) %}
-                                            {% if i <= avg_rating|round %}
-                                                ★
-                                            {% else %}
-                                                ☆
-                                            {% endif %}
-                                        {% endfor %}
-                                        ({{ avg_rating }}) • {{ product.owner.reviews_count }} отзывов
-                                    {% else %}
-                                        Нет отзывов
-                                    {% endif %}
-                                </span>
+                                <span class="text-muted">ИНН:</span>
+                                <span class="fw-medium">{{ product.owner.inn }}</span>
                             </div>
-                            <div class="stat-item d-flex justify-content-between">
-                                <span class="text-muted">Доставка:</span>
-                                <span class="fw-medium text-success">Доступна</span>
-                            </div>
+                            {% endif %}
                         </div>
                     </div>
                     {% endif %}
