@@ -10,8 +10,8 @@
     <!-- Вкладки — НАСТОЯЩИЕ ССЫЛКИ -->
     <div class="admin-tabs mb-4">
         <div class="tabs">
-            <a href="{{ url_for('admin.admin_categories') }}" class="tab-btn active">📂 Категории</a>
-            <a href="{{ url_for('admin.admin_users') }}" class="tab-btn">👥 Пользователи</a>
+            <a href="{{ url_for('main.admin_categories') }}" class="tab-btn active">📂 Категории</a>
+            <a href="{{ url_for('main.admin_users') }}" class="tab-btn">👥 Пользователи</a>
             <a href="#" class="tab-btn">📊 Статистика</a>
         </div>
     </div>
@@ -86,7 +86,7 @@
                                     {% endif %}
                                     <span class="node-badge">{{ parent.products|length if parent.products else 0 }} тов.</span>
                                     <div class="node-actions">
-                                        <form method="POST" action="{{ url_for('main.admin_categories') }}" class="inline-form">
+                                        <form method="POST" action="{{url_for('main.admin_categories')}}" class="inline-form">
                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <input type="hidden" name="action" value="edit_category">
                                             <input type="hidden" name="category_id" value="{{ parent.id }}">
@@ -168,6 +168,86 @@
                 </div>
             </div>
 
+            <!-- Дерево регионов -->
+            <div class="admin-section">
+                <div class="section-header">
+                    <h3>🌍 Дерево регионов</h3>
+                    <span class="section-badge">Просмотр</span>
+                </div>
+                <div class="section-card">
+                    {% if regions and regions|length > 0 %}
+                        <!-- Отладочная информация -->
+                        <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+                            Всего регионов: {{ all_regions|length }}, 
+                            Родительских: {{ regions|length }}, 
+                            Дочерних: {{ child_regions|length }}
+                        </div>
+                        
+                        <div class="categories-tree" id="regionsTree">
+                            {% for parent in regions %}
+                            <div class="category-node" data-name="{{ parent.name|lower }}">
+                                <div class="node-header">
+                                    {% set children = child_regions|selectattr('parent_id', 'equalto', parent.id)|list %}
+                                    {% if children %}
+                                        <span class="toggle-icon" onclick="toggleCategory(this)">➕</span>
+                                    {% else %}
+                                        <span class="toggle-icon">├─</span>
+                                    {% endif %}
+                                    <span class="node-icon">📍</span>
+                                    <span class="node-name">{{ parent.name }}</span>
+                                    <div class="node-actions">
+                                        <form method="POST" action="{{ url_for('main.delete_region', region_id=parent.id) }}" 
+                                            onsubmit="return confirm('Удалить регион и все подрегионы?')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="node-action-btn" title="Удалить">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M3 6h18v2H3V6z"></path>
+                                                    <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% if children %}
+                                <div class="node-children" style="display: none;">
+                                    {% for child in children %}
+                                    <div class="category-node child-node" data-name="{{ child.name|lower }}">
+                                        <div class="node-header">
+                                            <span class="toggle-icon">└─</span>
+                                            <span class="node-icon">🏙️</span>
+                                            <span class="node-name">{{ child.name }}</span>
+                                            <div class="node-actions">
+                                                <form method="POST" action="{{ url_for('main.delete_region', region_id=child.id) }}" 
+                                                    onsubmit="return confirm('Удалить подрегион?')">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="node-action-btn" title="Удалить">
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <path d="M3 6h18v2H3V6z"></path>
+                                                            <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>Регионы ещё не загружены</p>
+                            <small style="color: #666;">
+                                Всего записей в базе: {{ all_regions|length if all_regions else 0 }}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Добавить категорию -->
             <div class="admin-section compact-section">
                 <div class="section-header">
@@ -202,7 +282,40 @@
                 </div>
             </div>
 
-            <!-- Загрузка категорий — В САМОМ НИЗУ -->
+            <!-- Добавить регион -->
+            <div class="admin-section compact-section">
+                <div class="section-header">
+                    <h3>➕ Добавить регион/город</h3>
+                    <span class="section-badge">Ручное</span>
+                </div>
+                <div class="section-card compact-card">
+                    <form method="POST" action="{{ url_for('main.add_region') }}" class="category-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="text" name="name" class="form-control form-control-sm" required placeholder="Название *">
+                            </div>
+                            <div class="form-group">
+                                <select name="parent_id" class="form-select form-select-sm">
+                                    <option value="">-- Без родительского региона --</option>
+                                    {% for reg in all_regions %}
+                                        <option value="{{ reg.id }}">{{ reg.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="Описание"></textarea>
+                        </div>
+                        <div class="form-actions compact-actions">
+                            <button type="submit" class="btn-primary btn-sm">➕ Добавить регион</button>
+                            <button type="reset" class="btn-secondary btn-sm">Очистить</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Загрузка категорий -->
             <div class="admin-section compact-section">
                 <div class="section-header">
                     <h3>📁 Загрузка категорий</h3>

@@ -37,11 +37,13 @@ def create_app():
     login_manager.login_message = 'Пожалуйста, войдите в систему для доступа к этой странице.'
     login_manager.login_message_category = 'info'
     
-    # User loader
     @login_manager.user_loader
     def load_user(user_id):
         from app.models import User
         return db.session.get(User, int(user_id))
+
+    # Импортируем Region для Flask-Admin
+    from app.models import Region
     
     # Создаем папку для загрузок
     try:
@@ -62,11 +64,18 @@ def create_app():
     # Регистрация blueprint
     from app.routes import main
     from app.auth import auth
-    from app.admin import admin
-    
+    from app.admin import admin_bp  # ← только один импорт
+
+    # Flask-Admin
+    from flask_admin import Admin
+    from flask_admin.contrib.sqla import ModelView
+
+    admin_flask = Admin(app, name='Админка')
+    admin_flask.add_view(ModelView(Region, db.session, name='Регионы', category='Справочники'))
+
     app.register_blueprint(main)
     app.register_blueprint(auth)
-    app.register_blueprint(admin)
+    app.register_blueprint(admin_bp)  # ← только одна регистрация
     
     print("=" * 50)
     print("🎉 Приложение инициализировано успешно!")

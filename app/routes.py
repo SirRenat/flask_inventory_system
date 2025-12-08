@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import Product, Category, User, Review
+from app.models import Product, Category, User, Review, Region
 from datetime import datetime
 import os
 import uuid
@@ -529,14 +529,113 @@ def admin_categories():
         
         return redirect(url_for('main.admin_categories'))
     
+    # ========== ОЧИСТКА НАЗВАНИЙ РЕГИОНОВ ==========
+    # Находим регионы с префиксами (типа "01 - Республика Адыгея")
+    regions_to_clean = Region.query.filter(Region.name.like('% - %')).all()
+    if regions_to_clean:
+        for region in regions_to_clean:
+            # Убираем префиксы вида "01 - ", "02 -   "
+            cleaned_name = region.name.split('-', 1)[-1].strip()
+            region.name = cleaned_name
+        db.session.commit()
+        print(f"DEBUG: Очищены названия {len(regions_to_clean)} регионов")
+    
+    # Загружаем категории
     categories = Category.query.all()
     parent_categories = Category.query.filter_by(parent_id=None).all()
     total_products = Product.query.count()
     
+    # Загружаем регионы
+    all_regions = Region.query.all()
+    regions = Region.query.filter_by(parent_id=None).all()
+    child_regions = Region.query.filter(Region.parent_id.isnot(None)).all()
+
     return render_template('admin_categories.html', 
                          categories=categories,
                          parent_categories=parent_categories,
-                         total_products=total_products)
+                         total_products=total_products,
+                         all_regions=all_regions,
+                         regions=regions,
+                         child_regions=child_regions)
+
+@main.route('/admin/users')
+@login_required
+def admin_users():
+    if not current_user.is_admin:
+        flash('У вас нет прав доступа к админке', 'error')
+        return redirect(url_for('main.index'))
+    
+    # Если функция уже есть в admin.py, можно добавить редирект
+    # return redirect(url_for('admin_bp.admin_users'))
+    
+    # Или создать свою реализацию
+    search = request.args.get('search', '').strip()
+    query = User.query
+    
+    if search:
+        query = query.filter(
+            User.username.ilike(f'%{search}%') |
+            User.email.ilike(f'%{search}%') |
+            User.company_name.ilike(f'%{search}%') |
+            User.contact_person.ilike(f'%{search}%')
+        )
+    
+    users = query.order_by(User.created_at.desc()).all()
+    return render_template('admin_users.html', users=users, search=search)
+
+@main.route('/admin/regions/add', methods=['POST'])
+@login_required
+def add_region():
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('main.admin_categories'))
+    
+    name = request.form.get('name')
+    parent_id = request.form.get('parent_id') or None
+    description = request.form.get('description')
+    
+    if not name:
+        flash('Название региона обязательно', 'error')
+        return redirect(url_for('main.admin_categories'))
+    
+    existing = Region.query.filter_by(name=name, parent_id=parent_id).first()
+    if existing:
+        flash('Такой регион уже существует', 'error')
+        return redirect(url_for('main.admin_categories'))
+    
+    try:
+        new_region = Region(
+            name=name,
+            description=description,
+            parent_id=parent_id if parent_id else None
+        )
+        db.session.add(new_region)
+        db.session.commit()
+        flash(f'Регион "{name}" добавлен', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка: {str(e)}', 'error')
+    
+    return redirect(url_for('main.admin_categories'))
+
+@main.route('/admin/regions/delete/<int:region_id>', methods=['POST'])
+@login_required
+def delete_region(region_id):
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('main.admin_categories'))
+    
+    region = Region.query.get_or_404(region_id)
+    children = Region.query.filter_by(parent_id=region_id).all()
+    
+    if children:
+        flash(f'Нельзя удалить регион "{region.name}" — есть подрегионы', 'error')
+    else:
+        db.session.delete(region)
+        db.session.commit()
+        flash(f'Регион "{region.name}" удалён', 'success')
+    
+    return redirect(url_for('main.admin_categories'))
 
 @main.route('/admin/upload-categories', methods=['POST'])
 @login_required

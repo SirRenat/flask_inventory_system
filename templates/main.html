@@ -128,38 +128,31 @@
         background: #0057FF;
         color: white;
     }
-    /* === СТИЛИ ДЛЯ КОНТЕЙНЕРОВ - ВСЕ СКРЫТЫ ПО УМОЛЧАНИЮ === */
-    /* Главные контейнеры */
-    #productsGridView,
-    #productsListView,
-    #productsTableView {
-        display: none;
-    }
-    /* Внутренние контейнеры */
-    .products-grid-view,
-    .products-list-view,
-    .products-table-view {
-        display: none;
-    }
+  
     /* АКТИВНЫЕ СТИЛИ БУДУТ ДОБАВЛЯТЬСЯ ЧЕРЕЗ JS */
     /* Стили для представления плиткой */
     .products-grid-view {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 40px;
-        margin-bottom: 20px;
-    }
-    .products-list-view {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-    .products-table-view {
-        background: white;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        border: 1px solid #E0E0E0;
-        margin-bottom: 20px;
-    }
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 40px; /* Увеличил с 30px до 40px */
+    margin-bottom: 20px;
+}
+
+.products-list-view {
+    display: grid; /* Добавить это! */
+    grid-template-columns: 1fr;
+    gap: 20px; /* Увеличить отступы */
+}
+
+.products-table-view {
+    display: block; /* Добавить это! */
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #E0E0E0;
+    margin-bottom: 20px;
+}
     .product-card {
         background: white;
         border-radius: 12px;
@@ -1212,13 +1205,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 containers[key].style.display = key === viewType ? 'block' : 'none';
                 const inner = containers[key].querySelector(`.products-${key}-view`);
                 if (inner) {
-                    inner.style.display = key === 'table' ? 'block' : 'grid';
-                    if (key === 'grid') {
-                        inner.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-                    } else if (key === 'list') {
-                        inner.style.gridTemplateColumns = '1fr';
-                    }
+                inner.style.display = key === 'table' ? 'block' : 'grid'; // ← УДАЛИЛИ
+                if (key === 'grid') {
+                    inner.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))'; // ← УДАЛИЛИ
+                } else if (key === 'list') {
+                    inner.style.gridTemplateColumns = '1fr'; // ← УДАЛИЛИ
                 }
+            }
             }
         }
         viewButtons.forEach(btn => {
@@ -1233,7 +1226,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+ // Инициализация представления при загрузке
     const savedView = localStorage.getItem('mainView') || 'grid';
+    
+    // Убедимся, что кнопка активна
+    viewButtons.forEach(btn => {
+        if (btn.getAttribute('data-view') === savedView) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Активируем представление
     activateView(savedView);
 });
 </script>

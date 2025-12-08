@@ -207,3 +207,23 @@ class Review(db.Model):
     def created_at_formatted(self):
         """Форматированная дата"""
         return self.created_at.strftime('%d.%m.%Y')
+
+# === НОВАЯ МОДЕЛЬ: РЕГИОН ===
+class Region(db.Model):
+    __tablename__ = 'region'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    parent_id = db.Column(db.Integer, db.ForeignKey('region.id'), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    children = db.relationship(
+        'Region',
+        backref=db.backref('parent', remote_side=[id]),
+        lazy=True,
+        cascade="all, delete-orphan"
+    )
+
+    def __repr__(self):
+        return f'<Region {self.name}>'
