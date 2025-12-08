@@ -677,6 +677,8 @@
             padding-left: 20px;
         }
     }
+
+
 </style>
 {% endblock %}
 {% block content %}
@@ -783,6 +785,17 @@
                             {% for product in products %}
                             <div class="product-card" onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
                                 <div class="product-image">
+                                    <!-- Добавляем регион-город над фото -->
+                                    <div class="product-location-overlay">
+                                        {% if product.region or product.city %}
+                                            <span class="location-text">
+                                                {% if product.city %}{{ product.city }}{% endif %}
+                                                {% if product.region and product.city %}, {% endif %}
+                                                {% if product.region %}{{ product.region }}{% endif %}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
                                     <!-- Значок избранного -->
                                     {% if current_user.is_authenticated and product in current_user.favorited_products %}
                                     <div class="favorite-badge">
@@ -791,6 +804,7 @@
                                         </svg>
                                     </div>
                                     {% endif %}
+                                    
                                     {% if product.images and product.images|length > 0 %}
                                         <img src="{{ url_for('main.serve_uploaded_file', filename=product.images[0]) }}" 
                                             alt="{{ product.title }}"
