@@ -134,6 +134,14 @@ class Product(db.Model):
     city = db.Column(db.String(100))
     delivery = db.Column(db.Boolean, default=False)
     
+    # ← ДОБАВЛЕННЫЕ ПОЛЯ ДЛЯ ЗАВИСИМЫХ ВЫБОРОВ
+    region_id = db.Column(db.Integer, db.ForeignKey('region.id'), nullable=True)
+    city_id = db.Column(db.Integer, db.ForeignKey('city.id'), nullable=True)
+    
+    # Связи с новыми таблицами
+    region_rel = db.relationship('Region', foreign_keys=[region_id], backref='products')
+    city_rel = db.relationship('City', foreign_keys=[city_id], backref='products')
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         if self.status == self.STATUS_PUBLISHED:

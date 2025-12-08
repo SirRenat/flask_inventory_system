@@ -1,4 +1,4 @@
-<!-- edit_product.html - с поддержкой обрезки изображений и НДС -->
+<!-- edit_product.html - с поддержкой обрезки изображений, НДС и зависимыми полями -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -80,7 +80,8 @@
                             </div>
                         </div>
                     </div>
-                                        <!-- Состояние товара -->
+                    
+                    <!-- Состояние товара -->
                     <div class="form-group">
                         <label class="form-label">Состояние</label>
                         <div class="form-check form-check-inline">
@@ -95,20 +96,39 @@
                         </div>
                     </div>
 
-                    <!-- Регион и город -->
+                    <!-- Субъект РФ и Город (зависимые поля) -->
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label" for="region">Регион</label>
-                            <input type="text" class="form-control" id="region" name="region" 
-                                value="{{ product.region or '' }}" placeholder="Например: Московская область">
+                            <label class="form-label" for="region_id">Субъект РФ <span class="required">*</span></label>
+                            <select class="form-select" id="region_id" name="region_id" required>
+                                <option value="">Выберите субъект РФ</option>
+                                {% for region in regions %}
+                                <option value="{{ region.id }}" 
+                                        data-region-name="{{ region.name }}"
+                                        {% if product.region_id == region.id %}selected{% endif %}>
+                                    {{ region.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="city">Город</label>
-                            <input type="text" class="form-control" id="city" name="city" 
-                                value="{{ product.city or '' }}" placeholder="Например: Москва">
+                            <label class="form-label" for="city_id">Город <span class="required">*</span></label>
+                            <select class="form-select" id="city_id" name="city_id" required>
+                                <option value="">Выберите город</option>
+                                {% for city in cities %}
+                                <option value="{{ city.id }}" 
+                                        {% if product.city_id == city.id %}selected{% endif %}>
+                                    {{ city.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
 
+                    <!-- Скрытые поля для старых значений региона и города (для обратной совместимости) -->
+                    <input type="hidden" id="old_region" name="old_region" value="{{ product.region or '' }}">
+                    <input type="hidden" id="old_city" name="old_city" value="{{ product.city or '' }}">
+                    
                     <!-- Доставка -->
                     <div class="form-group">
                         <div class="form-check">
@@ -847,6 +867,16 @@ let currentExistingFilename = null;
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('image_files');
     const uploadArea = document.getElementById('file-upload-area');
+    const regionSelect = document.getElementById('region_id');
+    const citySelect = document.getElementById('city_id');
+
+    // Инициализация зависимых полей
+    initializeDependentFields();
+
+    // Обработчик изменения региона
+    regionSelect.addEventListener('change', function() {
+        loadCitiesForRegion(this.value);
+    });
 
     fileInput.addEventListener('change', handleNewFileSelect);
 
@@ -881,6 +911,60 @@ document.addEventListener('DOMContentLoaded', function() {
     updateImageCounter();
 });
 
+// Инициализация зависимых полей
+function initializeDependentFields() {
+    const regionSelect = document.getElementById('region_id');
+    const citySelect = document.getElementById('city_id');
+    
+    // Если уже выбран регион, загружаем города
+    if (regionSelect.value) {
+        loadCitiesForRegion(regionSelect.value);
+    }
+}
+
+// Загрузка городов для выбранного региона
+function loadCitiesForRegion(regionId) {
+    const citySelect = document.getElementById('city_id');
+    
+    if (!regionId) {
+        citySelect.innerHTML = '<option value="">Сначала выберите субъект РФ</option>';
+        citySelect.disabled = true;
+        return;
+    }
+    
+    citySelect.innerHTML = '<option value="">Загрузка городов...</option>';
+    citySelect.disabled = true;
+    
+    // ИСПРАВЛЕННЫЙ URL - используем рекомендуемый формат
+    fetch(`/api/cities/by-region/${regionId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при загрузке городов');
+            }
+            return response.json();
+        })
+        .then(cities => {
+            citySelect.innerHTML = '<option value="">Выберите город</option>';
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.id;
+                option.textContent = city.name;
+                citySelect.appendChild(option);
+            });
+            citySelect.disabled = false;
+            
+            // Восстанавливаем сохраненное значение города, если есть
+            // УБИРАЕМ лишние кавычки из Jinja-шаблона
+            const savedCityId = {{ product.city_id|tojson|safe }};
+            if (savedCityId && savedCityId !== null) {
+                citySelect.value = savedCityId;
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при загрузке городов:', error);
+            citySelect.innerHTML = '<option value="">Ошибка загрузки городов</option>';
+        });
+}
 function handleNewFileSelect(event) {
     const files = Array.from(event.target.files);
     const currentCount = getActualImageCount();
@@ -1069,6 +1153,19 @@ document.getElementById('editProductForm').addEventListener('submit', function(e
     // Сохраняем имена отредактированных файлов (чтобы сервер знал, что заменить)
     const editedFilenames = Object.keys(editedExistingImages).join(',');
     document.getElementById('edited_images_data').value = editedFilenames;
+    
+    // Заполняем старые поля для обратной совместимости
+    const regionSelect = document.getElementById('region_id');
+    const citySelect = document.getElementById('city_id');
+    const regionOption = regionSelect.options[regionSelect.selectedIndex];
+    const cityOption = citySelect.options[citySelect.selectedIndex];
+    
+    if (regionOption && regionOption.dataset.regionName) {
+        document.getElementById('old_region').value = regionOption.dataset.regionName;
+    }
+    if (cityOption) {
+        document.getElementById('old_city').value = cityOption.textContent;
+    }
 });
 </script>
 {% endblock %}

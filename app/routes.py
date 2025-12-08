@@ -186,6 +186,41 @@ def add_product():
                 flash('Выбранная категория не существует', 'error')
                 return redirect(url_for('main.add_product'))
             
+            # ← ДОБАВЛЕННЫЙ КОД: обработка зависимых полей региона и города
+            region_id = request.form.get('region_id')
+            city_id = request.form.get('city_id')
+            old_region = request.form.get('old_region', '').strip()
+            old_city = request.form.get('old_city', '').strip()
+            
+            region_name = None
+            city_name = None
+            
+            if region_id:
+                region = Region.query.get(int(region_id))
+                if region:
+                    region_name = region.name
+                else:
+                    region_name = old_region
+            else:
+                region_name = old_region
+                
+            if city_id:
+                city = City.query.get(int(city_id))
+                if city:
+                    city_name = city.name
+                else:
+                    city_name = old_city
+            else:
+                city_name = old_city
+            
+            # Проверяем обязательность региона и города
+            if not region_name:
+                flash('Субъект РФ обязателен для выбора', 'error')
+                return redirect(url_for('main.add_product'))
+            if not city_name:
+                flash('Город обязателен для выбора', 'error')
+                return redirect(url_for('main.add_product'))
+            
             uploaded_files = request.files.getlist('image_files')
             saved_images = []
             
@@ -223,8 +258,10 @@ def add_product():
                 status=Product.STATUS_PUBLISHED,
                 vat_included=request.form.get('vat_included') == 'on', 
                 condition=request.form.get('condition', 'new'),
-                region=request.form.get('region'),
-                city=request.form.get('city'),
+                region=region_name,
+                city=city_name,
+                region_id=int(region_id) if region_id else None,
+                city_id=int(city_id) if city_id else None,
                 delivery=request.form.get('delivery') == 'on'
             )
             
@@ -242,12 +279,18 @@ def add_product():
             flash(f'Ошибка при добавлении товара: {str(e)}', 'error')
             return redirect(url_for('main.add_product'))
     
+    # GET запрос - отображение формы
     categories = Category.query.all()
     if not categories:
         flash('Прежде чем добавлять товары, создайте хотя бы одну категорию', 'warning')
         return redirect(url_for('main.admin_categories'))
     
-    return render_template('add_product.html', categories=categories)
+    # ← ДОБАВЛЯЕМ ЭТУ СТРОЧКУ: получаем все регионы
+    regions = Region.query.filter_by(parent_id=None).order_by(Region.name).all()
+    
+    return render_template('add_product.html', 
+                         categories=categories,
+                         regions=regions)  # ← передаем регионы в шаблон
 
 @main.route('/product/<int:product_id>/renew', methods=['POST'])
 @login_required
@@ -326,6 +369,41 @@ def edit_product(product_id):
                 flash('Выбранная категория не существует', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
             
+            # ← ДОБАВЛЕННЫЙ КОД: обработка зависимых полей региона и города
+            region_id = request.form.get('region_id')
+            city_id = request.form.get('city_id')
+            old_region = request.form.get('old_region', '').strip()
+            old_city = request.form.get('old_city', '').strip()
+            
+            region_name = None
+            city_name = None
+            
+            if region_id:
+                region = Region.query.get(int(region_id))
+                if region:
+                    region_name = region.name
+                else:
+                    region_name = old_region
+            else:
+                region_name = old_region
+                
+            if city_id:
+                city = City.query.get(int(city_id))
+                if city:
+                    city_name = city.name
+                else:
+                    city_name = old_city
+            else:
+                city_name = old_city
+            
+            # Проверяем обязательность региона и города
+            if not region_name:
+                flash('Субъект РФ обязателен для выбора', 'error')
+                return redirect(url_for('main.edit_product', product_id=product_id))
+            if not city_name:
+                flash('Город обязателен для выбора', 'error')
+                return redirect(url_for('main.edit_product', product_id=product_id))
+            
             product.title = title
             product.description = description
             product.price = float(price)
@@ -335,8 +413,10 @@ def edit_product(product_id):
             product.status = int(request.form.get('status'))
             product.vat_included = request.form.get('vat_included') == 'on' 
             product.condition = request.form.get('condition', 'new')
-            product.region = request.form.get('region')
-            product.city = request.form.get('city')
+            product.region = region_name
+            product.city = city_name
+            product.region_id = int(region_id) if region_id else None
+            product.city_id = int(city_id) if city_id else None
             product.delivery = request.form.get('delivery') == 'on'
             
             expires_at_str = request.form.get('expires_at')
@@ -391,12 +471,32 @@ def edit_product(product_id):
             db.session.rollback()
             flash(f'Ошибка при обновлении товара: {str(e)}', 'error')
     
+    # GET запрос - отображение формы редактирования
     categories = Category.query.all()
     if not categories:
         flash('Нет доступных категорий', 'error')
         return redirect(url_for('main.index'))
     
-    return render_template('edit_product.html', product=product, categories=categories)
+    # ← ДОБАВЛЯЕМ: получаем все регионы для выбора
+    regions = Region.query.filter_by(parent_id=None).order_by(Region.name).all()
+    
+    # ← ДОБАВЛЯЕМ: получаем города для текущего региона товара
+    cities = []
+    if product.region_id:
+        # Если есть region_id, загружаем города этого региона
+        cities = City.query.filter_by(region_id=product.region_id).order_by(City.name).all()
+    elif product.region:
+        # Для обратной совместимости: ищем регион по названию
+        region_obj = Region.query.filter_by(name=product.region).first()
+        if region_obj:
+            product.region_id = region_obj.id
+            cities = City.query.filter_by(region_id=region_obj.id).order_by(City.name).all()
+    
+    return render_template('edit_product.html', 
+                         product=product, 
+                         categories=categories,
+                         regions=regions,
+                         cities=cities)
 
 @main.route('/product/<int:product_id>/delete', methods=['POST'])
 @login_required
@@ -599,31 +699,58 @@ def add_region():
         flash('Недостаточно прав', 'error')
         return redirect(url_for('main.admin_categories'))
     
-    name = request.form.get('name')
+    name = request.form.get('name', '').strip()
     parent_id = request.form.get('parent_id') or None
-    description = request.form.get('description')
+    description = request.form.get('description', '').strip()
     
     if not name:
-        flash('Название региона обязательно', 'error')
+        flash('Название обязательно', 'error')
         return redirect(url_for('main.admin_categories'))
     
-    existing = Region.query.filter_by(name=name, parent_id=parent_id).first()
-    if existing:
-        flash('Такой регион уже существует', 'error')
-        return redirect(url_for('main.admin_categories'))
+    if parent_id:  # СОЗДАЕМ ГОРОД
+        # Проверяем существует ли регион
+        region = Region.query.get(parent_id)
+        if not region:
+            flash('Выбранный регион не существует', 'error')
+            return redirect(url_for('main.admin_categories'))
+        
+        # Проверяем нет ли уже такого города
+        existing_city = City.query.filter_by(name=name, region_id=parent_id).first()
+        if existing_city:
+            flash(f'Город "{name}" уже существует в регионе "{region.name}"', 'error')
+            return redirect(url_for('main.admin_categories'))
+        
+        try:
+            new_city = City(
+                name=name,
+                region_id=int(parent_id),
+                description=description
+            )
+            db.session.add(new_city)
+            db.session.commit()
+            flash(f'Город "{name}" добавлен в регион "{region.name}"', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ошибка при создании города: {str(e)}', 'error')
     
-    try:
-        new_region = Region(
-            name=name,
-            description=description,
-            parent_id=parent_id if parent_id else None
-        )
-        db.session.add(new_region)
-        db.session.commit()
-        flash(f'Регион "{name}" добавлен', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Ошибка: {str(e)}', 'error')
+    else:  # СОЗДАЕМ РЕГИОН
+        existing_region = Region.query.filter_by(name=name, parent_id=None).first()
+        if existing_region:
+            flash('Такой регион уже существует', 'error')
+            return redirect(url_for('main.admin_categories'))
+        
+        try:
+            new_region = Region(
+                name=name,
+                description=description,
+                parent_id=None
+            )
+            db.session.add(new_region)
+            db.session.commit()
+            flash(f'Регион "{name}" добавлен', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Ошибка: {str(e)}', 'error')
     
     return redirect(url_for('main.admin_categories'))
 
@@ -715,8 +842,6 @@ def clear_categories():
     
     return redirect(url_for('main.admin_categories'))
 
-# ========== НОВЫЕ МАРШРУТЫ ДЛЯ ГОРОДОВ ==========
-
 @main.route('/admin/cities/add', methods=['POST'])
 @login_required
 def add_city():
@@ -725,9 +850,28 @@ def add_city():
         flash('Недостаточно прав', 'error')
         return redirect(url_for('main.admin_categories'))
     
-    name = request.form.get('name')
+    # ОТЛАДКА: что приходит в запросе
+    print("=" * 50)
+    print("DEBUG add_city:")
+    print(f"  request.form: {dict(request.form)}")
+    print(f"  request.headers: {dict(request.headers)}")
+    print(f"  request.charset: {request.charset}")
+    
+    name = request.form.get('name', '').strip()
     region_id = request.form.get('region_id')
-    description = request.form.get('description')
+    description = request.form.get('description', '').strip()
+    
+    print(f"  name raw: {repr(name)}")
+    print(f"  name bytes: {name.encode('utf-8') if name else 'empty'}")
+    
+    # Пробуем разные кодировки
+    encodings_to_try = ['utf-8', 'windows-1251', 'cp1251', 'iso-8859-1']
+    for encoding in encodings_to_try:
+        try:
+            decoded = name.encode('latin-1').decode(encoding)
+            print(f"  name as {encoding}: {repr(decoded)}")
+        except:
+            pass
     
     if not name:
         flash('Название города обязательно', 'error')
@@ -736,6 +880,9 @@ def add_city():
     if not region_id:
         flash('Выберите регион', 'error')
         return redirect(url_for('main.admin_categories'))
+    
+    # Пробуем сохранить "как есть" для теста
+    print(f"  Сохраняем как есть: {repr(name)}")
     
     existing = City.query.filter_by(name=name, region_id=region_id).first()
     if existing:
@@ -750,11 +897,14 @@ def add_city():
         )
         db.session.add(new_city)
         db.session.commit()
+        print(f"  ✅ Город сохранен в БД: {name}")
         flash(f'Город "{name}" добавлен', 'success')
     except Exception as e:
         db.session.rollback()
+        print(f"  ❌ Ошибка сохранения: {str(e)}")
         flash(f'Ошибка: {str(e)}', 'error')
     
+    print("=" * 50)
     return redirect(url_for('main.admin_categories'))
 
 @main.route('/admin/cities/delete/<int:city_id>', methods=['POST'])
@@ -918,9 +1068,14 @@ def get_cities_by_region(region_id):
             'full_name': f"{city.name} (Регион ID: {region_id})"
         })
     
-    return jsonify(result)
-
-# ========== КОНЕЦ НОВЫХ МАРШРУТОВ ==========
+    # Используем json.dumps с ensure_ascii=False
+    import json
+    response = current_app.response_class(
+        response=json.dumps(result, ensure_ascii=False),
+        status=200,
+        mimetype='application/json; charset=utf-8'
+    )
+    return response
 
 @main.route('/update_expired_products')
 def update_expired_products():
