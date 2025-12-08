@@ -220,8 +220,8 @@
 .search-section {
     background: var(--background);
     border-bottom: 1px solid var(--border);
-    padding: 20px 0;
-    box-shadow: var(--shadow-light);
+    padding: 20px;
+    margin-bottom: 24px;
 }
 
 .search-wrapper {
@@ -231,8 +231,8 @@
 .search-row {
     display: flex;
     align-items: center;
+    width: 100%;
     gap: 12px;
-    max-width: 800px;
     margin: 0 auto;
 }
 
@@ -3078,21 +3078,327 @@ select:focus-visible {
     z-index: 2;
 }
 
-/* Местоположение */
-.location-display {
+/* === КНОПКА ВЫБОРА МЕСТОПОЛОЖЕНИЯ (СПРАВА ОТ ПОИСКА) === */
+.location-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    color: #666;
+    background: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-height: 28px;
+    border: 1px solid transparent;
+}
+.location-button:hover {
+    background: #e9ecef;
+    border-color: #dee2e6;
+    color: #1F1F1F;
+}
+#locationText {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* МОДАЛЬНОЕ ОКНО ВЫБОРА ГОРОДА */
+/* === МОДАЛЬНОЕ ОКНО ВЫБОРА ГОРОДА === */
+#locationModal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from { 
+        transform: translate(-50%, -50%) scale(0.95); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translate(-50%, -50%) scale(1); 
+        opacity: 1; 
+    }
+}
+
+#locationModal .modal-content {
+    background-color: white;
+    margin: 0;
+    padding: 0;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid #E0E0E0;
+    overflow: hidden;
+    animation: scaleIn 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+#locationModal .modal-header {
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #F0F0F0;
+    background: white;
+    flex-shrink: 0;
+}
+
+#locationModal .modal-header h3 {
+    margin: 0;
+    color: #1A1A1A;
+    font-size: 20px;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 10px;
+}
+
+#locationModal .modal-header h3::before {
+    content: "📍";
+    font-size: 24px;
+}
+
+#locationModal .modal-content .close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 32px;
+    height: 32px;
+    font-size: 20px;
+    font-weight: 400;
     cursor: pointer;
-    padding: 8px 12px;
-    border-radius: 6px;
-    transition: background-color 0.2s ease;
+    color: #999999;
+    background: #F8F9FA;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+    z-index: 2;
 }
-.location-display:hover {
-    background-color: #f0f0f0;
+
+#locationModal .modal-content .close:hover {
+    color: #1A1A1A;
+    background: #E0E0E0;
+    transform: rotate(90deg);
 }
-.location-display svg {
-    width: 16px;
-    height: 16px;
-    color: #666;
+
+.location-search {
+    position: relative;
+    margin: 0 24px 20px;
+    padding-top: 8px;
+    flex-shrink: 0;
+}
+
+#locationInput {
+    width: 100%;
+    padding: 14px 44px 14px 16px;
+    border: 2px solid #E0E0E0;
+    border-radius: 12px;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s;
+    color: #1A1A1A;
+    background: #F8F9FA;
+    box-sizing: border-box;
+}
+
+#locationInput:focus {
+    border-color: #0057FF;
+    box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
+}
+
+#locationInput::placeholder {
+    color: #999999;
+}
+
+.clear-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #999999;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.clear-btn:hover {
+    color: #1A1A1A;
+    background: #F0F0F0;
+}
+
+.location-suggestions {
+    flex: 1;
+    min-height: 150px;
+    max-height: none;
+    overflow-y: auto;
+    margin: 0 24px 24px;
+    border: 1px solid #F0F0F0;
+    border-radius: 12px;
+    background: white;
+    scrollbar-width: thin;
+    scrollbar-color: #E0E0E0 #F8F9FA;
+}
+
+.location-suggestions::-webkit-scrollbar {
+    width: 6px;
+}
+
+.location-suggestions::-webkit-scrollbar-track {
+    background: #F8F9FA;
+    border-radius: 3px;
+}
+
+.location-suggestions::-webkit-scrollbar-thumb {
+    background: #E0E0E0;
+    border-radius: 3px;
+}
+
+.suggestion-item {
+    padding: 16px 20px;
+    cursor: pointer;
+    border-bottom: 1px solid #F0F0F0;
+    transition: all 0.2s ease;
+    color: #1A1A1A;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item:hover {
+    background: rgba(0, 87, 255, 0.05);
+    color: #0057FF;
+    padding-left: 24px;
+}
+
+.suggestion-item::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #999999;
+    opacity: 0.5;
+    transition: all 0.2s;
+}
+
+.suggestion-item:hover::before {
+    background: #0057FF;
+    opacity: 1;
+    transform: scale(1.2);
+}
+
+.suggestion-item:first-child::before {
+    content: "🌍";
+    background: none;
+    width: auto;
+    height: auto;
+    font-size: 18px;
+}
+
+.suggestion-item:first-child:hover::before {
+    transform: scale(1.1);
+}
+
+/* Стили для популярных городов */
+.suggestion-item.popular {
+    background: linear-gradient(135deg, rgba(0, 87, 255, 0.05) 0%, rgba(0, 87, 255, 0.02) 100%);
+    border-left: 3px solid #0057FF;
+}
+
+.suggestion-item.popular::before {
+    content: "⭐";
+    background: none;
+    width: auto;
+    height: auto;
+    font-size: 16px;
+}
+
+.suggestion-item.popular:hover {
+    background: rgba(0, 87, 255, 0.1);
+}
+
+/* Стили для пустого состояния */
+.location-suggestions:empty::before {
+    content: "Введите название города или региона";
+    display: block;
+    padding: 40px 20px;
+    text-align: center;
+    color: #999999;
+    font-size: 14px;
+}
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    #locationModal .modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    #locationModal .modal-header {
+        padding: 20px 20px 12px;
+    }
+    
+    #locationModal .modal-header h3 {
+        font-size: 18px;
+    }
+    
+    .location-search {
+        margin: 0 20px 16px;
+    }
+    
+    #locationInput {
+        padding: 12px 40px 12px 14px;
+        font-size: 15px;
+    }
+    
+    .location-suggestions {
+        margin: 0 20px 20px;
+        max-height: calc(90vh - 180px);
+    }
+    
+    .suggestion-item {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+    
+    .suggestion-item:hover {
+        padding-left: 20px;
+    }
 }

@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-
 {% block title %}Главная - Система продажи остатков{% endblock %}
-
 {% block styles %}
 <style>
     /* Используем стили из style.css, добавляем только специфичные для главной страницы */
@@ -11,19 +9,68 @@
         color: white;
         text-align: center;
     }
-    
     .hero-description {
         font-size: 18px;
         margin-bottom: 32px;
         opacity: 0.9;
     }
-    
+    /* Search Section - ПОЛНАЯ ШИРИНА */
     .search-section {
         background: var(--background);
         border-bottom: 1px solid var(--border);
-        padding: 16px 0;
+        padding: 20px;
+        margin-bottom: 24px;
     }
 
+    .search-row-full {
+        width: 100%;
+        background: white;
+        padding: 40px 0;
+        box-shadow: var(--shadow-light);
+    }
+
+    .search-row {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 12px;
+        margin: 0 auto;
+    }
+
+    /* Увеличиваем контейнер поиска */
+    .search-group {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        height: 48px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid var(--avito-blue);
+        background: white;
+    }
+
+    .search-field {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        padding: 0 16px;
+        font-size: 16px;
+        background: transparent;
+        color: var(--text-primary);
+    }
+
+    .category-filter {
+        flex: 0 0 220px;
+        height: 48px;
+        padding: 0 16px;
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        font-size: 16px;
+        background: white;
+        cursor: pointer;
+        color: var(--text-primary);
+    }
     .listings-section {
         background: white;
         border-radius: 12px;
@@ -32,24 +79,20 @@
         border: 1px solid var(--border);
         margin-bottom: 40px;
     }
-
     /* Custom layout without Bootstrap */
     .layout-container {
         display: flex;
         gap: 24px;
         align-items: flex-start;
     }
-
     .sidebar-container {
         width: 25%;
         flex-shrink: 0;
     }
-
     .content-container {
         width: 75%;
         flex-grow: 1;
     }
-
     /* Стили для переключения видов */
     .view-controls {
         display: flex;
@@ -59,7 +102,6 @@
         padding-bottom: 20px;
         border-bottom: 2px solid #F0F0F0;
     }
-
     .view-toggle {
         display: flex;
         gap: 5px;
@@ -68,7 +110,6 @@
         padding: 4px;
         border: 1px solid #E0E0E0;
     }
-
     .view-btn {
         background: none;
         border: none;
@@ -79,17 +120,14 @@
         transition: all 0.2s ease;
         color: #666666;
     }
-
     .view-btn:hover {
         background: #F0F0F0;
         color: #1A1A1A;
     }
-
     .view-btn.active {
         background: #0057FF;
         color: white;
     }
-
     /* === СТИЛИ ДЛЯ КОНТЕЙНЕРОВ - ВСЕ СКРЫТЫ ПО УМОЛЧАНИЮ === */
     /* Главные контейнеры */
     #productsGridView,
@@ -97,28 +135,23 @@
     #productsTableView {
         display: none;
     }
-    
     /* Внутренние контейнеры */
     .products-grid-view,
     .products-list-view,
     .products-table-view {
         display: none;
     }
-
     /* АКТИВНЫЕ СТИЛИ БУДУТ ДОБАВЛЯТЬСЯ ЧЕРЕЗ JS */
-    
     /* Стили для представления плиткой */
     .products-grid-view {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+        gap: 40px;
         margin-bottom: 20px;
     }
-
     .products-list-view {
         grid-template-columns: 1fr;
         gap: 15px;
     }
-
     .products-table-view {
         background: white;
         border-radius: 12px;
@@ -127,7 +160,6 @@
         border: 1px solid #E0E0E0;
         margin-bottom: 20px;
     }
-
     .product-card {
         background: white;
         border-radius: 12px;
@@ -139,12 +171,10 @@
         cursor: pointer;
         display: block;
     }
-
     .product-card:hover {
         transform: translateY(-4px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
-
     .product-image {
         position: relative;
         height: 200px;
@@ -152,7 +182,6 @@
         background: #F8F9FA;
         display: block;
     }
-
     .product-image img {
         width: 100%;
         height: 100%;
@@ -160,11 +189,9 @@
         transition: transform 0.3s ease;
         display: block;
     }
-
     .product-card:hover .product-image img {
         transform: scale(1.05);
     }
-
     /* Стиль для заглушки без фото */
     .product-image .no-photo {
         display: flex;
@@ -177,23 +204,19 @@
         background: #F8F9FA;
         flex-direction: column;
     }
-
     .product-image .no-photo i {
         font-size: 64px;
         margin-bottom: 10px;
         opacity: 0.6;
     }
-
     .product-image .no-photo span {
         font-size: 14px;
         color: #999999;
     }
-
     .product-info {
         padding: 20px;
         display: block;
     }
-
     .product-category {
         font-size: 12px;
         color: #999999;
@@ -202,7 +225,6 @@
         letter-spacing: 0.5px;
         display: block;
     }
-
     .product-name {
         font-size: 18px;
         font-weight: 600;
@@ -211,7 +233,6 @@
         line-height: 1.3;
         display: block;
     }
-
     .product-price {
         font-size: 20px;
         font-weight: 700;
@@ -219,7 +240,6 @@
         margin: 0 0 10px 0;
         display: block;
     }
-
     .product-views {
         margin-bottom: 10px;
         font-size: 12px;
@@ -228,7 +248,6 @@
         align-items: center;
         gap: 5px;
     }
-
     .product-meta {
         display: flex;
         justify-content: space-between;
@@ -236,7 +255,6 @@
         font-size: 12px;
         color: #999999;
     }
-
     /* Специфичные стили для представления списком */
     .products-list-view .product-card {
         display: flex;
@@ -244,14 +262,12 @@
         min-height: 150px;
         align-items: stretch;
     }
-
     .products-list-view .product-image {
         width: 150px;
         height: 150px;
         flex-shrink: 0;
         min-width: 150px;
     }
-
     .products-list-view .product-info {
         flex: 1;
         padding: 15px;
@@ -260,7 +276,6 @@
         justify-content: center;
         min-width: 0;
     }
-
     .products-list-view .product-name {
         -webkit-line-clamp: 2;
         display: -webkit-box;
@@ -268,19 +283,16 @@
         overflow: hidden;
         margin-bottom: 8px;
     }
-
     /* Таблица товаров */
     .products-data-table {
         width: 100%;
         border-collapse: collapse;
         background: white;
     }
-
     .products-data-table thead {
         background: #F8F9FA;
         border-bottom: 2px solid #E0E0E0;
     }
-
     .products-data-table th {
         padding: 16px;
         text-align: left;
@@ -292,65 +304,52 @@
         cursor: pointer;
         user-select: none;
     }
-
     .products-data-table th.sortable:hover {
         background: #F0F0F0;
     }
-
     .products-data-table th:last-child {
         border-right: none;
     }
-
     .table-header-content {
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
-
     .header-text {
         flex: 1;
     }
-
     .sort-icon {
         margin-left: 8px;
         font-size: 12px;
         opacity: 0.5;
     }
-
     .products-data-table th.sort-asc .sort-icon::before {
         content: "↑";
         opacity: 1;
     }
-
     .products-data-table th.sort-desc .sort-icon::before {
         content: "↓";
         opacity: 1;
     }
-
     .products-data-table tbody tr {
         border-bottom: 1px solid #F0F0F0;
         cursor: pointer;
         transition: background-color 0.2s ease;
     }
-
     .products-data-table tbody tr:hover {
         background-color: #F8F9FA;
     }
-
     .products-data-table tbody tr:last-child {
         border-bottom: none;
     }
-
     .products-data-table td {
         padding: 16px;
         vertical-align: middle;
         border-right: 1px solid #F0F0F0;
     }
-
     .products-data-table td:last-child {
         border-right: none;
     }
-
     /* Стили для ячеек таблицы */
     .table-product-title {
         font-weight: 600;
@@ -358,18 +357,15 @@
         color: #1A1A1A;
         margin-bottom: 4px;
     }
-
     .table-category {
         font-size: 12px;
         color: #999999;
     }
-
     .table-price {
         font-weight: 700;
         font-size: 16px;
         color: #0057FF;
     }
-
     /* Бейджи для статусов */
     .vat-badge, .condition-badge, .delivery-badge {
         display: inline-block;
@@ -378,71 +374,47 @@
         font-size: 12px;
         font-weight: 500;
     }
-
     .vat-badge.vat-included {
         background: #E6F7E9;
         color: #00A326;
     }
-
     .vat-badge.vat-excluded {
         background: #FFF2E6;
         color: #FF6B00;
     }
-
     .condition-badge.condition-new {
         background: #E6F2FF;
         color: #0057FF;
     }
-
     .condition-badge.condition-used {
         background: #F2F2F2;
         color: #666666;
     }
-
     .delivery-badge.delivery-yes {
         background: #E6F7E9;
         color: #00A326;
     }
-
     .delivery-badge.delivery-no {
         background: #FFE6E6;
         color: #FF0000;
     }
-
-    /* Стили для строки поиска */
-    .search-row {
-        display: flex;
-        gap: 15px;
-        width: 100%;
+   
+    .location-button {
+        flex: 0 0 auto; /* ширина по содержимому */
+        display: inline-flex;
         align-items: center;
-    }
-
-    .category-filter {
-        width: 250px;
-        flex-shrink: 0;
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 12px 16px;
-        font-size: 14px;
-        color: var(--text-primary);
+        justify-content: center;
+        font-size: 13px;
+        color: #666;
+        background: #f8f9fa;
+        padding: 6px 12px;
+        border-radius: 6px;
         cursor: pointer;
-        min-width: 200px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        min-height: 28px;
+        border: 1px solid transparent;
     }
-
-    .search-group {
-        flex: 1;
-        display: flex;
-        gap: 0;
-        max-width: 100%;
-    }
-
-    .search-field {
-        flex: 1;
-        min-width: 0;
-        width: 100%;
-    }
-
     /* Пагинация для таблицы */
     .table-pagination {
         display: flex;
@@ -452,18 +424,15 @@
         border-top: 1px solid #E0E0E0;
         background: #F8F9FA;
     }
-
     .pagination-info {
         font-size: 14px;
         color: #666666;
     }
-
     .pagination-controls {
         display: flex;
         align-items: center;
         gap: 10px;
     }
-
     .pagination-btn {
         padding: 8px 16px;
         background: white;
@@ -474,22 +443,18 @@
         cursor: pointer;
         transition: all 0.2s ease;
     }
-
     .pagination-btn:hover:not(:disabled) {
         background: #F0F0F0;
         border-color: #CCCCCC;
     }
-
     .pagination-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
     }
-
     .page-numbers {
         display: flex;
         gap: 4px;
     }
-
     .page-number {
         width: 32px;
         height: 32px;
@@ -502,75 +467,51 @@
         border-radius: 6px;
         transition: all 0.2s ease;
     }
-
     .page-number:hover {
         background: #F0F0F0;
     }
-
     .page-number.active {
         background: #0057FF;
         color: white;
     }
-
     /* Адаптивность для мобильных устройств */
     @media (max-width: 768px) {
         .layout-container {
             flex-direction: column;
         }
-        
         .sidebar-container,
         .content-container {
             width: 100%;
         }
-
-        .search-row {
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .category-filter {
-            width: 100%;
-            min-width: unset;
-        }
-
-        .search-group {
-            width: 100%;
-        }
-        
+  
         /* Адаптация таблицы для мобильных */
         .products-data-table {
             display: block;
             overflow-x: auto;
         }
-        
         .products-data-table th,
         .products-data-table td {
             white-space: nowrap;
             min-width: 100px;
         }
-        
         .table-pagination {
             flex-direction: column;
             gap: 10px;
             align-items: stretch;
         }
-        
         /* Адаптация плитки для мобильных */
         .products-grid-view {
             grid-template-columns: 1fr !important;
         }
-        
         /* Адаптация списка для мобильных */
         .products-list-view .product-card {
             flex-direction: column;
             min-height: auto;
         }
-        
         .products-list-view .product-image {
             width: 100%;
             height: 200px;
         }
-        
         /* Адаптация переключения видов на мобильных */
         .view-controls {
             flex-direction: column;
@@ -578,9 +519,65 @@
             gap: 10px;
         }
     }
+
+    /* === ЗНАЧОК ИЗБРАННОГО === */
+    .favorite-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        z-index: 2;
+    }
+
+/* Адаптивность для мобильных */
+@media (max-width: 768px) {
+    #locationModal .modal-content {
+        margin: 20% auto;
+        width: 95%;
+        max-width: 95%;
+        border-radius: 12px;
+    }
+    
+    #locationModal .modal-header {
+        padding: 20px 20px 12px;
+    }
+    
+    #locationModal .modal-header h3 {
+        font-size: 18px;
+    }
+    
+    .location-search {
+        margin: 0 20px 16px;
+    }
+    
+    #locationInput {
+        padding: 12px 40px 12px 14px;
+        font-size: 15px;
+    }
+    
+    .location-suggestions {
+        margin: 0 20px 20px;
+        max-height: 300px;
+    }
+    
+    .suggestion-item {
+        padding: 14px 16px;
+        font-size: 14px;
+    }
+    
+    .suggestion-item:hover {
+        padding-left: 20px;
+    }
+}
 </style>
 {% endblock %}
-
 {% block content %}
 <!-- Hero Section -->
 <div class="hero-section">
@@ -589,13 +586,12 @@
         <p class="hero-description">Найдите выгодные предложения от производителей и поставщиков</p>
     </div>
 </div>
-
 <!-- Search Section -->
 <div class="search-section">
-    <div class="container">
-        <div class="search-wrapper">
+    <div class="search-row-full">
+        <div class="container">
             <div class="search-row">
-                <!-- Окно выбора категории теперь слева -->
+                <!-- Окно выбора категории -->
                 <select class="category-filter" id="categoryFilter">
                     <option value="">Все категории</option>
                     {% for category in categories %}
@@ -604,37 +600,31 @@
                     </option>
                     {% endfor %}
                 </select>
-                
-                <!-- Строка поиска теперь справа и растягивается -->
+                <!-- Строка поиска -->
                 <div class="search-group">
                     <input type="text" 
                            class="search-field" 
                            placeholder="Найти товары..." 
                            id="searchInput"
                            value="{{ search_term or '' }}">
-                    <button class="search-btn" onclick="applyFilters()">
+                    <button class="search-btn">
                         <span class="search-btn-icon">
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                 <path d="M15 15L11 11M13 6.5C13 9.53757 10.5376 12 7.5 12C4.46243 12 2 9.53757 2 6.5C2 3.46243 4.46243 1 7.5 1C10.5376 1 13 3.46243 13 6.5Z" 
-                                      stroke="white" stroke-width="2" stroke-linecap="round"/>
+                                    stroke="white" stroke-width="2" stroke-linecap="round"/>
                             </svg>
                         </span>
                         <span class="search-btn-text">Найти</span>
                     </button>
                 </div>
                 <!-- Местоположение -->
-                <span id="locationDisplay" class="location-display" style="margin-left: 15px; font-size: 14px; color: #666;">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <span id="locationText">Казань</span> <!-- По умолчанию -->
-                </span>
+                <div id="locationDisplay" class="location-button" title="Изменить город">
+                    <span id="locationText">Казань</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
-
 <!-- Main Content -->
 <div class="container mt-4">
     <div class="layout-container">
@@ -668,7 +658,6 @@
                 </ul>
             </div>
         </div>
-        
         <div class="content-container">
             <div class="listings-section">
                 <!-- Кнопки переключения видов -->
@@ -686,15 +675,14 @@
                     </div>
                     <span class="text-muted">Найдено: {{ products|length }}</span>
                 </div>
-                
                 {% if products %}
-                    <!-- Все виды в отдельных контейнерах - НЕТ INLINE СТИЛЕЙ -->
+                    <!-- Grid View -->
                     <div id="productsGridView">
-                        <!-- Grid View -->
                         <div class="products-grid-view">
                             {% for product in products %}
                             <div class="product-card" onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
                                 <div class="product-image">
+                                    <!-- Значок избранного -->
                                     {% if current_user.is_authenticated and product in current_user.favorited_products %}
                                     <div class="favorite-badge">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="1.5">
@@ -746,13 +734,20 @@
                             {% endfor %}
                         </div>
                     </div>
-
+                    <!-- List View -->
                     <div id="productsListView">
-                        <!-- List View -->
                         <div class="products-list-view">
                             {% for product in products %}
                             <div class="product-card" onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
                                 <div class="product-image">
+                                    <!-- Значок избранного -->
+                                    {% if current_user.is_authenticated and product in current_user.favorited_products %}
+                                    <div class="favorite-badge">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="1.5">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                                        </svg>
+                                    </div>
+                                    {% endif %}
                                     {% if product.images and product.images|length > 0 %}
                                         <img src="{{ url_for('main.serve_uploaded_file', filename=product.images[0]) }}" 
                                             alt="{{ product.title }}"
@@ -797,9 +792,8 @@
                             {% endfor %}
                         </div>
                     </div>
-
+                    <!-- Table View -->
                     <div id="productsTableView">
-                        <!-- Table View -->
                         <div class="products-table-view">
                             <div class="table-wrapper">
                                 <table class="products-data-table">
@@ -897,8 +891,6 @@
                                     </tbody>
                                 </table>
                             </div>
-
-                            <!-- Пагинация для таблицы -->
                             {% if products|length > 50 %}
                             <div class="table-pagination">
                                 <div class="pagination-info">
@@ -932,61 +924,250 @@
     </div>
 </div>
 
-<script>
-// Глобальная функция для обработки ошибок изображений
-function handleImageError(img) {
-    console.log('Ошибка загрузки изображения:', img.src);
-    img.style.display = 'none';
-    const noPhotoDiv = img.nextElementSibling;
-    if (noPhotoDiv && noPhotoDiv.classList.contains('no-photo')) {
-        noPhotoDiv.style.display = 'flex';
-    }
-}
+<!-- Модальное окно выбора города/региона -->
+<div id="locationModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeLocationModal()">&times;</span>
+        <div class="modal-header">
+            <h3>Город или регион</h3>
+        </div>
+        <div class="location-search">
+            <input type="text" 
+                   id="locationInput" 
+                   placeholder="Введите город или регион..." 
+                   onkeyup="filterLocations()">
+            <button class="clear-btn" onclick="clearLocationInput()">×</button>
+        </div>
+        <div id="locationSuggestions" class="location-suggestions">
+            <!-- Сюда будут подгружаться варианты -->
+            <div class="suggestion-item" onclick="setLocation('Все регионы')">
+                Все регионы
+            </div>
+        </div>
+    </div>
+</div>
 
-// Глобальная функция фильтрации
+<script>
+// === СПРАВОЧНИК ГОРОДОВ РФ (встроенный) ===
+const RU_CITIES = [
+  "Москва","Санкт-Петербург","Казань", "Саранск", "Екатеринбург","Новосибирск","Челябинск",
+  "Краснодар","Самара","Уфа","Нижний Новгород","Ростов-на-Дону","Омск","Красноярск",
+  "Воронеж","Пермь","Волгоград","Саратов","Тюмень","Иркутск","Барнаул","Ульяновск",
+  "Тольятти","Кемерово","Рязань","Астрахань","Пенза","Липецк","Тула","Киров","Чебоксары",
+  "Калининград","Брянск","Магнитогорск","Иваново","Тверь","Ставрополь","Белгород","Сочи",
+  "Владимир","Архангельск","Набережные Челны","Владивосток","Хабаровск","Махачкала",
+  "Томск","Оренбург","Курск","Новокузнецк","Сургут","Йошкар-Ола","Нальчик","Старый Оскол",
+  "Ангарск","Балашиха","Владикавказ","Вологда","Мурманск","Череповец","Абакан","Миасс",
+  "Ханты-Мансийск","Бийск","Смоленск","Якутск","Новороссийск","Кызыл","Нижневартовск"
+];
+// Список регионов РФ (можно расширить)
+const RU_REGIONS = [
+    "Республика Адыгея",
+    "Республика Алтай",
+    "Республика Башкортостан",
+    "Республика Бурятия",
+    "Республика Дагестан",
+    "Республика Ингушетия",
+    "Республика Кабардино-Балкарская",
+    "Республика Калмыкия",
+    "Республика Карачаево-Черкесская",
+    "Республика Коми",
+    "Республика Крым",
+    "Республика Марий Эл",
+    "Республика Мордовия",
+    "Республика Саха (Якутия)",
+    "Республика Северная Осетия — Алания",
+    "Республика Татарстан",
+    "Республика Тыва",
+    "Удмуртская Республика",
+    "Республика Хакасия",
+    "Чеченская Республика",
+    "Чувашская Республика",
+    "Алтайский край",
+    "Забайкальский край",
+    "Камчатский край",
+    "Краснодарский край",
+    "Красноярский край",
+    "Пермский край",
+    "Приморский край",
+    "Ставропольский край",
+    "Хабаровский край",
+    "Амурская область",
+    "Архангельская область",
+    "Астраханская область",
+    "Белгородская область",
+    "Брянская область",
+    "Владимирская область",
+    "Волгоградская область",
+    "Вологодская область",
+    "Воронежская область",
+    "Ивановская область",
+    "Иркутская область",
+    "Калининградская область",
+    "Калужская область",
+    "Кемеровская область — Кузбасс",
+    "Кировская область",
+    "Костромская область",
+    "Курганская область",
+    "Курская область",
+    "Ленинградская область",
+    "Липецкая область",
+    "Магаданская область",
+    "Московская область",
+    "Мурманская область",
+    "Нижегородская область",
+    "Новгородская область",
+    "Новосибирская область",
+    "Омская область",
+    "Оренбургская область",
+    "Орловская область",
+    "Пензенская область",
+    "Псковская область",
+    "Ростовская область",
+    "Рязанская область",
+    "Самарская область",
+    "Саратовская область",
+    "Сахалинская область",
+    "Свердловская область",
+    "Смоленская область",
+    "Тамбовская область",
+    "Тверская область",
+    "Томская область",
+    "Тульская область",
+    "Тюменская область",
+    "Ульяновская область",
+    "Челябинская область",
+    "Чукотский автономный округ",
+    "Ярославская область",
+    "Москва",
+    "Санкт-Петербург",
+    "Севастополь",
+    "Еврейская автономная область",
+    "Ненецкий автономный округ",
+    "Ханты-Мансийский автономный округ — Югра",
+    "Чукотский автономный округ",
+    "Ямало-Ненецкий автономный округ"
+];
+
+// === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
+let currentLocation = localStorage.getItem('userLocation') || 'Казань';
+
+// === ОСНОВНЫЕ ФУНКЦИИ ===
 function applyFilters(categoryId = '', searchTerm = '') {
     let url = '/';
     const params = new URLSearchParams();
+    
     if (categoryId) params.append('category_id', categoryId);
     if (searchTerm) params.append('search', searchTerm);
+    if (currentLocation && currentLocation !== 'Все регионы') {
+        params.append('location', currentLocation);
+    }
+    
     if (params.toString()) url += '?' + params.toString();
     window.location.href = url;
 }
 
-// Основной код
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== ДОМ ЗАГРУЖЕН ===');
-    
-    // Проверяем контейнеры
-    console.log('Grid контейнер:', document.getElementById('productsGridView'));
-    console.log('List контейнер:', document.getElementById('productsListView'));
-    console.log('Table контейнер:', document.getElementById('productsTableView'));
+// === ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА ===
+function openLocationModal() {
+    const modal = document.getElementById('locationModal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('locationInput').value = '';
+        filterLocations();
+        
+        setTimeout(() => {
+            const input = document.getElementById('locationInput');
+            if (input) input.focus();
+        }, 100);
+    }
+}
 
-    // Фильтрация
-    const categoryItems = document.querySelectorAll('.category-item:not(.has-children), .subcategory-item');
-    const parentCategories = document.querySelectorAll('.category-item.has-children');
+function closeLocationModal() {
+    const modal = document.getElementById('locationModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+}
+
+function clearLocationInput() {
+    document.getElementById('locationInput').value = '';
+    filterLocations();
+}
+
+function filterLocations() {
+    const input = document.getElementById('locationInput');
+    const filter = input.value.toLowerCase();
+    const suggestions = document.getElementById('locationSuggestions');
+
+    suggestions.innerHTML = `
+        <div class="suggestion-item" onclick="setLocation('Все регионы')">
+            Все регионы
+        </div>
+    `;
+
+    RU_REGIONS.forEach(region => {
+        if (region.toLowerCase().includes(filter)) {
+            suggestions.innerHTML += `
+                <div class="suggestion-item" onclick="setLocation('${region}')">
+                    ${region}
+                </div>
+            `;
+        }
+    });
+
+    RU_CITIES.forEach(city => {
+        if (city.toLowerCase().includes(filter)) {
+            suggestions.innerHTML += `
+                <div class="suggestion-item" onclick="setLocation('${city}')">
+                    ${city}
+                </div>
+            `;
+        }
+    });
+
+    if (suggestions.children.length === 1) {
+        suggestions.innerHTML += '<div class="suggestion-item">Ничего не найдено</div>';
+    }
+}
+
+function setLocation(location) {
+    currentLocation = location.trim();
+    localStorage.setItem('userLocation', currentLocation);
+    document.getElementById('locationText').textContent = currentLocation;
+    closeLocationModal();
+}
+
+// === ИНИЦИАЛИЗАЦИЯ ===
+document.addEventListener('DOMContentLoaded', function() {
+    const locationText = document.getElementById('locationText');
+    if (locationText) {
+        locationText.textContent = currentLocation;
+    }
+    
+    const alreadyAsked = localStorage.getItem('locationAsked');
+    if (!alreadyAsked) {
+        setTimeout(() => {
+            openLocationModal();
+            localStorage.setItem('locationAsked', 'true');
+        }, 1000);
+    }
+
+    const locationDisplay = document.getElementById('locationDisplay');
+    if (locationDisplay) {
+        locationDisplay.addEventListener('click', openLocationModal);
+    }
+
     const categorySelect = document.getElementById('categoryFilter');
     const searchInput = document.getElementById('searchInput');
 
-    if (categoryItems.length > 0) {
-        categoryItems.forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const categoryId = this.getAttribute('data-category-id');
-                const searchTerm = searchInput ? searchInput.value.trim() : '';
-                applyFilters(categoryId, searchTerm);
-            });
-        });
-    }
-
-    if (parentCategories.length > 0) {
-        parentCategories.forEach(item => {
-            const categoryMain = item.querySelector('.category-main');
-            if (categoryMain) {
-                categoryMain.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                });
-            }
+    const searchBtn = document.querySelector('.search-btn');
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            const categoryId = categorySelect ? categorySelect.value : '';
+            const searchTerm = searchInput ? searchInput.value.trim() : '';
+            applyFilters(categoryId, searchTerm);
         });
     }
 
@@ -1000,450 +1181,60 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
-                const categorySelect = document.getElementById('categoryFilter');
                 const categoryId = categorySelect ? categorySelect.value : '';
                 applyFilters(categoryId, this.value.trim());
             }
         });
     }
 
-    // === ПЕРЕКЛЮЧЕНИЕ ВИДОВ ===
-    const viewButtons = document.querySelectorAll('.view-btn');
-    console.log('Найдено кнопок вида:', viewButtons.length);
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('locationModal');
+        if (event.target === modal) {
+            closeLocationModal();
+        }
+    });
 
-    // Функция активации вида - РАДИКАЛЬНО ПРОСТАЯ
-   function activateView(viewType) {
-        console.log('=== ПЕРЕКЛЮЧЕНИЕ ВИДА:', viewType, '===');
-        
-        // 1. Получаем все контейнеры
-        const gridContainer = document.getElementById('productsGridView');
-        const listContainer = document.getElementById('productsListView');
-        const tableContainer = document.getElementById('productsTableView');
-        
-        // 2. Получаем внутренние контейнеры
-        const gridInner = gridContainer ? gridContainer.querySelector('.products-grid-view') : null;
-        const listInner = listContainer ? listContainer.querySelector('.products-list-view') : null;
-        const tableInner = tableContainer ? tableContainer.querySelector('.products-table-view') : null;
-        
-        // 3. Скрываем ВСЕ контейнеры
-        if (gridContainer) {
-            gridContainer.style.display = 'none';
-            if (gridInner) gridInner.style.display = 'none';
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeLocationModal();
         }
-        if (listContainer) {
-            listContainer.style.display = 'none';
-            if (listInner) listInner.style.display = 'none';
-        }
-        if (tableContainer) {
-            tableContainer.style.display = 'none';
-            if (tableInner) tableInner.style.display = 'none';
-        }
-        
-        // 4. Показываем нужный контейнер и устанавливаем правильный display для внутреннего
-        let targetContainer = null;
-        let targetInner = null;
-        
-        if (viewType === 'grid') {
-            targetContainer = gridContainer;
-            targetInner = gridInner;
-        } else if (viewType === 'list') {
-            targetContainer = listContainer;
-            targetInner = listInner;
-        } else if (viewType === 'table') {
-            targetContainer = tableContainer;
-            targetInner = tableInner;
-        }
-        
-        if (targetContainer && targetInner) {
-            targetContainer.style.display = 'block';
-            
-            // Устанавливаем правильный display для внутреннего контейнера
-            if (viewType === 'grid') {
-                targetInner.style.display = 'grid';
-                targetInner.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
-                targetInner.style.gap = '20px';
-                targetInner.style.marginBottom = '20px';
-            } else if (viewType === 'list') {
-                targetInner.style.display = 'grid';
-                targetInner.style.gridTemplateColumns = '1fr';
-                targetInner.style.gap = '15px';
-            } else if (viewType === 'table') {
-                targetInner.style.display = 'block';
-            }
-            
-            console.log('Показан', viewType, 'вид');
-            
-            // Инициализация для таблицы
-            if (viewType === 'table') {
-                setTimeout(() => {
-                    console.log('Инициализация таблицы...');
-                    initializeTableSorting();
-                    initializePagination();
-                }, 100);
+    });
+
+    const viewButtons = document.querySelectorAll('.view-btn');
+    function activateView(viewType) {
+        const containers = {
+            grid: document.getElementById('productsGridView'),
+            list: document.getElementById('productsListView'),
+            table: document.getElementById('productsTableView')
+        };
+        for (let key in containers) {
+            if (containers[key]) {
+                containers[key].style.display = key === viewType ? 'block' : 'none';
+                const inner = containers[key].querySelector(`.products-${key}-view`);
+                if (inner) {
+                    inner.style.display = key === 'table' ? 'block' : 'grid';
+                    if (key === 'grid') {
+                        inner.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+                    } else if (key === 'list') {
+                        inner.style.gridTemplateColumns = '1fr';
+                    }
+                }
             }
         }
-        
-        // 5. Обновляем кнопки
         viewButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-view') === viewType) {
-                btn.classList.add('active');
-            }
+            btn.classList.toggle('active', btn.getAttribute('data-view') === viewType);
         });
-        
-        // 6. Сохраняем
         localStorage.setItem('mainView', viewType);
-        console.log('=== ПЕРЕКЛЮЧЕНИЕ ЗАВЕРШЕНО ===');
     }
 
-    // Обработчики кнопок
     viewButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const viewType = this.getAttribute('data-view');
-            console.log('Клик по кнопке:', viewType);
-            activateView(viewType);
+        button.addEventListener('click', () => {
+            activateView(button.getAttribute('data-view'));
         });
     });
 
-        // Активируем сохранённый или дефолтный вид
     const savedView = localStorage.getItem('mainView') || 'grid';
-    console.log('Сохраненный вид:', savedView);
-    
-    // НЕ устанавливаем стили вручную, просто вызываем activateView
     activateView(savedView);
-
-    // === СОРТИРОВКА И ПАГИНАЦИЯ ===
-    function initializeTableSorting() {
-        const sortableHeaders = document.querySelectorAll('.products-data-table th.sortable');
-        if (!sortableHeaders.length) return;
-        
-        let currentSort = { column: null, direction: 'asc' };
-        
-        sortableHeaders.forEach(header => {
-            header.addEventListener('click', function() {
-                const column = this.getAttribute('data-sort');
-                const table = this.closest('table');
-                const tbody = table.querySelector('tbody');
-                if (!tbody) return;
-                
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                sortableHeaders.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
-                
-                if (currentSort.column === column) {
-                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSort.column = column;
-                    currentSort.direction = 'asc';
-                }
-                
-                this.classList.add(`sort-${currentSort.direction}`);
-                
-                rows.sort((a, b) => {
-                    const aValue = getCellValue(a, column);
-                    const bValue = getCellValue(b, column);
-                    let comparison = 0;
-                    if (aValue < bValue) comparison = -1;
-                    if (aValue > bValue) comparison = 1;
-                    return currentSort.direction === 'desc' ? comparison * -1 : comparison;
-                });
-                
-                rows.forEach(row => tbody.appendChild(row));
-            });
-        });
-
-        function getCellValue(row, column) {
-            const cell = row.querySelector(`.product-${column}-cell`);
-            if (!cell) return '';
-            
-            switch(column) {
-                case 'title':
-                    const titleElem = cell.querySelector('.table-product-title');
-                    return titleElem ? titleElem.textContent.toLowerCase() : '';
-                case 'price':
-                    const priceElem = cell.querySelector('.table-price');
-                    return priceElem ? parseFloat(priceElem.textContent.replace(/[^\d.]/g, '')) || 0 : 0;
-                case 'vat_included':
-                    const vatElem = cell.querySelector('.vat-badge');
-                    return vatElem ? (vatElem.textContent === '+' ? 1 : 0) : 0;
-                case 'condition':
-                    const conditionElem = cell.querySelector('.condition-badge');
-                    return conditionElem ? conditionElem.textContent.toLowerCase() : '';
-                case 'region':
-                    return cell.textContent.toLowerCase();
-                case 'city':
-                    return cell.textContent.toLowerCase();
-                case 'delivery':
-                    const deliveryElem = cell.querySelector('.delivery-badge');
-                    return deliveryElem ? (deliveryElem.textContent === 'Есть' ? 1 : 0) : 0;
-                case 'category':
-                    return cell.textContent.toLowerCase();
-                default:
-                    return cell.textContent.toLowerCase();
-            }
-        }
-    }
-
-    function initializePagination() {
-        try {
-            const rows = document.querySelectorAll('.products-data-table tbody tr');
-            if (!rows || rows.length <= 50) return;
-            
-            const pageNumbers = document.querySelectorAll('.page-number');
-            const prevBtn = document.querySelector('.prev-btn');
-            const nextBtn = document.querySelector('.next-btn');
-            const paginationInfo = document.querySelector('.pagination-info');
-            
-            if (!paginationInfo) return;
-            
-            let currentPage = 1;
-            const itemsPerPage = 50;
-            const totalRows = rows.length;
-            const totalPages = Math.ceil(totalRows / itemsPerPage);
-            const allRows = Array.from(rows);
-            const tbody = rows[0].closest('tbody');
-
-            function updateTable(page) {
-                currentPage = page;
-                const startIndex = (page - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                tbody.innerHTML = '';
-                const pageRows = allRows.slice(startIndex, endIndex);
-                pageRows.forEach(row => tbody.appendChild(row));
-                updatePaginationControls();
-                paginationInfo.textContent = 
-                    `Показано ${startIndex + 1}-${Math.min(endIndex, totalRows)} из ${totalRows} товаров`;
-            }
-
-            function updatePaginationControls() {
-                pageNumbers.forEach((page, index) => {
-                    page.classList.toggle('active', index + 1 === currentPage);
-                });
-                if (prevBtn) prevBtn.disabled = currentPage === 1;
-                if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-            }
-
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    if (currentPage > 1) updateTable(currentPage - 1);
-                });
-            }
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    if (currentPage < totalPages) updateTable(currentPage + 1);
-                });
-            }
-            pageNumbers.forEach((page, index) => {
-                page.addEventListener('click', () => {
-                    if (index + 1 !== currentPage) updateTable(index + 1);
-                });
-            });
-            updateTable(1);
-        } catch (error) {
-            console.error('Ошибка пагинации:', error);
-        }
-    }
-
-    console.log('=== ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА ===');
-    
-    // Финальная проверка через 500ms
-    setTimeout(() => {
-        console.log('=== ФИНАЛЬНАЯ ПРОВЕРКА ===');
-        console.log('Grid контейнер display:', document.getElementById('productsGridView')?.style.display);
-        console.log('Grid внутренний display:', document.getElementById('productsGridView')?.querySelector('.products-grid-view')?.style.display);
-        console.log('List контейнер display:', document.getElementById('productsListView')?.style.display);
-        console.log('List внутренний display:', document.getElementById('productsListView')?.querySelector('.products-list-view')?.style.display);
-        console.log('Table контейнер display:', document.getElementById('productsTableView')?.style.display);
-        console.log('Table внутренний display:', document.getElementById('productsTableView')?.querySelector('.products-table-view')?.style.display);
-    }, 500);
-
-    // === СОРТИРОВКА И ПАГИНАЦИЯ ===
-    function initializeTableSorting() {
-        const sortableHeaders = document.querySelectorAll('.products-data-table th.sortable');
-        if (!sortableHeaders.length) return;
-        
-        let currentSort = { column: null, direction: 'asc' };
-        
-        sortableHeaders.forEach(header => {
-            header.addEventListener('click', function() {
-                const column = this.getAttribute('data-sort');
-                const table = this.closest('table');
-                const tbody = table.querySelector('tbody');
-                if (!tbody) return;
-                
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                sortableHeaders.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
-                
-                if (currentSort.column === column) {
-                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSort.column = column;
-                    currentSort.direction = 'asc';
-                }
-                
-                this.classList.add(`sort-${currentSort.direction}`);
-                
-                rows.sort((a, b) => {
-                    const aValue = getCellValue(a, column);
-                    const bValue = getCellValue(b, column);
-                    let comparison = 0;
-                    if (aValue < bValue) comparison = -1;
-                    if (aValue > bValue) comparison = 1;
-                    return currentSort.direction === 'desc' ? comparison * -1 : comparison;
-                });
-                
-                rows.forEach(row => tbody.appendChild(row));
-            });
-        });
-
-        function getCellValue(row, column) {
-            const cell = row.querySelector(`.product-${column}-cell`);
-            if (!cell) return '';
-            
-            switch(column) {
-                case 'title':
-                    const titleElem = cell.querySelector('.table-product-title');
-                    return titleElem ? titleElem.textContent.toLowerCase() : '';
-                case 'price':
-                    const priceElem = cell.querySelector('.table-price');
-                    return priceElem ? parseFloat(priceElem.textContent.replace(/[^\d.]/g, '')) || 0 : 0;
-                case 'vat_included':
-                    const vatElem = cell.querySelector('.vat-badge');
-                    return vatElem ? (vatElem.textContent === '+' ? 1 : 0) : 0;
-                case 'condition':
-                    const conditionElem = cell.querySelector('.condition-badge');
-                    return conditionElem ? conditionElem.textContent.toLowerCase() : '';
-                case 'region':
-                    return cell.textContent.toLowerCase();
-                case 'city':
-                    return cell.textContent.toLowerCase();
-                case 'delivery':
-                    const deliveryElem = cell.querySelector('.delivery-badge');
-                    return deliveryElem ? (deliveryElem.textContent === 'Есть' ? 1 : 0) : 0;
-                case 'category':
-                    return cell.textContent.toLowerCase();
-                default:
-                    return cell.textContent.toLowerCase();
-            }
-        }
-    }
-
-    function initializePagination() {
-        try {
-            const rows = document.querySelectorAll('.products-data-table tbody tr');
-            if (!rows || rows.length <= 50) return;
-            
-            const pageNumbers = document.querySelectorAll('.page-number');
-            const prevBtn = document.querySelector('.prev-btn');
-            const nextBtn = document.querySelector('.next-btn');
-            const paginationInfo = document.querySelector('.pagination-info');
-            
-            if (!paginationInfo) return;
-            
-            let currentPage = 1;
-            const itemsPerPage = 50;
-            const totalRows = rows.length;
-            const totalPages = Math.ceil(totalRows / itemsPerPage);
-            const allRows = Array.from(rows);
-            const tbody = rows[0].closest('tbody');
-
-            function updateTable(page) {
-                currentPage = page;
-                const startIndex = (page - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                tbody.innerHTML = '';
-                const pageRows = allRows.slice(startIndex, endIndex);
-                pageRows.forEach(row => tbody.appendChild(row));
-                updatePaginationControls();
-                paginationInfo.textContent = 
-                    `Показано ${startIndex + 1}-${Math.min(endIndex, totalRows)} из ${totalRows} товаров`;
-            }
-
-            function updatePaginationControls() {
-                pageNumbers.forEach((page, index) => {
-                    page.classList.toggle('active', index + 1 === currentPage);
-                });
-                if (prevBtn) prevBtn.disabled = currentPage === 1;
-                if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-            }
-
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    if (currentPage > 1) updateTable(currentPage - 1);
-                });
-            }
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    if (currentPage < totalPages) updateTable(currentPage + 1);
-                });
-            }
-            pageNumbers.forEach((page, index) => {
-                page.addEventListener('click', () => {
-                    if (index + 1 !== currentPage) updateTable(index + 1);
-                });
-            });
-            updateTable(1);
-        } catch (error) {
-            console.error('Ошибка пагинации:', error);
-        }
-    }
-
-    console.log('=== ИНИЦИАЛИЗАЦИЯ ЗАВЕРШЕНА ===');
-    
-    // Финальная проверка через 500ms
-    setTimeout(() => {
-        console.log('=== ФИНАЛЬНАЯ ПРОВЕРКА ===');
-        console.log('Grid контейнер display:', document.getElementById('productsGridView')?.style.display);
-        console.log('Grid внутренний display:', document.getElementById('productsGridView')?.querySelector('.products-grid-view')?.style.display);
-        console.log('List контейнер display:', document.getElementById('productsListView')?.style.display);
-        console.log('List внутренний display:', document.getElementById('productsListView')?.querySelector('.products-list-view')?.style.display);
-        console.log('Table контейнер display:', document.getElementById('productsTableView')?.style.display);
-        console.log('Table внутренний display:', document.getElementById('productsTableView')?.querySelector('.products-table-view')?.style.display);
-    }, 500);
 });
-
-// === РАБОТА С МЕСТОПОЛОЖЕНИЕМ ===
-
-// Глобальная переменная для хранения текущего местоположения
-let currentLocation = localStorage.getItem('userLocation') || 'Казань'; // по умолчанию
-
-// Функция для установки местоположения
-function setLocation(location) {
-    currentLocation = location;
-    localStorage.setItem('userLocation', location);
-    document.getElementById('locationText').textContent = location;
-    // Можно также обновить поиск, если нужно
-    // applyFilters();
-}
-
-// Функция для запроса местоположения у пользователя
-function requestLocation() {
-    if (!localStorage.getItem('locationAsked')) {
-        const userConfirmed = confirm('Укажите ваш город для более точного поиска товаров?');
-        if (userConfirmed) {
-            const userLocation = prompt('Введите ваш город или регион:', 'Казань');
-            if (userLocation && userLocation.trim().length > 0) {
-                setLocation(userLocation.trim());
-            }
-        }
-        localStorage.setItem('locationAsked', 'true');
-    } else {
-        // Если уже спрашивали — просто загружаем из localStorage
-        document.getElementById('locationText').textContent = currentLocation;
-    }
-}
-
-// Обработчик клика по местоположению — можно расширить
-document.getElementById('locationDisplay').addEventListener('click', function() {
-    const newLocation = prompt('Изменить местоположение:', currentLocation);
-    if (newLocation && newLocation.trim().length > 0) {
-        setLocation(newLocation.trim());
-    }
-});
-
-// Запускаем при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    requestLocation(); // Запрашиваем местоположение при первом входе
-});
-
 </script>
 {% endblock %}
