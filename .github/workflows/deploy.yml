@@ -1,0 +1,28 @@
+name: Build and Push to Selectel
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Login to Selectel Container Registry
+      env:
+        SELECTEL_USER: ${{ secrets.SELECTEL_USERNAME }}
+        SELECTEL_PASS: ${{ secrets.SELECTEL_PASSWORD }}
+      run: |
+        echo "$SELECTEL_PASS" | docker login cr.selcloud.ru -u "$SELECTEL_USER" --password-stdin
+    
+    - name: Build and Push
+      env:
+        REGISTRY_USER: ${{ secrets.SELECTEL_USERNAME }}
+      run: |
+        # Извлекаем имя пользователя из email (до @)
+        USERNAME=$${REGISTRY_USER%%@*}
+        docker build -t cr.selcloud.ru/$USERNAME/flask-inventory:latest .
+        docker push cr.selcloud.ru/$USERNAME/flask-inventory:latest

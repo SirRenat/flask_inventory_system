@@ -47,3 +47,5 @@ with app.app_context():
         print(f"❌ Ошибка миграции: {e}")
         import traceback
         traceback.print_exc()
+
+####

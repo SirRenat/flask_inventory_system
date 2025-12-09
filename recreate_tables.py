@@ -42,3 +42,4 @@ with app.app_context():
         print(f"❌ Ошибка: {e}")
         import traceback
         traceback.print_exc()
+        "Commit changes"
