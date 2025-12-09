@@ -16,7 +16,7 @@
         </div>
     </div>
 
-    <!-- Статистика категорий -->
+    <!-- Статистика -->
     <div class="stats-cards">
         <div class="stat-card">
             <div class="stat-icon">📁</div>
@@ -29,14 +29,14 @@
             <div class="stat-label">Родительских</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">📄</div>
-            <div class="stat-number">{{ categories|length - parent_categories|length }}</div>
-            <div class="stat-label">Дочерних</div>
+            <div class="stat-icon">🌍</div>
+            <div class="stat-number">{{ all_regions|length if all_regions else 0 }}</div>
+            <div class="stat-label">Регионов</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">📊</div>
-            <div class="stat-number">{{ total_products or 0 }}</div>
-            <div class="stat-label">Всего товаров</div>
+            <div class="stat-icon">🏙️</div>
+            <div class="stat-number">{{ cities_count if cities_count else 0 }}</div>
+            <div class="stat-label">Городов</div>
         </div>
     </div>
 
@@ -44,295 +44,373 @@
     <div class="layout-container">
         <!-- ЛЕВАЯ КОЛОНКА -->
         <div class="content-container">
-            <!-- Поиск -->
-            <div class="admin-section compact-section">
-                <div class="section-header">
-                    <h3>🔍 Поиск категорий</h3>
-                    <span class="section-badge">Фильтр</span>
+            <!-- БЛОК: КАТЕГОРИИ -->
+            <div class="category-block admin-section-block">
+                <div class="block-header">
+                    <div class="block-title">
+                        <span class="block-icon">📂</span>
+                        <h3>Категории товаров</h3>
+                    </div>
+                    <span class="block-badge">Управление</span>
                 </div>
-                <div class="section-card compact-card">
-                    <div class="form-group">
-                        <input type="text" 
-                               id="categorySearch" 
-                               class="form-control form-control-sm" 
-                               placeholder="Введите название категории...">
-                        <small class="form-text">Начните вводить название для поиска</small>
+
+                <!-- Поиск категорий -->
+                <div class="admin-section compact-section">
+                    <div class="section-header">
+                        <h4>🔍 Поиск категорий</h4>
+                        <span class="section-badge">Фильтр</span>
+                    </div>
+                    <div class="section-card compact-card">
+                        <div class="form-group">
+                            <input type="text" 
+                                   id="categorySearch" 
+                                   class="form-control form-control-sm" 
+                                   placeholder="Введите название категории...">
+                            <small class="form-text">Начните вводить название для поиска</small>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Дерево категорий -->
-            <div class="admin-section">
-                <div class="section-header">
-                    <h3>🌳 Дерево категорий</h3>
-                    <span class="section-badge">Просмотр</span>
-                </div>
-                <div class="section-card">
-                    {% if categories %}
-                        <div class="categories-tree" id="categoriesTree">
-                            {% for parent in parent_categories %}
-                            <div class="category-node" data-name="{{ parent.name|lower }}">
-                                <div class="node-header">
-                                    {% set children = categories|selectattr('parent_id', 'equalto', parent.id)|list %}
-                                    {% if children %}
-                                        <span class="toggle-icon" onclick="toggleCategory(this)">➕</span>
-                                    {% else %}
-                                        <span class="toggle-icon">├─</span>
-                                    {% endif %}
-                                    <span class="node-icon">📁</span>
-                                    <span class="node-name">{{ parent.name }}</span>
-                                    {% if parent.description %}
-                                    <span class="node-description text-muted">({{ parent.description }})</span>
-                                    {% endif %}
-                                    <span class="node-badge">{{ parent.products|length if parent.products else 0 }} тов.</span>
-                                    <div class="node-actions">
-                                        <form method="POST" action="{{url_for('main.admin_categories')}}" class="inline-form">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <input type="hidden" name="action" value="edit_category">
-                                            <input type="hidden" name="category_id" value="{{ parent.id }}">
-                                            <button type="submit" class="node-action-btn" title="Редактировать">
+                <!-- Дерево категорий -->
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h4>🌳 Дерево категорий</h4>
+                        <span class="section-badge">Просмотр</span>
+                    </div>
+                    <div class="section-card">
+                        {% if categories %}
+                            <div class="categories-tree" id="categoriesTree">
+                                {% for parent in parent_categories %}
+                                <div class="category-node" data-name="{{ parent.name|lower }}">
+                                    <div class="node-header">
+                                        {% set children = categories|selectattr('parent_id', 'equalto', parent.id)|list %}
+                                        {% if children %}
+                                            <span class="toggle-icon" onclick="toggleCategory(this)">➕</span>
+                                        {% else %}
+                                            <span class="toggle-icon">├─</span>
+                                        {% endif %}
+                                        <span class="node-icon">📁</span>
+                                        <span class="node-name">{{ parent.name }}</span>
+                                        {% if parent.description %}
+                                        <span class="node-description text-muted">({{ parent.description }})</span>
+                                        {% endif %}
+                                        <span class="node-badge">{{ parent.products|length if parent.products else 0 }} тов.</span>
+                                        <div class="node-actions">
+                                            <button class="node-action-btn" title="Редактировать"
+                                                    onclick="editCategory({{ parent.id }}, '{{ parent.name }}', '{{ parent.description or '' }}', {{ parent.parent_id or 'null' }})">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                     <path d="M11 4H4v7h7V4z"></path>
                                                     <path d="M17.7 4L15.9 5.8 12.3 2.2 10.5 4l3.6 3.6 1.8-1.8 3.6 3.6 1.8-1.8L17.7 4z"></path>
                                                 </svg>
                                             </button>
-                                        </form>
-                                        
-                                        <form method="POST" action="{{ url_for('main.admin_categories') }}" 
-                                              onsubmit="return confirm('Удалить категорию и все подкатегории?')" class="inline-form">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <input type="hidden" name="action" value="delete_category">
-                                            <input type="hidden" name="category_id" value="{{ parent.id }}">
-                                            <button type="submit" class="node-action-btn" title="Удалить">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M3 6h18v2H3V6z"></path>
-                                                    <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
-                                                </svg>
-                                            </button>
-                                        </form>
+                                            
+                                            <form method="POST" action="{{ url_for('main.admin_categories') }}" 
+                                                  onsubmit="return confirm('Удалить категорию и все подкатегории?')" class="inline-form">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <input type="hidden" name="action" value="delete_category">
+                                                <input type="hidden" name="category_id" value="{{ parent.id }}">
+                                                <button type="submit" class="node-action-btn" title="Удалить">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M3 6h18v2H3V6z"></path>
+                                                        <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                {% if children %}
-                                <div class="node-children" style="display: none;">
-                                    {% for child in children %}
-                                    <div class="category-node child-node" data-name="{{ child.name|lower }}">
-                                        <div class="node-header">
-                                            <span class="toggle-icon">└─</span>
-                                            <span class="node-icon">📄</span>
-                                            <span class="node-name">{{ child.name }}</span>
-                                            {% if child.description %}
-                                            <span class="node-description text-muted">({{ child.description }})</span>
-                                            {% endif %}
-                                            <span class="node-badge">{{ child.products|length if child.products else 0 }} тов.</span>
-                                            <div class="node-actions">
-                                                <form method="POST" action="{{ url_for('main.admin_categories') }}" class="inline-form">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <input type="hidden" name="action" value="edit_category">
-                                                    <input type="hidden" name="category_id" value="{{ child.id }}">
-                                                    <button type="submit" class="node-action-btn" title="Редактировать">
+                                    
+                                    {% if children %}
+                                    <div class="node-children" style="display: none;">
+                                        {% for child in children %}
+                                        <div class="category-node child-node" data-name="{{ child.name|lower }}">
+                                            <div class="node-header">
+                                                <span class="toggle-icon">└─</span>
+                                                <span class="node-icon">📄</span>
+                                                <span class="node-name">{{ child.name }}</span>
+                                                {% if child.description %}
+                                                <span class="node-description text-muted">({{ child.description }})</span>
+                                                {% endif %}
+                                                <span class="node-badge">{{ child.products|length if child.products else 0 }} тов.</span>
+                                                <div class="node-actions">
+                                                    <button class="node-action-btn" title="Редактировать"
+                                                            onclick="editCategory({{ child.id }}, '{{ child.name }}', '{{ child.description or '' }}', {{ child.parent_id or 'null' }})">
                                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                             <path d="M11 4H4v7h7V4z"></path>
                                                             <path d="M17.7 4L15.9 5.8 12.3 2.2 10.5 4l3.6 3.6 1.8-1.8 3.6 3.6 1.8-1.8L17.7 4z"></path>
                                                         </svg>
                                                     </button>
-                                                </form>
-                                                
-                                                <form method="POST" action="{{ url_for('main.admin_categories') }}" 
-                                                      onsubmit="return confirm('Удалить подкатегорию?')" class="inline-form">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <input type="hidden" name="action" value="delete_category">
-                                                    <input type="hidden" name="category_id" value="{{ child.id }}">
-                                                    <button type="submit" class="node-action-btn" title="Удалить">
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                            <path d="M3 6h18v2H3V6z"></path>
-                                                            <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
-                                                        </svg>
-                                                    </button>
-                                                </form>
+                                                    
+                                                    <form method="POST" action="{{ url_for('main.admin_categories') }}" 
+                                                          onsubmit="return confirm('Удалить подкатегорию?')" class="inline-form">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <input type="hidden" name="action" value="delete_category">
+                                                        <input type="hidden" name="category_id" value="{{ child.id }}">
+                                                        <button type="submit" class="node-action-btn" title="Удалить">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <path d="M3 6h18v2H3V6z"></path>
+                                                                <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </div>
                                         </div>
+                                        {% endfor %}
                                     </div>
-                                    {% endfor %}
+                                    {% endif %}
                                 </div>
-                                {% endif %}
+                                {% endfor %}
                             </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="empty-state">
-                            <div class="empty-icon">📭</div>
-                            <p>Категории еще не загружены</p>
-                        </div>
-                    {% endif %}
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-icon">📭</div>
+                                <p>Категории еще не загружены</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Добавить категорию -->
+                <div class="admin-section compact-section">
+                    <div class="section-header">
+                        <h4>➕ Добавить категорию</h4>
+                        <span class="section-badge">Ручное</span>
+                    </div>
+                    <div class="section-card compact-card">
+                        <form method="POST" action="{{ url_for('main.admin_categories') }}" class="category-form" id="addCategoryForm">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="action" value="add_category">
+                            <input type="hidden" name="category_id" id="editCategoryId" value="">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <input type="text" name="name" id="categoryName" class="form-control form-control-sm" required placeholder="Название *">
+                                </div>
+                                <div class="form-group">
+                                    <select name="parent_id" id="categoryParent" class="form-select form-select-sm">
+                                        <option value="">-- Без родительской --</option>
+                                        {% for cat in categories %}
+                                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <textarea name="description" id="categoryDescription" class="form-control form-control-sm" rows="2" placeholder="Описание"></textarea>
+                            </div>
+                            <div class="form-actions compact-actions">
+                                <button type="submit" class="btn-primary btn-sm" id="categorySubmitBtn">➕ Добавить</button>
+                                <button type="reset" class="btn-secondary btn-sm" onclick="resetCategoryForm()">Очистить</button>
+                                <button type="button" class="btn-warning btn-sm" id="categoryCancelBtn" style="display: none;" onclick="resetCategoryForm()">Отмена</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Загрузка категорий -->
+                <div class="admin-section compact-section">
+                    <div class="section-header">
+                        <h4>📁 Загрузка категорий</h4>
+                        <span class="section-badge">Импорт</span>
+                    </div>
+                    <div class="section-card compact-card">
+                        <form method="POST" action="{{ url_for('main.upload_categories') }}" enctype="multipart/form-data" class="upload-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="file-input-wrapper">
+                                <input type="file" name="categories_file" accept=".json" class="form-control form-control-sm" required id="jsonFile">
+                                <label for="jsonFile" class="file-input-label">
+                                    <span class="file-input-text">Выберите JSON файл...</span>
+                                    <span class="btn-secondary btn-sm">📁</span>
+                                </label>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">Поддерживаемый формат: JSON с иерархией категорий</small>
+                            </div>
+                            <button type="submit" class="btn-primary btn-sm mt-2">📤 Загрузить категории</button>
+                        </form>
+                    </div>
                 </div>
             </div>
 
-            <!-- Дерево регионов -->
-            <div class="admin-section">
-                <div class="section-header">
-                    <h3>🌍 Дерево регионов</h3>
-                    <span class="section-badge">Просмотр</span>
+            <!-- БЛОК: РЕГИОНЫ И ГОРОДА -->
+            <div class="locations-block admin-section-block">
+                <div class="block-header">
+                    <div class="block-title">
+                        <span class="block-icon">🌍</span>
+                        <h3>Регионы и города</h3>
+                    </div>
+                    <span class="block-badge">География</span>
                 </div>
-                <div class="section-card">
-                    {% if regions and regions|length > 0 %}
-                        <!-- Отладочная информация -->
-                        <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
-                            Всего регионов: {{ all_regions|length }}, 
-                            Родительских: {{ regions|length }}, 
-                            Дочерних: {{ child_regions|length }}
-                        </div>
-                        
-                        <div class="categories-tree" id="regionsTree">
-                            {% for parent in regions %}
-                            <div class="category-node" data-name="{{ parent.name|lower }}">
-                                <div class="node-header">
-                                    {% set children = child_regions|selectattr('parent_id', 'equalto', parent.id)|list %}
-                                    {% if children %}
-                                        <span class="toggle-icon" onclick="toggleCategory(this)">➕</span>
-                                    {% else %}
-                                        <span class="toggle-icon">├─</span>
-                                    {% endif %}
-                                    <span class="node-icon">📍</span>
-                                    <span class="node-name">{{ parent.name }}</span>
-                                    <div class="node-actions">
-                                        <form method="POST" action="{{ url_for('main.delete_region', region_id=parent.id) }}" 
-                                            onsubmit="return confirm('Удалить регион и все подрегионы?')">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="node-action-btn" title="Удалить">
+
+                <!-- Дерево регионов -->
+                <div class="admin-section">
+                    <div class="section-header">
+                        <h4>📍 Дерево регионов и городов</h4>
+                        <span class="section-badge">Просмотр</span>
+                    </div>
+                    <div class="section-card">
+                        {% if regions and regions|length > 0 %}
+                            <div class="categories-tree" id="regionsTree">
+                                {% for region in regions %}
+                                <div class="category-node" data-name="{{ region.name|lower }}">
+                                    <div class="node-header">
+                                        {% set region_cities = [] %}
+                                        {% for city in cities %}
+                                            {% if city.region_id == region.id %}
+                                                {% set _ = region_cities.append(city) %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if region_cities %}
+                                            <span class="toggle-icon" onclick="toggleCategory(this)">➕</span>
+                                        {% else %}
+                                            <span class="toggle-icon">├─</span>
+                                        {% endif %}
+                                        <span class="node-icon">📍</span>
+                                        <span class="node-name">{{ region.name }}</span>
+                                        <span class="node-badge">{{ region_cities|length }} гор.</span>
+                                        <div class="node-actions">
+                                            <button class="node-action-btn" title="Добавить город" onclick="showAddCityForm({{ region.id }}, '{{ region.name }}')">
                                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <path d="M3 6h18v2H3V6z"></path>
-                                                    <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
+                                                    <path d="M12 5v14m-7-7h14"></path>
                                                 </svg>
                                             </button>
-                                        </form>
-                                    </div>
-                                </div>
-                                {% if children %}
-                                <div class="node-children" style="display: none;">
-                                    {% for child in children %}
-                                    <div class="category-node child-node" data-name="{{ child.name|lower }}">
-                                        <div class="node-header">
-                                            <span class="toggle-icon">└─</span>
-                                            <span class="node-icon">🏙️</span>
-                                            <span class="node-name">{{ child.name }}</span>
-                                            <div class="node-actions">
-                                                <form method="POST" action="{{ url_for('main.delete_region', region_id=child.id) }}" 
-                                                    onsubmit="return confirm('Удалить подрегион?')">
-                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="node-action-btn" title="Удалить">
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                            <path d="M3 6h18v2H3V6z"></path>
-                                                            <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
-                                                        </svg>
-                                                    </button>
-                                                </form>
-                                            </div>
+                                            <form method="POST" action="{{ url_for('main.delete_region', region_id=region.id) }}" 
+                                                onsubmit="return confirm('Удалить регион и все города?')">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="node-action-btn" title="Удалить">
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M3 6h18v2H3V6z"></path>
+                                                        <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
+                                                    </svg>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
-                                    {% endfor %}
+                                    
+                                    {% if region_cities %}
+                                    <div class="node-children" style="display: none;">
+                                        {% for city in region_cities %}
+                                        <div class="category-node child-node" data-name="{{ city.name|lower }}">
+                                            <div class="node-header">
+                                                <span class="toggle-icon">└─</span>
+                                                <span class="node-icon">🏙️</span>
+                                                <span class="node-name">{{ city.name }}</span>
+                                                <div class="node-actions">
+                                                    <form method="POST" action="{{ url_for('main.delete_city', city_id=city.id) }}" 
+                                                        onsubmit="return confirm('Удалить город?')">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        <button type="submit" class="node-action-btn" title="Удалить">
+                                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                                <path d="M3 6h18v2H3V6z"></path>
+                                                                <path d="M8 6V4c0-1.1.9-2 2-2h4c1.1 0 2 .9 2 2v2M12 10v6m0 0l-2-2m2 2l2-2"></path>
+                                                            </svg>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
                                 </div>
-                                {% endif %}
+                                {% endfor %}
                             </div>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="empty-state">
-                            <div class="empty-icon">📭</div>
-                            <p>Регионы ещё не загружены</p>
-                            <small style="color: #666;">
-                                Всего записей в базе: {{ all_regions|length if all_regions else 0 }}
-                            </small>
-                        </div>
-                    {% endif %}
+                        {% else %}
+                            <div class="empty-state">
+                                <div class="empty-icon">🌍</div>
+                                <p>Регионы ещё не загружены</p>
+                                <small style="color: #666;">Используйте форму ниже для добавления</small>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
 
-            <!-- Добавить категорию -->
-            <div class="admin-section compact-section">
-                <div class="section-header">
-                    <h3>➕ Добавить категорию</h3>
-                    <span class="section-badge">Ручное</span>
-                </div>
-                <div class="section-card compact-card">
-                    <form method="POST" action="{{ url_for('main.admin_categories') }}" class="category-form">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="action" value="add_category">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <input type="text" name="name" class="form-control form-control-sm" required placeholder="Название *">
+                <!-- Добавить регион/город -->
+                <div class="admin-section compact-section">
+                    <div class="section-header">
+                        <h4>➕ Добавить регион/город</h4>
+                        <span class="section-badge">Ручное</span>
+                    </div>
+                    <div class="section-card compact-card">
+                        <form method="POST" action="{{ url_for('main.add_region') }}" class="category-form" id="addLocationForm">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="location_type" id="locationType" value="region">
+                            
+                            <div class="form-group mb-2">
+                                <select name="location_type_select" id="locationTypeSelect" class="form-select form-select-sm" onchange="changeLocationType(this.value)">
+                                    <option value="region">Добавить регион</option>
+                                    <option value="city">Добавить город</option>
+                                </select>
                             </div>
-                            <div class="form-group">
-                                <select name="parent_id" class="form-select form-select-sm">
-                                    <option value="">-- Без родительской --</option>
-                                    {% for cat in categories %}
-                                        <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            
+                            <div class="form-group mb-2" id="regionSelectGroup">
+                                <select name="parent_id" id="parentRegionSelect" class="form-select form-select-sm">
+                                    <option value="">-- Выберите регион --</option>
+                                    {% for region in regions %}
+                                        <option value="{{ region.id }}">{{ region.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="Описание"></textarea>
-                        </div>
-                        <div class="form-actions compact-actions">
-                            <button type="submit" class="btn-primary btn-sm">➕ Добавить</button>
-                            <button type="reset" class="btn-secondary btn-sm">Очистить</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Добавить регион -->
-            <div class="admin-section compact-section">
-                <div class="section-header">
-                    <h3>➕ Добавить регион/город</h3>
-                    <span class="section-badge">Ручное</span>
-                </div>
-                <div class="section-card compact-card">
-                    <form method="POST" action="{{ url_for('main.add_region') }}" class="category-form">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <input type="text" name="name" class="form-control form-control-sm" required placeholder="Название *">
+                            
+                            <div class="form-group mb-2">
+                                <input type="text" name="name" id="locationName" class="form-control form-control-sm" required placeholder="Название *">
                             </div>
-                            <div class="form-group">
-                                <select name="parent_id" class="form-select form-select-sm">
-                                    <option value="">-- Без родительского региона --</option>
-                                    {% for reg in all_regions %}
-                                        <option value="{{ reg.id }}">{{ reg.name }}</option>
-                                    {% endfor %}
+                            
+                            <div class="form-group mb-2">
+                                <textarea name="description" id="locationDescription" class="form-control form-control-sm" rows="2" placeholder="Описание (необязательно)"></textarea>
+                            </div>
+                            
+                            <div class="form-actions compact-actions">
+                                <button type="submit" class="btn-primary btn-sm" id="locationSubmitBtn">➕ Добавить регион</button>
+                                <button type="reset" class="btn-secondary btn-sm">Очистить</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Загрузка регионов и городов -->
+                <div class="admin-section compact-section">
+                    <div class="section-header">
+                        <h4>📥 Загрузка регионов и городов</h4>
+                        <span class="section-badge">Массовый импорт</span>
+                    </div>
+                    <div class="section-card compact-card">
+                        <form method="POST" action="{{ url_for('main.upload_locations') }}" enctype="multipart/form-data" class="upload-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="mb-2">
+                                <label class="form-label">Формат файла:</label>
+                                <select name="file_type" class="form-select form-select-sm" required>
+                                    <option value="">Выберите формат...</option>
+                                    <option value="csv">CSV (регионы и города)</option>
+                                    <option value="json">JSON (регионы и города)</option>
                                 </select>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <textarea name="description" class="form-control form-control-sm" rows="2" placeholder="Описание"></textarea>
-                        </div>
-                        <div class="form-actions compact-actions">
-                            <button type="submit" class="btn-primary btn-sm">➕ Добавить регион</button>
-                            <button type="reset" class="btn-secondary btn-sm">Очистить</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Загрузка категорий -->
-            <div class="admin-section compact-section">
-                <div class="section-header">
-                    <h3>📁 Загрузка категорий</h3>
-                    <span class="section-badge">Импорт</span>
-                </div>
-                <div class="section-card compact-card">
-                    <form method="POST" action="{{ url_for('main.upload_categories') }}" enctype="multipart/form-data" class="upload-form">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <div class="file-input-wrapper">
-                            <input type="file" name="categories_file" accept=".json" class="form-control form-control-sm" required id="jsonFile">
-                            <label for="jsonFile" class="file-input-label">
-                                <span class="file-input-text">Выберите файл...</span>
-                                <span class="btn-secondary btn-sm">📁</span>
-                            </label>
-                        </div>
-                        <button type="submit" class="btn-primary btn-sm mt-2">📤 Загрузить</button>
-                    </form>
+                            
+                            <div class="file-input-wrapper mb-2">
+                                <input type="file" name="locations_file" accept=".csv,.json,.txt" class="form-control form-control-sm" required id="locationsFile">
+                                <label for="locationsFile" class="file-input-label">
+                                    <span class="file-input-text">Выберите файл...</span>
+                                    <span class="btn-secondary btn-sm">📁</span>
+                                </label>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <small class="text-muted d-block">Формат CSV: <code>регион;город</code> или <code>регион,город</code></small>
+                               <small class="text-muted d-block">Формат JSON: 
+                                    <code>{"regions": [{"name": "Регион", "cities": ["Город1", "Город2"]}]}</code>
+                                    или 
+                                    <code>[{"region": "Регион", "city": "Город"}]</code>
+                                </small>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="clear_existing" id="clearExisting" class="form-check-input">
+                                <label for="clearExisting" class="form-check-label">Удалить существующие данные</label>
+                            </div>
+                            
+                            <button type="submit" class="btn-primary btn-sm">🌍 Загрузить локации</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -344,17 +422,17 @@
                 <div class="sidebar-section">
                     <h4 class="sidebar-title">⚡ Быстрые действия</h4>
                     <div class="quick-actions">
-                        <a href="#" class="quick-action">
-                            <span class="action-icon">📥</span>
-                            <span class="action-text">Экспорт категорий</span>
-                        </a>
-                        <a href="#" class="quick-action">
-                            <span class="action-icon">💾</span>
-                            <span class="action-text">Создать бэкап</span>
-                        </a>
-                        <a href="#" class="quick-action">
-                            <span class="action-icon">🔀</span>
-                            <span class="action-text">Порядок категорий</span>
+                        <button class="quick-action" onclick="testLocationsAPI()">
+                            <span class="action-icon">🔍</span>
+                            <span class="action-text">Тест API локаций</span>
+                        </button>
+                        <button class="quick-action" onclick="showTemplate()">
+                            <span class="action-icon">📋</span>
+                            <span class="action-text">Шаблон CSV</span>
+                        </button>
+                        <a href="{{ url_for('main.test_populate_locations') }}" class="quick-action">
+                            <span class="action-icon">🧪</span>
+                            <span class="action-text">Тестовые данные</span>
                         </a>
                     </div>
                 </div>
@@ -381,6 +459,7 @@
                                 Очистить пустые
                             </button>
                         </form>
+
                     </div>
                 </div>
 
@@ -389,16 +468,38 @@
                     <h4 class="sidebar-title">📈 Статус системы</h4>
                     <div class="system-status">
                         <div class="status-item">
-                            <span class="status-label">Последнее обновление:</span>
-                            <span class="status-value">Сегодня</span>
+                            <span class="status-label">Категорий:</span>
+                            <span class="status-value">{{ categories|length }}</span>
                         </div>
                         <div class="status-item">
-                            <span class="status-label">Всего операций:</span>
-                            <span class="status-value">0</span>
+                            <span class="status-label">Регионов:</span>
+                            <span class="status-value">{{ all_regions|length if all_regions else 0 }}</span>
                         </div>
                         <div class="status-item">
-                            <span class="status-label">Размер базы:</span>
-                            <span class="status-value">0.5 MB</span>
+                            <span class="status-label">Городов:</span>
+                            <span class="status-value">{{ cities_count if cities_count else 0 }}</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Товаров:</span>
+                            <span class="status-value">{{ total_products or 0 }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Информация о форматах -->
+                <div class="sidebar-section">
+                    <h4 class="sidebar-title">ℹ️ Форматы файлов</h4>
+                    <div class="format-info">
+                        <div class="format-item">
+                            <strong>CSV:</strong> Разделитель ; или ,
+                        </div>
+                        <div class="format-item">
+                            <strong>Кодировка:</strong> UTF-8
+                        </div>
+                        <div class="format-item">
+                            <strong>Пример:</strong><br>
+                            <code>Москва;Москва</code><br>
+                            <code>Московская область;Химки</code>
                         </div>
                     </div>
                 </div>
@@ -407,22 +508,301 @@
     </div>
 </div>
 
+<!-- Модальное окно для шаблона -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Шаблон CSV файла</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <pre id="csvTemplate">регион;город
+Москва;Москва
+Московская область;Химки
+Московская область;Подольск
+Московская область;Королёв
+Санкт-Петербург;Санкт-Петербург
+Ленинградская область;Гатчина
+Ленинградская область;Выборг
+Республика Татарстан;Казань
+Республика Татарстан;Набережные Челны
+Республика Татарстан;Альметьевск
+Свердловская область;Екатеринбург
+Свердловская область;Нижний Тагил
+Свердловская область;Каменск-Уральский</pre>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-secondary" onclick="copyTemplate()">Копировать</button>
+                    <a href="#" class="btn btn-sm btn-primary" id="downloadTemplate">Скачать CSV</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-/* Компактные стили */
-.compact-section { margin-bottom: 16px; }
-.compact-card { padding: 12px; }
-.form-control-sm, .form-select-sm {
-    padding: 6px 10px;
-    font-size: 14px;
+/* Основные стили блоков */
+.admin-section-block {
+    background: var(--background);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
 }
-.btn-sm {
-    padding: 6px 12px;
+
+.category-block {
+    border-top: 4px solid #3498db;
+}
+
+.locations-block {
+    border-top: 4px solid #2ecc71;
+}
+
+.block-header {
+    background: var(--background-secondary);
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+}
+
+.block-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.block-icon {
+    font-size: 24px;
+}
+
+.block-title h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.block-badge {
+    background: var(--avito-blue);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.locations-block .block-badge {
+    background: #2ecc71;
+}
+
+/* Компактные стили для форм */
+.compact-section { margin-bottom: 16px; }
+.compact-card { padding: 16px; }
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.section-header h4 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.section-badge {
+    background: var(--background);
+    color: var(--text-secondary);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+}
+
+.section-card {
+    background: var(--background-secondary);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--border);
+}
+
+/* Стили дерева */
+/* Стили дерева - КОМПАКТНЫЕ */
+.categories-tree {
+    background: var(--background-secondary);
+    border-radius: var(--radius);
+    padding: 8px;
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
     font-size: 13px;
 }
-.compact-actions { display: flex; gap: 6px; margin-top: 10px; }
+
+.category-node { 
+    margin-bottom: 2px; 
+    padding-left: 4px;
+    line-height: 1.3;
+}
+
+.category-node.child-node { 
+    padding-left: 20px;
+    margin-top: 1px;
+}
+
+.node-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    font-size: 13px;
+    border-radius: 4px;
+    min-height: 28px;
+    transition: background 0.2s;
+}
+
+.node-header:hover { 
+    background: rgba(0, 0, 0, 0.04);
+}
+
+.toggle-icon {
+    font-size: 10px;
+    cursor: pointer;
+    min-width: 16px;
+    text-align: center;
+    color: var(--text-tertiary);
+    user-select: none;
+}
+
+.node-icon { 
+    font-size: 12px; 
+    opacity: 0.8; 
+    min-width: 16px;
+    text-align: center;
+}
+
+.node-name { 
+    color: var(--text-primary); 
+    font-weight: 500; 
+    flex: 1;
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.node-description { 
+    font-size: 11px; 
+    color: var(--text-tertiary); 
+    margin-left: 6px;
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.node-badge {
+    background: var(--avito-blue-light);
+    color: var(--avito-blue);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: center;
+}
+
+.node-actions { 
+    display: flex; 
+    gap: 2px; 
+    opacity: 0.7;
+    margin-left: auto;
+}
+
+.node-header:hover .node-actions { 
+    opacity: 1; 
+}
+
+.node-action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    padding: 3px 6px;
+    border-radius: 3px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    min-width: 24px;
+    min-height: 24px;
+}
+
+.node-action-btn:hover {
+    background: var(--avito-blue-light);
+    color: var(--avito-blue);
+    border-color: var(--avito-blue);
+    transform: scale(1.05);
+}
+
+.node-action-btn svg { 
+    width: 12px; 
+    height: 12px; 
+}
+
+.node-children { 
+    padding-left: 20px; 
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-left: 1px dashed var(--border);
+    margin-left: 8px;
+}
+
+/* Уменьшаем отступы у блоков с деревьями */
+.admin-section .section-card {
+    padding: 12px;
+}
+
+/* Формы */
+.form-control-sm, .form-select-sm {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: var(--radius);
+}
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: var(--radius);
+}
+.compact-actions { 
+    display: flex; 
+    gap: 8px; 
+    margin-top: 12px;
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Загрузка файлов */
 .file-input-wrapper {
     position: relative;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 .file-input-wrapper input[type="file"] {
     position: absolute;
@@ -434,70 +814,30 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    padding: 8px 12px;
     background: var(--background);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     cursor: pointer;
-    font-size: 13px;
-}
-.btn-full { width: 100%; }
-
-/* Стили дерева */
-.categories-tree {
-    background: var(--background-secondary);
-    border-radius: var(--radius);
-    padding: 12px;
-    max-height: 500px;
-    overflow-y: auto;
-}
-.category-node { margin-bottom: 4px; padding-left: 8px; }
-.category-node.child-node { padding-left: 24px; }
-.node-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
     font-size: 14px;
-    border-radius: var(--radius);
+    transition: all 0.2s;
 }
-.node-header:hover { background: var(--background); }
-.toggle-icon {
-    font-size: 12px;
-    cursor: pointer;
-    min-width: 16px;
-    text-align: center;
-    color: var(--text-tertiary);
-}
-.node-icon { font-size: 14px; opacity: 0.8; color: var(--text-tertiary); }
-.node-name { color: var(--text-primary); font-weight: 500; flex: 1; }
-.node-description { font-size: 12px; color: var(--text-tertiary); margin-left: 4px; }
-.node-badge {
-    background: rgba(0,0,0,0.1);
-    color: var(--text-secondary);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 11px;
-}
-.node-actions { display: flex; gap: 4px; }
-.node-action-btn {
-    background: transparent;
-    border: none;
-    padding: 4px;
-    border-radius: 4px;
-    color: var(--text-secondary);
-    cursor: pointer;
-}
-.node-action-btn:hover {
+.file-input-label:hover {
+    border-color: var(--avito-blue);
     background: var(--avito-blue-light);
-    color: var(--avito-blue);
-    transform: scale(1.1);
 }
-.node-action-btn svg { width: 14px; height: 14px; }
-.node-children { padding-left: 16px; margin-top: 4px; }
+.file-input-text {
+    color: var(--text-secondary);
+}
+.file-input-label:hover .file-input-text {
+    color: var(--avito-blue);
+}
 
 /* Sidebar и layout */
-.sidebar-container { width: 25%; flex-shrink: 0; }
+.sidebar-container { 
+    width: 300px; 
+    flex-shrink: 0; 
+}
 .sidebar {
     background: var(--background);
     border-radius: var(--radius-lg);
@@ -505,44 +845,115 @@
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
     height: fit-content;
+    position: sticky;
+    top: 20px;
 }
 .sidebar-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     margin-bottom: 12px;
     color: var(--text-primary);
 }
+.sidebar-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+}
+.sidebar-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
 .quick-actions { display: flex; flex-direction: column; gap: 8px; }
 .quick-action {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 8px;
+    padding: 10px 12px;
     background: var(--background-secondary);
     border-radius: var(--radius);
     text-decoration: none;
     color: var(--text-primary);
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
 }
+.quick-action:hover {
+    background: var(--avito-blue-light);
+    color: var(--avito-blue);
+    transform: translateX(4px);
+}
+
 .danger-zone {
     border-left: 3px solid #f5576c;
     padding-left: 12px;
 }
 .danger-actions { display: flex; flex-direction: column; gap: 10px; }
 .btn-danger, .btn-warning {
-    padding: 8px;
-    font-size: 13px;
+    padding: 10px;
+    font-size: 14px;
     text-align: center;
+    border-radius: var(--radius);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
 }
+.btn-danger { background: #f5576c; color: white; }
+.btn-danger:hover { background: #e74c3c; }
+.btn-warning { background: #f39c12; color: white; }
+.btn-warning:hover { background: #e67e22; }
+.btn-full { width: 100%; }
+
 .layout-container {
     display: flex;
     gap: 24px;
     align-items: flex-start;
 }
-.content-container { width: 75%; flex-grow: 1; }
+.content-container { 
+    flex: 1; 
+    min-width: 0; /* Для корректного обрезания контента */
+}
+
+/* Статус и информация */
+.system-status, .format-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.status-item, .format-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+}
+.status-label, .format-item strong {
+    color: var(--text-secondary);
+}
+.status-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
 
 /* Вкладки */
-.admin-tabs { background: var(--background); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; }
-.tabs { display: flex; gap: 2px; background: var(--background-secondary); padding: 4px; }
+.admin-tabs { 
+    background: var(--background); 
+    border-radius: var(--radius); 
+    border: 1px solid var(--border); 
+    margin-bottom: 24px; 
+    overflow: hidden; 
+}
+.tabs { 
+    display: flex; 
+    gap: 2px; 
+    background: var(--background-secondary); 
+    padding: 4px; 
+}
 .tab-btn {
     flex: 1;
     padding: 14px 20px;
@@ -587,22 +998,99 @@
     text-align: center;
     border: 1px solid var(--border);
     box-shadow: var(--shadow-light);
+    transition: transform 0.2s;
 }
+.stat-card:hover { transform: translateY(-2px); }
 .stat-icon { font-size: 28px; margin-bottom: 10px; opacity: 0.8; }
 .stat-number { font-size: 28px; font-weight: 700; color: var(--avito-blue); margin-bottom: 4px; }
 .stat-label { color: var(--text-secondary); font-size: 13px; font-weight: 500; }
 
+/* Пустое состояние */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+.empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .layout-container { flex-direction: column; }
-    .sidebar-container, .content-container { width: 100%; }
+    .sidebar-container { width: 100%; }
+    .sidebar { position: static; }
+}
+@media (max-width: 768px) {
+    .stats-cards { grid-template-columns: repeat(2, 1fr); }
     .tabs .tab-btn { font-size: 12px; padding: 10px 12px; }
+    .admin-header { padding: 24px 16px; }
+    .admin-header .page-title { font-size: 24px; }
+}
+@media (max-width: 480px) {
+    .stats-cards { grid-template-columns: 1fr; }
 }
 </style>
 
 <script>
-function confirmDanger(message) {
-    return confirm(`⚠️ ВНИМАНИЕ: ${message}\n\nЭто действие нельзя отменить!`);
+// Функция для изменения типа локации
+function changeLocationType(type) {
+    const locationType = document.getElementById('locationType');
+    const regionSelectGroup = document.getElementById('regionSelectGroup');
+    const submitBtn = document.getElementById('locationSubmitBtn');
+    
+    locationType.value = type;
+    
+    if (type === 'city') {
+        regionSelectGroup.style.display = 'block';
+        submitBtn.textContent = '➕ Добавить город';
+        document.getElementById('parentRegionSelect').required = true;
+    } else {
+        regionSelectGroup.style.display = 'none';
+        submitBtn.textContent = '➕ Добавить регион';
+        document.getElementById('parentRegionSelect').required = false;
+    }
+}
+
+// Функция для редактирования категории
+function editCategory(id, name, description, parentId) {
+    // Экранируем кавычки для JavaScript
+    const safeName = name.replace(/'/g, "\\'");
+    const safeDescription = (description || '').replace(/'/g, "\\'");
+    
+    document.getElementById('editCategoryId').value = id;
+    document.getElementById('categoryName').value = name;
+    document.getElementById('categoryDescription').value = description || '';
+    document.getElementById('categoryParent').value = parentId || '';
+    
+    document.getElementById('categorySubmitBtn').textContent = '💾 Сохранить';
+    document.getElementById('categoryCancelBtn').style.display = 'inline-block';
+    
+    // Прокрутить к форме
+    document.getElementById('addCategoryForm').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Сброс формы категории
+function resetCategoryForm() {
+    document.getElementById('editCategoryId').value = '';
+    document.getElementById('categorySubmitBtn').textContent = '➕ Добавить';
+    document.getElementById('categoryCancelBtn').style.display = 'none';
+    document.getElementById('addCategoryForm').reset();
+}
+
+// Показать форму добавления города
+function showAddCityForm(regionId, regionName) {
+    const locationTypeSelect = document.getElementById('locationTypeSelect');
+    const parentRegionSelect = document.getElementById('parentRegionSelect');
+    
+    locationTypeSelect.value = 'city';
+    parentRegionSelect.value = regionId;
+    
+    changeLocationType('city');
+    
+    // Прокрутить к форме
+    document.getElementById('addLocationForm').scrollIntoView({ behavior: 'smooth' });
+    
+    // Показать сообщение
+    alert(`Добавление города в регион: ${regionName}`);
 }
 
 // Поиск по категориям
@@ -620,17 +1108,17 @@ document.getElementById('categorySearch')?.addEventListener('input', function() 
         const name = item.getAttribute('data-name');
         if (name && name.includes(searchTerm)) {
             item.classList.remove('hidden');
-            if (item.classList.contains('child-node')) {
-                const parent = item.closest('.category-node:not(.child-node)');
-                if (parent) {
-                    parent.classList.remove('hidden');
-                    const children = parent.querySelector('.node-children');
-                    if (children) {
-                        children.style.display = 'block';
-                        const toggle = parent.querySelector('.toggle-icon');
-                        if (toggle) toggle.textContent = '➖';
-                    }
+            // Показать родительские элементы
+            let parent = item.closest('.category-node:not(.child-node)');
+            while (parent) {
+                parent.classList.remove('hidden');
+                const children = parent.querySelector('.node-children');
+                if (children) {
+                    children.style.display = 'block';
+                    const toggle = parent.querySelector('.toggle-icon');
+                    if (toggle) toggle.textContent = '➖';
                 }
+                parent = parent.parentElement?.closest('.category-node:not(.child-node)');
             }
         }
     });
@@ -650,5 +1138,71 @@ function toggleCategory(toggleElement) {
         }
     }
 }
+
+// Подтверждение опасных действий
+function confirmDanger(message) {
+    return confirm(`⚠️ ВНИМАНИЕ: ${message}\n\nЭто действие нельзя отменить!`);
+}
+
+// Тест API локаций
+function testLocationsAPI() {
+    fetch('/api/locations?search=моск')
+        .then(response => response.json())
+        .then(data => {
+            alert(`Найдено ${data.length} локаций. Проверьте консоль для деталей.`);
+            console.log('Тест API локаций:', data);
+        })
+        .catch(error => {
+            alert('Ошибка при тестировании API: ' + error.message);
+            console.error('Ошибка API:', error);
+        });
+}
+
+// Показать шаблон
+function showTemplate() {
+    const modal = new bootstrap.Modal(document.getElementById('templateModal'));
+    modal.show();
+}
+
+// Копировать шаблон
+function copyTemplate() {
+    const template = document.getElementById('csvTemplate').textContent;
+    navigator.clipboard.writeText(template).then(() => {
+        alert('Шаблон скопирован в буфер обмена!');
+    });
+}
+
+// Скачать шаблон
+document.getElementById('downloadTemplate')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    const template = document.getElementById('csvTemplate').textContent;
+    const blob = new Blob([template], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'шаблон_регионов.csv';
+    link.click();
+});
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    // Скрыть выбор региона по умолчанию (тип - регион)
+    changeLocationType('region');
+    
+    // Обновление текста файловых инпутов
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    fileInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const label = this.nextElementSibling;
+            const textSpan = label.querySelector('.file-input-text');
+            if (this.files.length > 0) {
+                textSpan.textContent = this.files[0].name;
+                textSpan.style.color = 'var(--avito-blue)';
+            } else {
+                textSpan.textContent = 'Выберите файл...';
+                textSpan.style.color = 'var(--text-secondary)';
+            }
+        });
+    });
+});
 </script>
 {% endblock %}

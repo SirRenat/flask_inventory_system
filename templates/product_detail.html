@@ -40,21 +40,22 @@
             <div class="product-left-column">
                 <!-- Галерея изображений -->
                 <div class="product-gallery mb-4">
-                    {% if product.images and product.images|length > 0 %}
+                    {% set image_list = product.images.split(',') if product.images and ',' in product.images else ([product.images] if product.images else []) %}
+                    {% if image_list and image_list|length > 0 %}
                         <div class="main-image">
-                            <img src="{{ url_for('main.serve_uploaded_file', filename=product.images[0]) }}" 
-                                 alt="{{ product.title }}" 
-                                 id="mainImage"
-                                 onerror="this.src='/static/images/no-image.png'">
+                            <img src="{{ url_for('main.serve_uploaded_file', filename=image_list[0]) }}" 
+                                alt="{{ product.title }}" 
+                                id="mainImage"
+                                onerror="this.src='/static/images/no-image.png'">
                         </div>
-                        {% if product.images|length > 1 %}
+                        {% if image_list|length > 1 %}
                         <div class="image-thumbnails mt-3">
-                            {% for image in product.images %}
+                            {% for image in image_list %}
                             <img src="{{ url_for('main.serve_uploaded_file', filename=image) }}" 
-                                 alt="{{ product.title }}" 
-                                 class="thumbnail {% if loop.first %}active{% endif %}"
-                                 onclick="changeImage(this)"
-                                 onerror="this.src='/static/images/no-image.png'">
+                                alt="{{ product.title }}" 
+                                class="thumbnail {% if loop.first %}active{% endif %}"
+                                onclick="changeImage(this)"
+                                onerror="this.src='/static/images/no-image.png'">
                             {% endfor %}
                         </div>
                         {% endif %}

@@ -1,6 +1,4 @@
-<!-- edit_product.html - с поддержкой обрезки изображений, НДС и зависимыми полями -->
 {% extends "base.html" %}
-
 {% block content %}
 <div class="container mt-4">
     <div class="edit-product-container">
@@ -13,9 +11,8 @@
                 ← Назад к товару
             </a>
         </div>
-        
         <form method="POST" enctype="multipart/form-data" class="edit-product-form" id="editProductForm">
-             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-grid">
                 <!-- Основная информация -->
                 <div class="form-section">
@@ -23,7 +20,6 @@
                         <span class="form-section-icon">📋</span>
                         <h3>Основная информация</h3>
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label" for="title">
                             Название товара <span class="required">*</span>
@@ -31,7 +27,6 @@
                         <input type="text" class="form-control" id="title" name="title" 
                                value="{{ product.title }}" required>
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label" for="category_id">Категория <span class="required">*</span></label>
                         <select class="form-select" id="category_id" name="category_id" required>
@@ -44,7 +39,6 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="manufacturer">Производитель</label>
@@ -52,7 +46,6 @@
                                    value="{{ product.manufacturer or '' }}"
                                    placeholder="Например: IKEA, Herman Miller, Xiaomi">
                         </div>
-                        
                         <div class="form-group">
                             <label class="form-label" for="quantity">Количество</label>
                             <input type="number" class="form-control" id="quantity" name="quantity" 
@@ -60,8 +53,6 @@
                                    min="1" step="1">
                         </div>
                     </div>
-                    
-                    <!-- ПОЛЕ ЦЕНЫ С НДС -->
                     <div class="form-group">
                         <label class="form-label">Цена <span class="required">*</span></label>
                         <div class="price-input-wrapper">
@@ -80,8 +71,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Состояние товара -->
                     <div class="form-group">
                         <label class="form-label">Состояние</label>
                         <div class="form-check form-check-inline">
@@ -95,8 +84,6 @@
                             <label class="form-check-label" for="conditionUsed">Б/у</label>
                         </div>
                     </div>
-
-                    <!-- Субъект РФ и Город (зависимые поля) -->
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="region_id">Субъект РФ <span class="required">*</span></label>
@@ -124,12 +111,8 @@
                             </select>
                         </div>
                     </div>
-
-                    <!-- Скрытые поля для старых значений региона и города (для обратной совместимости) -->
                     <input type="hidden" id="old_region" name="old_region" value="{{ product.region or '' }}">
                     <input type="hidden" id="old_city" name="old_city" value="{{ product.city or '' }}">
-                    
-                    <!-- Доставка -->
                     <div class="form-group">
                         <div class="form-check">
                             <input class="form-check-input" type="checkbox" name="delivery" id="delivery" value="on"
@@ -144,24 +127,19 @@
                         <div class="form-text">Опишите состояние, характеристики, комплектацию и размеры товара</div>
                     </div>
                 </div>
-                
                 <!-- Изображения -->
                 <div class="form-section">
                     <div class="form-section-header">
                         <span class="form-section-icon">🖼️</span>
                         <h3>Изображения</h3>
                     </div>
-                    
-                    <!-- Информация о количестве -->
                     <div class="image-info-alert">
                         <div class="alert-icon">ℹ️</div>
                         <div class="alert-content">
                             <strong>Максимум 8 изображений всего</strong>
-                            <span id="image-counter">Текущие: {{ product.images|length if product.images else 0 }}/8</span>
+                            <span id="image-counter">Текущие: {{ product_images|length }}/8</span>
                         </div>
                     </div>
-                    
-                    <!-- Загрузка новых файлов -->
                     <div class="form-group">
                         <label class="form-label" for="image_files">Добавить новые изображения</label>
                         <div class="file-upload-area" id="file-upload-area">
@@ -177,8 +155,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Croppie Modal -->
                     <div id="cropper-modal" class="cropper-modal" style="display: none;">
                         <div class="cropper-content">
                             <h3>Обрежьте изображение</h3>
@@ -190,19 +166,15 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Предпросмотр новых изображений -->
                     <div id="new-images-preview" class="new-images-preview" style="display: none;">
                         <h4>Новые изображения:</h4>
                         <div id="new-images-container" class="image-preview-grid"></div>
                     </div>
-                    
-                    <!-- Существующие изображения -->
-                    {% if product.images and product.images|length > 0 %}
+                    {% if product_images and product_images|length > 0 %}
                     <div class="existing-images">
                         <h4>Текущие изображения:</h4>
                         <div class="existing-images-grid" id="existing-images-grid">
-                            {% for image in product.images %}
+                            {% for image in product_images %}
                             <div class="existing-image-item" id="existing-image-{{ loop.index0 }}">
                                 <div class="existing-image-wrapper">
                                     <img src="/uploads/{{ image }}" 
@@ -223,22 +195,17 @@
                             </div>
                             {% endfor %}
                         </div>
-                        <!-- Скрытое поле для удаленных изображений -->
                         <input type="hidden" name="removed_images" id="removed_images" value="">
-                        <!-- Скрытое поле для отредактированных изображений -->
                         <input type="hidden" name="edited_images_data" id="edited_images_data" value="">
                     </div>
                     {% endif %}
-                </div>  
+                </div>
             </div>
-            
-            <!-- Статус и даты -->
             <div class="form-section">
                 <div class="form-section-header">
                     <span class="form-section-icon">📊</span>
                     <h3>Статус и сроки</h3>
                 </div>
-                
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="status">Статус товара</label>
@@ -253,7 +220,6 @@
                             • Готов к публикации — истек срок публикации
                         </div>
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label" for="expires_at">Действует до</label>
                         <input type="datetime-local" class="form-control" id="expires_at" name="expires_at" 
@@ -262,8 +228,6 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- Кнопки действий -->
             <div class="form-actions">
                 <div>
                     <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn btn-outline">
@@ -282,7 +246,6 @@
         </form>
     </div>
 </div>
-
 <style>
 :root {
     --avito-blue: #0057FF;
@@ -301,7 +264,6 @@
     --warning: #FF9500;
     --danger: #FF3B30;
 }
-
 .edit-product-container {
     background: white;
     border-radius: 12px;
@@ -311,7 +273,6 @@
     max-width: 900px;
     margin: 0 auto;
 }
-
 .edit-product-header {
     display: flex;
     justify-content: space-between;
@@ -320,19 +281,16 @@
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border-light);
 }
-
 .edit-product-title {
     font-size: 24px;
     font-weight: 700;
     color: var(--text-primary);
     margin-bottom: 4px;
 }
-
 .edit-product-subtitle {
     color: var(--text-secondary);
     font-size: 14px;
 }
-
 .btn-back {
     color: var(--avito-blue);
     text-decoration: none;
@@ -343,66 +301,55 @@
     border: 1px solid var(--border);
     font-size: 14px;
 }
-
 .btn-back:hover {
     background: var(--avito-blue-light);
     color: var(--avito-blue);
 }
-
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 32px;
     margin-bottom: 32px;
 }
-
 .form-section {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
-
 .form-section-header {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-bottom: 8px;
 }
-
 .form-section-icon {
     font-size: 20px;
 }
-
 .form-section h3 {
     color: var(--text-primary);
     font-size: 18px;
     font-weight: 600;
     margin: 0;
 }
-
 .form-group {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
-
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
 }
-
 .form-label {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 4px;
     font-size: 14px;
 }
-
 .required {
     color: #FF3B30;
 }
-
 .form-control, .form-select {
     padding: 12px 16px;
     border: 1px solid var(--border);
@@ -413,62 +360,50 @@
     width: 100%;
     box-sizing: border-box;
 }
-
 .form-control:focus, .form-select:focus {
     border-color: var(--avito-blue);
     box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
     outline: none;
 }
-
-/* Цена + НДС — горизонтальный контейнер */
 .price-input-wrapper {
     display: flex;
     align-items: center;
     gap: 8px;
     width: 100%;
 }
-
 .price-input-container {
     flex: 1;
     position: relative;
 }
-
 .price-input-container .form-control {
     padding-right: 40px;
     width: 100%;
 }
-
 .price-currency {
     color: var(--text-secondary);
     font-weight: 500;
     font-size: 16px;
     white-space: nowrap;
 }
-
 .vat-checkbox-container {
     display: flex;
     align-items: center;
     gap: 6px;
 }
-
 .vat-checkbox {
     margin: 0;
 }
-
 .vat-label {
     font-size: 13px;
     color: var(--text-secondary);
     cursor: pointer;
 }
-
 .form-text {
     color: var(--text-tertiary);
     font-size: 12px;
     line-height: 1.4;
     margin-top: 4px;
 }
-
-/* Информационное сообщение о количестве */
 .image-info-alert {
     display: flex;
     align-items: center;
@@ -479,29 +414,23 @@
     border: 1px solid #E1F0FF;
     margin-bottom: 16px;
 }
-
 .alert-icon {
     font-size: 18px;
 }
-
 .alert-content {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
-
 .alert-content strong {
     color: var(--text-primary);
     font-size: 14px;
     font-weight: 600;
 }
-
 .alert-content span {
     color: var(--text-secondary);
     font-size: 13px;
 }
-
-/* Стили для загрузки файлов */
 .file-upload-area {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
@@ -511,47 +440,38 @@
     transition: all 0.3s ease;
     background: var(--background-secondary);
 }
-
 .file-upload-area:hover {
     border-color: var(--avito-blue);
     background: rgba(0, 87, 255, 0.05);
 }
-
 .upload-placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 12px;
 }
-
 .upload-icon {
     font-size: 32px;
     opacity: 0.7;
 }
-
 .upload-text {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
-
 .upload-text strong {
     color: var(--text-primary);
     font-size: 14px;
 }
-
 .upload-text span {
     color: var(--text-secondary);
     font-size: 13px;
 }
-
 .upload-hint {
     color: var(--text-tertiary);
     font-size: 12px;
     margin-top: 8px;
 }
-
-/* Стили для изображений */
 .new-images-preview {
     margin-top: 16px;
     padding: 16px;
@@ -559,21 +479,18 @@
     border-radius: var(--radius);
     border: 1px solid #E1F0FF;
 }
-
 .new-images-preview h4 {
     color: var(--text-primary);
     margin-bottom: 12px;
     font-size: 15px;
     font-weight: 600;
 }
-
 .image-preview-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
     gap: 10px;
     margin-bottom: 16px;
 }
-
 .existing-images {
     margin-top: 16px;
     padding: 16px;
@@ -581,24 +498,20 @@
     border-radius: var(--radius);
     border: 1px solid var(--border-light);
 }
-
 .existing-images h4 {
     color: var(--text-primary);
     margin-bottom: 12px;
     font-size: 15px;
     font-weight: 600;
 }
-
 .existing-images-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 12px;
 }
-
 .existing-image-item {
     position: relative;
 }
-
 .existing-image-wrapper {
     position: relative;
     width: 100px;
@@ -608,18 +521,15 @@
     border: 2px solid var(--border);
     background: white;
 }
-
 .existing-image-wrapper img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: transform 0.3s ease;
 }
-
 .existing-image-wrapper:hover img {
     transform: scale(1.05);
 }
-
 .btn-edit-existing, .btn-remove-existing {
     position: absolute;
     top: 4px;
@@ -636,51 +546,40 @@
     font-size: 10px;
     line-height: 1;
 }
-
 .btn-edit-existing {
     right: 30px;
     background: rgba(0, 87, 255, 0.8);
     color: white;
 }
-
 .btn-edit-existing:hover {
     background: var(--avito-blue);
     transform: scale(1.1);
 }
-
 .btn-remove-existing {
     right: 4px;
     background: rgba(255, 59, 48, 0.9);
     color: white;
 }
-
 .btn-remove-existing:hover {
     background: #FF3B30;
     transform: scale(1.1);
 }
-
 .image-number {
     text-align: center;
     font-size: 11px;
     color: var(--text-secondary);
     margin-top: 4px;
 }
-
-/* Стили для удаленных изображений */
 .existing-image-item.removed {
     opacity: 0.5;
 }
-
 .existing-image-item.removed .existing-image-wrapper {
     border: 2px dashed #FF3B30;
 }
-
 .existing-image-item.removed .btn-remove-existing,
 .existing-image-item.removed .btn-edit-existing {
     display: none;
 }
-
-/* Croppie Modal */
 .cropper-modal {
     position: fixed;
     top: 0;
@@ -693,7 +592,6 @@
     justify-content: center;
     z-index: 10000;
 }
-
 .cropper-content {
     background: white;
     padding: 20px;
@@ -703,21 +601,17 @@
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     text-align: center;
 }
-
 .cropper-hint {
     font-size: 13px;
     color: var(--text-tertiary);
     margin: 0 0 15px 0;
 }
-
 .cropper-actions {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
     margin-top: 20px;
 }
-
-/* Кнопки действий */
 .form-actions {
     display: flex;
     justify-content: space-between;
@@ -726,12 +620,10 @@
     border-top: 1px solid var(--border-light);
     margin-top: 24px;
 }
-
 .action-buttons {
     display: flex;
     gap: 12px;
 }
-
 .btn {
     padding: 12px 24px;
     border-radius: var(--radius);
@@ -745,154 +637,133 @@
     align-items: center;
     gap: 6px;
 }
-
 .btn-primary {
     background: linear-gradient(135deg, var(--avito-blue) 0%, var(--avito-blue-hover) 100%);
     color: white;
     box-shadow: 0 2px 8px rgba(0, 87, 255, 0.3);
 }
-
 .btn-primary:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 16px rgba(0, 87, 255, 0.4);
     color: white;
 }
-
 .btn-secondary {
     background: var(--background-secondary);
     color: var(--text-primary);
     border: 1px solid var(--border);
 }
-
 .btn-secondary:hover {
     background: var(--border-light);
     color: var(--text-primary);
 }
-
 .btn-outline {
     background: transparent;
     color: var(--text-secondary);
     border: 1px solid var(--border);
 }
-
 .btn-outline:hover {
     background: var(--background-secondary);
     color: var(--text-primary);
 }
-
-/* Адаптивность */
 @media (max-width: 768px) {
     .edit-product-container {
         padding: 20px;
         margin: 0 16px;
     }
-    
     .edit-product-header {
         flex-direction: column;
         gap: 16px;
         align-items: stretch;
     }
-    
     .form-grid {
         grid-template-columns: 1fr;
         gap: 24px;
     }
-    
     .form-row {
         grid-template-columns: 1fr;
         gap: 16px;
     }
-    
     .form-actions {
         flex-direction: column;
         gap: 16px;
         align-items: stretch;
     }
-    
     .action-buttons {
         flex-direction: column;
     }
-    
     .btn {
         width: 100%;
         justify-content: center;
     }
-    
-    /* Цена и НДС на мобильных — в колонку */
     .price-input-wrapper {
         flex-direction: column;
         align-items: flex-start;
         gap: 8px;
     }
 }
-
 @media (max-width: 480px) {
     .edit-product-container {
         padding: 16px;
     }
-    
     .existing-image-wrapper {
         width: 80px;
         height: 80px;
     }
-    
     .btn-edit-existing {
         right: 24px;
         width: 18px;
         height: 18px;
     }
-    
     .btn-remove-existing {
         right: 2px;
         width: 18px;
         height: 18px;
     }
 }
+.form-grid + .form-section {
+    margin-top: 32px;
+    width: 100%;
+    grid-column: 1 / -1;
+}
+.edit-product-form > .form-section:last-of-type {
+    width: 100%;
+    margin-top: 24px;
+}
 </style>
-
-<!-- Подключаем Croppie -->
 <link rel="stylesheet" href="https://unpkg.com/croppie@2.6.5/croppie.css">
 <script src="https://unpkg.com/croppie@2.6.5/croppie.min.js"></script>
-
 <script>
 let removedExistingImages = [];
-let newImages = []; // {file, croppedBlob, croppedFile}
-let editedExistingImages = {}; // filename => {blob, file}
+let newImages = [];
+let editedExistingImages = {};
 let croppieInstance = null;
-let currentCropMode = null; // 'new' или 'existing'
+let currentCropMode = null;
 let currentFileIndex = null;
 let currentExistingFilename = null;
 
-// Инициализация
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('image_files');
     const uploadArea = document.getElementById('file-upload-area');
     const regionSelect = document.getElementById('region_id');
     const citySelect = document.getElementById('city_id');
 
-    // Инициализация зависимых полей
-    initializeDependentFields();
+    if (regionSelect.value) {
+        loadCitiesForRegion(regionSelect.value);
+    }
 
-    // Обработчик изменения региона
-    regionSelect.addEventListener('change', function() {
-        loadCitiesForRegion(this.value);
-    });
-
+    regionSelect.addEventListener('change', () => loadCitiesForRegion(regionSelect.value));
     fileInput.addEventListener('change', handleNewFileSelect);
-
-    uploadArea.addEventListener('dragover', (e) => {
+    uploadArea.addEventListener('dragover', e => {
         e.preventDefault();
         uploadArea.style.borderColor = 'var(--avito-blue)';
         uploadArea.style.background = 'rgba(0, 87, 255, 0.1)';
     });
-
-    uploadArea.addEventListener('dragleave', (e) => {
+    uploadArea.addEventListener('dragleave', e => {
         e.preventDefault();
         uploadArea.style.borderColor = 'var(--border)';
         uploadArea.style.background = 'var(--background-secondary)';
     });
-
-    uploadArea.addEventListener('drop', (e) => {
+    uploadArea.addEventListener('drop', e => {
         e.preventDefault();
         uploadArea.style.borderColor = 'var(--border)';
         uploadArea.style.background = 'var(--background-secondary)';
@@ -901,48 +772,25 @@ document.addEventListener('DOMContentLoaded', function() {
             handleNewFileSelect({ target: fileInput });
         }
     });
-
-    uploadArea.addEventListener('click', function(e) {
+    uploadArea.addEventListener('click', e => {
         if (e.target === uploadArea || e.target.closest('.upload-placeholder')) {
             fileInput.click();
         }
     });
-
     updateImageCounter();
 });
 
-// Инициализация зависимых полей
-function initializeDependentFields() {
-    const regionSelect = document.getElementById('region_id');
-    const citySelect = document.getElementById('city_id');
-    
-    // Если уже выбран регион, загружаем города
-    if (regionSelect.value) {
-        loadCitiesForRegion(regionSelect.value);
-    }
-}
-
-// Загрузка городов для выбранного региона
 function loadCitiesForRegion(regionId) {
     const citySelect = document.getElementById('city_id');
-    
     if (!regionId) {
         citySelect.innerHTML = '<option value="">Сначала выберите субъект РФ</option>';
         citySelect.disabled = true;
         return;
     }
-    
     citySelect.innerHTML = '<option value="">Загрузка городов...</option>';
     citySelect.disabled = true;
-    
-    // ИСПРАВЛЕННЫЙ URL - используем рекомендуемый формат
     fetch(`/api/cities/by-region/${regionId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Ошибка при загрузке городов');
-            }
-            return response.json();
-        })
+        .then(response => response.ok ? response.json() : Promise.reject())
         .then(cities => {
             citySelect.innerHTML = '<option value="">Выберите город</option>';
             cities.forEach(city => {
@@ -952,43 +800,33 @@ function loadCitiesForRegion(regionId) {
                 citySelect.appendChild(option);
             });
             citySelect.disabled = false;
-            
-            // Восстанавливаем сохраненное значение города, если есть
-            // УБИРАЕМ лишние кавычки из Jinja-шаблона
             const savedCityId = {{ product.city_id|tojson|safe }};
-            if (savedCityId && savedCityId !== null) {
-                citySelect.value = savedCityId;
-            }
+            if (savedCityId) citySelect.value = savedCityId;
         })
-        .catch(error => {
-            console.error('Ошибка при загрузке городов:', error);
+        .catch(() => {
             citySelect.innerHTML = '<option value="">Ошибка загрузки городов</option>';
         });
 }
+
 function handleNewFileSelect(event) {
     const files = Array.from(event.target.files);
     const currentCount = getActualImageCount();
-    const total = currentCount + files.length;
-
-    if (total > 8) {
+    if (currentCount + files.length > 8) {
         alert(`Максимум 8 изображений! У вас уже ${currentCount}, вы пытаетесь добавить ${files.length}.`);
         event.target.value = '';
         return;
     }
-
     if (files.some(f => f.size > 5 * 1024 * 1024)) {
         alert('Файл слишком большой! Максимум 5 МБ.');
         event.target.value = '';
         return;
     }
-
     newImages = files.map(file => ({
         originalFile: file,
         croppedBlob: null,
         croppedFile: null,
         url: URL.createObjectURL(file)
     }));
-
     renderNewImagesPreview();
     document.getElementById('new-images-preview').style.display = 'block';
     updateImageCounter();
@@ -997,7 +835,6 @@ function handleNewFileSelect(event) {
 function renderNewImagesPreview() {
     const container = document.getElementById('new-images-container');
     container.innerHTML = '';
-
     newImages.forEach((item, index) => {
         const div = document.createElement('div');
         div.className = 'existing-image-item';
@@ -1013,23 +850,20 @@ function renderNewImagesPreview() {
 }
 
 function editExistingImage(filename, index) {
-    const imageUrl = `/uploads/${filename}`;
     currentCropMode = 'existing';
     currentExistingFilename = filename;
-    openCropper(imageUrl);
+    openCropper(`/uploads/${filename}`);
 }
 
 function openCropperForNew(index) {
     currentCropMode = 'new';
     currentFileIndex = index;
-    const imageUrl = newImages[index].url;
-    openCropper(imageUrl);
+    openCropper(newImages[index].url);
 }
 
 function openCropper(imageUrl) {
     const container = document.getElementById('cropper-container');
     container.innerHTML = '';
-
     croppieInstance = new Croppie(container, {
         viewport: { width: 300, height: 200, type: 'rectangle' },
         boundary: { width: 350, height: 250 },
@@ -1037,7 +871,6 @@ function openCropper(imageUrl) {
         enableZoom: true,
         mouseWheelZoom: true
     });
-
     croppieInstance.bind({ url: imageUrl });
     document.getElementById('cropper-modal').style.display = 'flex';
 }
@@ -1055,7 +888,6 @@ function closeCropper() {
 
 function applyCrop() {
     if (!croppieInstance) return;
-
     croppieInstance.result({
         type: 'blob',
         size: { width: 600, height: 400 },
@@ -1077,17 +909,11 @@ function applyCrop() {
                 type: 'image/jpeg',
                 lastModified: now
             });
-            editedExistingImages[currentExistingFilename] = {
-                blob: blob,
-                file: newFile
-            };
-            // Обновим превью
-            const img = document.querySelector(`#existing-image-${Object.keys(editedExistingImages).indexOf(currentExistingFilename)} img`);
-            if (img) {
-                img.src = URL.createObjectURL(blob);
-            }
+            editedExistingImages[currentExistingFilename] = { blob, file: newFile };
+            const imgIndex = Object.keys(editedExistingImages).indexOf(currentExistingFilename);
+            const img = document.querySelector(`#existing-image-${imgIndex} img`);
+            if (img) img.src = URL.createObjectURL(blob);
         }
-
         closeCropper();
         updateImageCounter();
     });
@@ -1097,75 +923,77 @@ function removeExistingImage(imageName, index) {
     if (confirm('Удалить это изображение?')) {
         removedExistingImages.push(imageName);
         document.getElementById('removed_images').value = removedExistingImages.join(',');
-
-        const el = document.getElementById(`existing-image-${index}`);
-        if (el) el.classList.add('removed');
-
-        // Удаляем из edited, если редактировалось
+        document.getElementById(`existing-image-${index}`).classList.add('removed');
         delete editedExistingImages[imageName];
-
         updateImageCounter();
-        alert('Изображение будет удалено после сохранения');
     }
 }
 
 function getActualImageCount() {
     const existingCount = document.querySelectorAll('#existing-images-grid .existing-image-item:not(.removed)').length;
-    const newCount = newImages.length;
-    return existingCount + newCount;
+    return existingCount + newImages.length;
 }
 
 function updateImageCounter() {
     const count = getActualImageCount();
     document.getElementById('image-counter').textContent = `Текущие: ${count}/8`;
-    
     const uploadArea = document.getElementById('file-upload-area');
-    if (count >= 8) {
-        uploadArea.style.pointerEvents = 'none';
-        uploadArea.style.opacity = '0.6';
-    } else {
-        uploadArea.style.pointerEvents = 'auto';
-        uploadArea.style.opacity = '1';
-    }
+    uploadArea.style.pointerEvents = count >= 8 ? 'none' : 'auto';
+    uploadArea.style.opacity = count >= 8 ? '0.6' : '1';
 }
 
-// Перед отправкой — подменяем файлы и сохраняем отредактированные
 document.getElementById('editProductForm').addEventListener('submit', function(e) {
-    const dataTransfer = new DataTransfer();
-
-    // Добавляем новые изображения (обрезанные или оригиналы)
-    newImages.forEach(item => {
-        if (item.croppedFile) {
-            dataTransfer.items.add(item.croppedFile);
-        } else {
-            dataTransfer.items.add(item.originalFile);
+    e.preventDefault();
+    const formData = new FormData();
+    const formElements = this.elements;
+    for (let i = 0; i < formElements.length; i++) {
+        const el = formElements[i];
+        if (el.name && el.type !== 'file') {
+            if ((el.type === 'checkbox' || el.type === 'radio') && el.checked) {
+                formData.append(el.name, el.value);
+            } else if (el.type !== 'checkbox' && el.type !== 'radio') {
+                formData.append(el.name, el.value);
+            }
         }
+    }
+    const csrfInput = document.querySelector('input[name="csrf_token"]');
+    if (csrfInput) formData.append('csrf_token', csrfInput.value);
+    newImages.forEach(item => {
+        formData.append('image_files', item.croppedFile || item.originalFile);
     });
-
-    // Добавляем отредактированные существующие изображения
     Object.values(editedExistingImages).forEach(item => {
-        dataTransfer.items.add(item.file);
+        if (item && item.file) formData.append('image_files', item.file);
     });
-
-    // Обновляем input файлов
-    document.getElementById('image_files').files = dataTransfer.files;
-
-    // Сохраняем имена отредактированных файлов (чтобы сервер знал, что заменить)
+    if (removedExistingImages.length) {
+        formData.append('removed_images', removedExistingImages.join(','));
+    }
     const editedFilenames = Object.keys(editedExistingImages).join(',');
-    document.getElementById('edited_images_data').value = editedFilenames;
-    
-    // Заполняем старые поля для обратной совместимости
+    if (editedFilenames) formData.append('edited_images_data', editedFilenames);
     const regionSelect = document.getElementById('region_id');
     const citySelect = document.getElementById('city_id');
-    const regionOption = regionSelect.options[regionSelect.selectedIndex];
-    const cityOption = citySelect.options[citySelect.selectedIndex];
-    
-    if (regionOption && regionOption.dataset.regionName) {
-        document.getElementById('old_region').value = regionOption.dataset.regionName;
+    if (regionSelect?.selectedOptions[0]?.dataset.regionName) {
+        formData.append('old_region', regionSelect.selectedOptions[0].dataset.regionName);
     }
-    if (cityOption) {
-        document.getElementById('old_city').value = cityOption.textContent;
+    if (citySelect?.selectedOptions[0]?.textContent) {
+        formData.append('old_city', citySelect.selectedOptions[0].textContent);
     }
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '🔄 Сохранение...';
+    submitBtn.disabled = true;
+    fetch(this.action, { method: 'POST', body: formData })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+            } else {
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            alert('Ошибка сохранения: ' + (error.message || 'неизвестная ошибка'));
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
 });
 </script>
 {% endblock %}

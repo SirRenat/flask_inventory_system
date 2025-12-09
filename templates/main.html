@@ -805,8 +805,9 @@
                                     </div>
                                     {% endif %}
                                     
-                                    {% if product.images and product.images|length > 0 %}
-                                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.images[0]) }}" 
+                                    {% set image_list = product.images.split(',') if product.images and ',' in product.images else ([product.images] if product.images else []) %}
+                                    {% if image_list|length > 0 %}
+                                        <img src="{{ url_for('main.serve_uploaded_file', filename=image_list[0]) }}" 
                                             alt="{{ product.title }}"
                                             onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="no-photo" style="display: none;">
@@ -863,8 +864,9 @@
                                         </svg>
                                     </div>
                                     {% endif %}
-                                    {% if product.images and product.images|length > 0 %}
-                                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.images[0]) }}" 
+                                    {% set image_list = product.images.split(',') if product.images and ',' in product.images else ([product.images] if product.images else []) %}
+                                    {% if image_list|length > 0 %}
+                                        <img src="{{ url_for('main.serve_uploaded_file', filename=image_list[0]) }}" 
                                             alt="{{ product.title }}"
                                             onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="no-photo" style="display: none;">

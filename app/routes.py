@@ -1,63 +1,67 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, send_from_directory, current_app, jsonify
 from flask_login import login_required, current_user
-from app import db
-from app.models import Product, Category, User, Review, Region, City  # ← Добавлен City
+from app import db, csrf
+from app.models import Product, Category, User, Review, Region, City
 from datetime import datetime
 import os
 import uuid
 from werkzeug.utils import secure_filename
 from sqlalchemy.orm import joinedload
 
-# Создаем Blueprint ДО определения маршрутов
 main = Blueprint('main', __name__, template_folder='../templates')
 
-# Попытка импорта формы отзыва
 try:
     from app.forms import ReviewForm
 except ImportError:
-    # Временный заглушка если forms.py нет
     class ReviewForm:
         def __init__(self, *args, **kwargs):
             pass
         def validate_on_submit(self):
             return False
-    print("Предупреждение: app.forms не найден, формы отзывов не будут работать")
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
+def _deserialize_images(images_field):
+    """Преобразует значение поля images (строка или список) в список имён файлов."""
+    if not images_field:
+        return []
+    if isinstance(images_field, list):
+        return [img for img in images_field if img]
+    if isinstance(images_field, str):
+        return [img.strip() for img in images_field.split(',') if img.strip()]
+    return []
+
+def _serialize_images(images_list):
+    """Преобразует список имён файлов в строку для хранения в БД."""
+    return ','.join(images_list) if images_list else ''
+
 @main.route('/')
 def index():
     category_id = request.args.get('category_id')
     search_term = request.args.get('search', '').strip()
-    location = request.args.get('location', '').strip()  # ← ДОБАВЛЕНО: параметр локации
-    
+    location = request.args.get('location', '').strip()
     query = Product.query.filter_by(status=Product.STATUS_PUBLISHED)
-    
-    # ← ИСПРАВЛЕНИЕ: приводим к int, если есть
+
     if category_id and category_id.isdigit():
-        category_id = int(category_id)
-        query = query.filter_by(category_id=category_id)
-    
+        query = query.filter_by(category_id=int(category_id))
+
     if search_term:
         query = query.filter(
             Product.title.ilike(f'%{search_term}%') | 
             Product.description.ilike(f'%{search_term}%')
         )
-    
-    # ← ДОБАВЛЕНО: фильтрация по местоположению
+
     if location and location != 'Все регионы':
-        # Ищем товары по региону ИЛИ городу
         query = query.filter(
             (Product.region == location) | 
             (Product.city == location)
         )
-    
+
     query = query.options(joinedload(Product.product_category))
     products = query.order_by(Product.created_at.desc()).all()
     categories = Category.query.all()
-    
     return render_template('main.html', 
                          products=products, 
                          categories=categories,
@@ -67,17 +71,14 @@ def index():
 @login_required
 def dashboard():
     user_products = Product.query.options(joinedload(Product.product_category)).filter_by(user_id=current_user.id).order_by(Product.created_at.desc()).all()
-    
     expired_count = Product.query.filter(
         Product.user_id == current_user.id,
         Product.status == Product.STATUS_PUBLISHED,
         Product.expires_at <= datetime.utcnow()
     ).update({Product.status: Product.STATUS_READY_FOR_PUBLICATION})
-    
     if expired_count > 0:
         db.session.commit()
-    
-    # Преобразуем продукты в список словарей для JSON
+
     products_data = []
     for product in user_products:
         product_dict = {
@@ -88,7 +89,7 @@ def dashboard():
             'quantity': product.quantity,
             'manufacturer': product.manufacturer,
             'category_id': product.category_id,
-            'images': product.images,
+            'images': _deserialize_images(product.images),
             'status': product.status,
             'status_text': product.status_text,
             'created_at': product.created_at.isoformat() if product.created_at else None,
@@ -107,10 +108,9 @@ def dashboard():
             } if product.product_category else None
         }
         products_data.append(product_dict)
-    
     return render_template('dashboard.html', 
                          products=user_products,
-                         products_json=products_data,  # ← ЭТО ВАЖНО!
+                         products_json=products_data,
                          now=datetime.utcnow())
 
 @main.route('/product/<int:product_id>')
@@ -119,30 +119,15 @@ def product_detail(product_id):
         joinedload(Product.product_category),
         joinedload(Product.owner)
     ).get_or_404(product_id)
-    
-    if product.status == Product.STATUS_PUBLISHED:
-        pass
-    else:
-        if not current_user.is_authenticated:
-            flash('Этот товар недоступен для просмотра', 'error')
-            return redirect(url_for('main.index'))
-        
-        if current_user.id != product.user_id and current_user.role != 'admin':
-            flash('Этот товар недоступен для просмотра', 'error')
-            return redirect(url_for('main.index'))
 
-     # Проверяем, что товар можно показывать
-    can_view = False
-    if product.status == Product.STATUS_PUBLISHED:
-        can_view = True
-    elif current_user.is_authenticated and (current_user.id == product.user_id or current_user.role == 'admin'):
-        can_view = True
-    
+    can_view = (
+        product.status == Product.STATUS_PUBLISHED or
+        (current_user.is_authenticated and (current_user.id == product.user_id or current_user.role == 'admin'))
+    )
     if not can_view:
         flash('Этот товар недоступен для просмотра', 'error')
         return redirect(url_for('main.index'))
-    
-    # ← УВЕЛИЧИВАЕМ СЧЁТЧИК ПРОСМОТРОВ
+
     if product.status == Product.STATUS_PUBLISHED:
         product.view_count = (product.view_count or 0) + 1
         db.session.commit()
@@ -157,20 +142,14 @@ def add_product():
             title = request.form.get('title')
             description = request.form.get('description')
             price = request.form.get('price')
-            category_id = request.form.get('category_id')
-            quantity = request.form.get('quantity', 1)
-            manufacturer = request.form.get('manufacturer')
-            
-            # ВАЛИДАЦИЯ: проверяем все обязательные поля
+            category_id_str = request.form.get('category_id', '').strip()
+
             if not title:
                 flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.add_product'))
             if not price:
                 flash('Цена товара обязательна для заполнения', 'error')
                 return redirect(url_for('main.add_product'))
-
-            # Валидация category_id с преобразованием в int
-            category_id_str = request.form.get('category_id', '').strip()
             if not category_id_str:
                 flash('Категория товара обязательна для выбора', 'error')
                 return redirect(url_for('main.add_product'))
@@ -185,67 +164,48 @@ def add_product():
             if not category:
                 flash('Выбранная категория не существует', 'error')
                 return redirect(url_for('main.add_product'))
-            
-            # ← ДОБАВЛЕННЫЙ КОД: обработка зависимых полей региона и города
+
             region_id = request.form.get('region_id')
             city_id = request.form.get('city_id')
             old_region = request.form.get('old_region', '').strip()
             old_city = request.form.get('old_city', '').strip()
-            
+
             region_name = None
             city_name = None
-            
+
             if region_id:
                 region = Region.query.get(int(region_id))
-                if region:
-                    region_name = region.name
-                else:
-                    region_name = old_region
+                region_name = region.name if region else old_region
             else:
                 region_name = old_region
-                
+
             if city_id:
                 city = City.query.get(int(city_id))
-                if city:
-                    city_name = city.name
-                else:
-                    city_name = old_city
+                city_name = city.name if city else old_city
             else:
                 city_name = old_city
-            
-            # Проверяем обязательность региона и города
+
             if not region_name:
                 flash('Субъект РФ обязателен для выбора', 'error')
                 return redirect(url_for('main.add_product'))
             if not city_name:
                 flash('Город обязателен для выбора', 'error')
                 return redirect(url_for('main.add_product'))
-            
+
             uploaded_files = request.files.getlist('image_files')
-            saved_images = []
-            
+            new_images = []
             if uploaded_files and any(f.filename for f in uploaded_files):
-                if len(uploaded_files) > 4:
-                    flash('Можно загрузить не более 4 фотографий', 'error')
-                    return redirect(url_for('main.add_product'))
-                
                 for file in uploaded_files:
                     if file and file.filename:
                         if not allowed_file(file.filename):
                             flash('Недопустимый тип файла. Разрешены: png, jpg, jpeg, gif, webp', 'error')
                             return redirect(url_for('main.add_product'))
-                        
                         filename = secure_filename(file.filename)
                         unique_filename = f"{uuid.uuid4().hex}_{filename}"
                         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
                         file.save(file_path)
-                        saved_images.append(unique_filename)
-            
-            image_urls = request.form.get('image_urls', '').strip()
-            if image_urls and not saved_images:
-                url_list = [url.strip() for url in image_urls.split(',') if url.strip()]
-                saved_images = url_list[:4]
-            
+                        new_images.append(unique_filename)
+
             new_product = Product(
                 title=title,
                 description=description,
@@ -254,7 +214,7 @@ def add_product():
                 manufacturer=manufacturer,
                 category_id=category_id_int,
                 user_id=current_user.id,
-                images=saved_images if saved_images else None,
+                images=','.join(new_images) if new_images else None,  # ← СЕРИАЛИЗУЕМ В СТРОКУ
                 status=Product.STATUS_PUBLISHED,
                 vat_included=request.form.get('vat_included') == 'on', 
                 condition=request.form.get('condition', 'new'),
@@ -264,13 +224,10 @@ def add_product():
                 city_id=int(city_id) if city_id else None,
                 delivery=request.form.get('delivery') == 'on'
             )
-            
             db.session.add(new_product)
             db.session.commit()
-            
             flash('Товар успешно добавлен! Срок размещения - 30 дней', 'success')
             return redirect(url_for('main.dashboard'))
-            
         except ValueError as e:
             flash(f'Некорректное значение: {str(e)}', 'error')
             return redirect(url_for('main.add_product'))
@@ -278,33 +235,24 @@ def add_product():
             db.session.rollback()
             flash(f'Ошибка при добавлении товара: {str(e)}', 'error')
             return redirect(url_for('main.add_product'))
-    
-    # GET запрос - отображение формы
+
     categories = Category.query.all()
     if not categories:
         flash('Прежде чем добавлять товары, создайте хотя бы одну категорию', 'warning')
         return redirect(url_for('main.admin_categories'))
-    
-    # ← ДОБАВЛЯЕМ ЭТУ СТРОЧКУ: получаем все регионы
     regions = Region.query.filter_by(parent_id=None).order_by(Region.name).all()
-    
-    return render_template('add_product.html', 
-                         categories=categories,
-                         regions=regions)  # ← передаем регионы в шаблон
+    return render_template('add_product.html', categories=categories, regions=regions)
 
 @main.route('/product/<int:product_id>/renew', methods=['POST'])
 @login_required
 def renew_product(product_id):
     product = Product.query.get_or_404(product_id)
-    
     if product.user_id != current_user.id:
         flash('У вас нет прав для продления этого товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
-    
     if product.status not in [Product.STATUS_READY_FOR_PUBLICATION, Product.STATUS_UNPUBLISHED]:
         flash('Этот товар нельзя опубликовать', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
-    
     try:
         product.publish()
         db.session.commit()
@@ -312,22 +260,18 @@ def renew_product(product_id):
     except Exception as e:
         db.session.rollback()
         flash('Ошибка при публикации товара', 'error')
-    
     return redirect(url_for('main.dashboard'))
 
 @main.route('/product/<int:product_id>/unpublish', methods=['POST'])
 @login_required
 def unpublish_product(product_id):
     product = Product.query.get_or_404(product_id)
-    
     if product.user_id != current_user.id:
         flash('У вас нет прав для снятия этого товара с публикации', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
-    
     if product.status != Product.STATUS_PUBLISHED:
         flash('Этот товар уже не опубликован', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
-    
     try:
         product.unpublish()
         db.session.commit()
@@ -335,25 +279,23 @@ def unpublish_product(product_id):
     except Exception as e:
         db.session.rollback()
         flash('Ошибка при снятии товара с публикации', 'error')
-    
     return redirect(url_for('main.dashboard'))
 
 @main.route('/product/<int:product_id>/edit', methods=['GET', 'POST'])
 @login_required
 def edit_product(product_id):
     product = Product.query.get_or_404(product_id)
-    
     if product.user_id != current_user.id and current_user.role != 'admin':
         flash('У вас нет прав для редактирования этого товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
-    
+
     if request.method == 'POST':
         try:
             title = request.form.get('title')
             description = request.form.get('description')
             price = request.form.get('price')
             category_id = request.form.get('category_id')
-            
+
             if not title:
                 flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
@@ -363,47 +305,39 @@ def edit_product(product_id):
             if not category_id:
                 flash('Категория товара обязательна для выбора', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
-            
+
             category = Category.query.get(int(category_id))
             if not category:
                 flash('Выбранная категория не существует', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
-            
-            # ← ДОБАВЛЕННЫЙ КОД: обработка зависимых полей региона и города
+
             region_id = request.form.get('region_id')
             city_id = request.form.get('city_id')
             old_region = request.form.get('old_region', '').strip()
             old_city = request.form.get('old_city', '').strip()
-            
+
             region_name = None
             city_name = None
-            
+
             if region_id:
                 region = Region.query.get(int(region_id))
-                if region:
-                    region_name = region.name
-                else:
-                    region_name = old_region
+                region_name = region.name if region else old_region
             else:
                 region_name = old_region
-                
+
             if city_id:
                 city = City.query.get(int(city_id))
-                if city:
-                    city_name = city.name
-                else:
-                    city_name = old_city
+                city_name = city.name if city else old_city
             else:
                 city_name = old_city
-            
-            # Проверяем обязательность региона и города
+
             if not region_name:
                 flash('Субъект РФ обязателен для выбора', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
             if not city_name:
                 flash('Город обязателен для выбора', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
-            
+
             product.title = title
             product.description = description
             product.price = float(price)
@@ -411,89 +345,95 @@ def edit_product(product_id):
             product.manufacturer = request.form.get('manufacturer')
             product.category_id = int(category_id)
             product.status = int(request.form.get('status'))
-            product.vat_included = request.form.get('vat_included') == 'on' 
+            product.vat_included = request.form.get('vat_included') == 'on'
             product.condition = request.form.get('condition', 'new')
             product.region = region_name
             product.city = city_name
             product.region_id = int(region_id) if region_id else None
             product.city_id = int(city_id) if city_id else None
             product.delivery = request.form.get('delivery') == 'on'
-            
+
             expires_at_str = request.form.get('expires_at')
             if expires_at_str:
                 product.expires_at = datetime.strptime(expires_at_str, '%Y-%m-%dT%H:%M')
-            
-            current_images = product.images if product.images else []
-            if isinstance(current_images, str):
-                current_images = [img.strip() for img in current_images.split(',') if img.strip()]
-            
+
+                        # ========== ИСПРАВЛЕННАЯ ОБРАБОТКА ИЗОБРАЖЕНИЙ ==========
+            current_images = _deserialize_images(product.images)
             removed_images = request.form.get('removed_images', '')
             if removed_images:
                 removed_list = [img.strip() for img in removed_images.split(',') if img.strip()]
                 current_images = [img for img in current_images if img not in removed_list]
-            
+                for image_filename in removed_list:
+                    image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+                    if os.path.exists(image_path):
+                        os.remove(image_path)
+
             uploaded_files = request.files.getlist('image_files')
             new_images = []
-            
             if uploaded_files and any(f.filename for f in uploaded_files):
-                if len(uploaded_files) > 4:
-                    flash('Можно загрузить не более 4 новых фотографий', 'error')
+                available_slots = 8 - len(current_images)
+                if available_slots <= 0:
+                    flash('Достигнут лимит в 8 изображений. Удалите некоторые существующие изображения перед добавлением новых.', 'error')
                     return redirect(url_for('main.edit_product', product_id=product_id))
-                
-                for file in uploaded_files:
+
+                files_to_process = uploaded_files[:available_slots]
+                if len(uploaded_files) > available_slots:
+                    flash(f'Добавлено {len(files_to_process)} из {len(uploaded_files)} изображений. Достигнут лимит в 8 изображений.', 'warning')
+
+                for file in files_to_process:
                     if file and file.filename:
                         if not allowed_file(file.filename):
-                            flash('Недопустимый тип файла. Разрешены: png, jpg, jpeg, gif, webp', 'error')
+                            flash(f'Файл "{file.filename}" недопустимого типа. Разрешены: png, jpg, jpeg, gif, webp', 'error')
                             return redirect(url_for('main.edit_product', product_id=product_id))
-                        
                         filename = secure_filename(file.filename)
                         unique_filename = f"{uuid.uuid4().hex}_{filename}"
                         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_filename)
                         file.save(file_path)
                         new_images.append(unique_filename)
-            
+
             if new_images:
                 current_images.extend(new_images)
-            
-            product.images = current_images[:8]
-            
-            if removed_images:
-                for image_filename in removed_list:
-                    image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
-                    if os.path.exists(image_path):
-                        os.remove(image_path)
-            
+            current_images = current_images[:8]
+
+            product.images = _serialize_images(current_images)
+            # ========== КОНЕЦ ОБРАБОТКИ ИЗОБРАЖЕНИЙ ==========
+
             db.session.commit()
             flash('Товар успешно обновлен', 'success')
             return redirect(url_for('main.product_detail', product_id=product_id))
-            
         except Exception as e:
             db.session.rollback()
             flash(f'Ошибка при обновлении товара: {str(e)}', 'error')
-    
-    # GET запрос - отображение формы редактирования
+            return redirect(url_for('main.edit_product', product_id=product_id))
+
     categories = Category.query.all()
     if not categories:
         flash('Нет доступных категорий', 'error')
         return redirect(url_for('main.index'))
-    
-    # ← ДОБАВЛЯЕМ: получаем все регионы для выбора
     regions = Region.query.filter_by(parent_id=None).order_by(Region.name).all()
-    
-    # ← ДОБАВЛЯЕМ: получаем города для текущего региона товара
     cities = []
     if product.region_id:
-        # Если есть region_id, загружаем города этого региона
         cities = City.query.filter_by(region_id=product.region_id).order_by(City.name).all()
     elif product.region:
-        # Для обратной совместимости: ищем регион по названию
         region_obj = Region.query.filter_by(name=product.region).first()
         if region_obj:
             product.region_id = region_obj.id
             cities = City.query.filter_by(region_id=region_obj.id).order_by(City.name).all()
-    
+
+     # Десериализуем изображения для корректной передачи в шаблон
+    if product.images:
+        if isinstance(product.images, str):
+            product_images = [img.strip() for img in product.images.split(',') if img.strip()]
+        elif isinstance(product.images, list):
+            product_images = [img for img in product.images if img]
+        else:
+            product_images = []
+    else:
+        product_images = []
+
     return render_template('edit_product.html', 
                          product=product, 
+                         product_images=product_images,  # ← передаём отдельно
                          categories=categories,
                          regions=regions,
                          cities=cities)
@@ -502,28 +442,23 @@ def edit_product(product_id):
 @login_required
 def delete_product(product_id):
     product = Product.query.get_or_404(product_id)
-    
     if product.user_id != current_user.id and current_user.role != 'admin':
         flash('У вас нет прав для удаления этого товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
-    
     try:
         if product.images:
-            for image_filename in product.images:
+            for image_filename in _deserialize_images(product.images):
                 if isinstance(image_filename, str) and not image_filename.startswith('http'):
                     image_path = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
                     if os.path.exists(image_path):
                         os.remove(image_path)
-        
         db.session.delete(product)
         db.session.commit()
-        
         flash('Товар успешно удален', 'success')
         return redirect(url_for('main.dashboard'))
-        
     except Exception as e:
         db.session.rollback()
-        flash('Ошибка при удаления товара', 'error')
+        flash('Ошибка при удалении товара', 'error')
         return redirect(url_for('main.product_detail', product_id=product_id))
 
 @main.route('/uploads/<filename>')
@@ -548,7 +483,6 @@ def profile():
         current_user.phone = request.form.get('phone')
         current_user.industry = request.form.get('industry')
         current_user.about = request.form.get('about')
-        
         new_password = request.form.get('new_password')
         if new_password and new_password.strip():
             if len(new_password) < 6:
@@ -556,11 +490,9 @@ def profile():
                 return redirect(url_for('main.profile'))
             current_user.set_password(new_password)
             flash('Пароль успешно изменен', 'success')
-        
         db.session.commit()
         flash('Данные успешно обновлены', 'success')
         return redirect(url_for('main.profile'))
-    
     return render_template('profile.html')
 
 @main.route('/admin/categories', methods=['GET', 'POST'])
@@ -659,13 +591,224 @@ def admin_categories():
     regions = Region.query.filter_by(parent_id=None).all()
     child_regions = Region.query.filter(Region.parent_id.isnot(None)).all()
 
+    # Загружаем все города для передачи в шаблон
+    all_cities = City.query.all()
+    
+    # Считаем количество городов
+    cities_count = len(all_cities)
+    
+    # Для отображения городов по регионам создаем структуру
+    regions_with_cities = []
+    for region in regions:
+        region_cities = [city for city in all_cities if city.region_id == region.id]
+        regions_with_cities.append({
+            'region': region,
+            'cities': region_cities
+        })
+
     return render_template('admin_categories.html', 
                          categories=categories,
                          parent_categories=parent_categories,
                          total_products=total_products,
                          all_regions=all_regions,
                          regions=regions,
-                         child_regions=child_regions)
+                         child_regions=child_regions,
+                         cities=all_cities,  # ← передаем все города
+                         cities_count=cities_count,  # ← передаем количество городов
+                         regions_with_cities=regions_with_cities)  # ← для удобства
+
+@main.route('/admin/upload-locations', methods=['POST'])
+@login_required
+def upload_locations():
+    """Загрузка регионов и городов из файла (CSV/JSON)"""
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('main.admin_categories'))
+    
+    if 'locations_file' not in request.files:
+        flash('Файл не выбран', 'error')
+        return redirect(url_for('main.admin_categories'))
+    
+    file = request.files['locations_file']
+    if file.filename == '':
+        flash('Файл не выбран', 'error')
+        return redirect(url_for('main.admin_categories'))
+    
+    file_type = request.form.get('file_type', 'json')
+    clear_existing = request.form.get('clear_existing') == 'on'
+    
+    try:
+        if clear_existing:
+            # Проверяем, есть ли связанные товары
+            products_count = Product.query.filter(
+                (Product.region_id.isnot(None)) | (Product.city_id.isnot(None))
+            ).count()
+            
+            if products_count > 0:
+                flash(f'Нельзя удалить существующие данные - {products_count} товаров связаны с ними', 'error')
+                return redirect(url_for('main.admin_categories'))
+            
+            # Удаляем существующие данные
+            City.query.delete()
+            Region.query.delete()
+            db.session.flush()
+        
+        added_regions = 0
+        added_cities = 0
+        region_cache = {}  # Кэш регионов для быстрого поиска
+        
+        if file_type == 'csv':
+            import csv
+            import io
+            
+            # Читаем файл
+            content = file.read().decode('utf-8')
+            
+            # Пробуем разные разделители
+            for delimiter in [';', ',', '\t']:
+                try:
+                    csv_reader = csv.reader(io.StringIO(content), delimiter=delimiter)
+                    rows = list(csv_reader)
+                    if len(rows) > 0 and len(rows[0]) >= 2:
+                        break
+                except:
+                    continue
+            
+            # Пропускаем заголовок если есть
+            if rows and ('регион' in rows[0][0].lower() or 'region' in rows[0][0].lower()):
+                rows = rows[1:]
+            
+            for row in rows:
+                if len(row) >= 2:
+                    region_name = row[0].strip()
+                    city_name = row[1].strip()
+                    
+                    # Пропускаем пустые строки
+                    if not region_name or not city_name:
+                        continue
+                    
+                    # Ищем или создаем регион
+                    if region_name not in region_cache:
+                        region = Region.query.filter_by(name=region_name, parent_id=None).first()
+                        if not region:
+                            region = Region(name=region_name)
+                            db.session.add(region)
+                            db.session.flush()
+                            added_regions += 1
+                        region_cache[region_name] = region
+                    else:
+                        region = region_cache[region_name]
+                    
+                    # Создаем город
+                    existing_city = City.query.filter_by(
+                        name=city_name, 
+                        region_id=region.id
+                    ).first()
+                    
+                    if not existing_city:
+                        city = City(name=city_name, region_id=region.id)
+                        db.session.add(city)
+                        added_cities += 1
+        
+        elif file_type == 'json':
+            import json
+            
+            # Читаем файл с учетом кодировки
+            content = file.read().decode('utf-8')
+            data = json.loads(content)
+            
+            # Поддерживаем оба формата:
+            # 1. Ваш формат: {"regions": [{"name": "Москва", "cities": ["Москва"]}, ...]}
+            # 2. Простой формат: [{"region": "Москва", "city": "Москва"}, ...]
+            
+            if isinstance(data, dict) and 'regions' in data:
+                # Формат 1: Ваш формат
+                for region_data in data['regions']:
+                    region_name = region_data.get('name', '').strip()
+                    cities_list = region_data.get('cities', [])
+                    
+                    if not region_name:
+                        continue
+                    
+                    # Ищем или создаем регион
+                    if region_name not in region_cache:
+                        region = Region.query.filter_by(name=region_name, parent_id=None).first()
+                        if not region:
+                            region = Region(name=region_name)
+                            db.session.add(region)
+                            db.session.flush()
+                            added_regions += 1
+                        region_cache[region_name] = region
+                    else:
+                        region = region_cache[region_name]
+                    
+                    # Создаем города для этого региона
+                    for city_name in cities_list:
+                        if isinstance(city_name, str) and city_name.strip():
+                            city_name_clean = city_name.strip()
+                            existing_city = City.query.filter_by(
+                                name=city_name_clean, 
+                                region_id=region.id
+                            ).first()
+                            
+                            if not existing_city:
+                                city = City(name=city_name_clean, region_id=region.id)
+                                db.session.add(city)
+                                added_cities += 1
+            
+            elif isinstance(data, list):
+                # Формат 2: Простой формат [{"region": "...", "city": "..."}]
+                for item in data:
+                    if isinstance(item, dict):
+                        region_name = item.get('region', '').strip()
+                        city_name = item.get('city', '').strip()
+                        
+                        if not region_name or not city_name:
+                            continue
+                        
+                        # Ищем или создаем регион
+                        if region_name not in region_cache:
+                            region = Region.query.filter_by(name=region_name, parent_id=None).first()
+                            if not region:
+                                region = Region(name=region_name)
+                                db.session.add(region)
+                                db.session.flush()
+                                added_regions += 1
+                            region_cache[region_name] = region
+                        else:
+                            region = region_cache[region_name]
+                        
+                        # Создаем город
+                        existing_city = City.query.filter_by(
+                            name=city_name, 
+                            region_id=region.id
+                        ).first()
+                        
+                        if not existing_city:
+                            city = City(name=city_name, region_id=region.id)
+                            db.session.add(city)
+                            added_cities += 1
+            else:
+                flash('❌ Неподдерживаемый формат JSON файла', 'error')
+                return redirect(url_for('main.admin_categories'))
+        
+        db.session.commit()
+        
+        if added_regions > 0 or added_cities > 0:
+            flash(f'✅ Успешно добавлено {added_regions} регионов и {added_cities} городов', 'success')
+        else:
+            flash('⚠️ Новых регионов и городов не обнаружено', 'info')
+        
+    except json.JSONDecodeError as e:
+        db.session.rollback()
+        flash(f'❌ Ошибка чтения JSON: {str(e)}', 'error')
+        print(f"Ошибка JSON: {str(e)}")
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Ошибка загрузки: {str(e)}', 'error')
+        print(f"Ошибка загрузки локаций: {str(e)}")
+    
+    return redirect(url_for('main.admin_categories'))
 
 @main.route('/admin/users')
 @login_required
@@ -1637,3 +1780,39 @@ def debug_locations_status():
         },
         # ... остальные города (скопируйте полный список из функции выше)
     ])
+
+@main.route('/debug-upload', methods=['POST'])
+@csrf.exempt
+def debug_upload():
+    """Простая проверка загрузки файлов"""
+    print("\n=== DEBUG UPLOAD ===")
+    
+    # Проверяем сырые данные
+    print(f"request.content_length: {request.content_length}")
+    print(f"request.content_type: {request.content_type}")
+    
+    # Проверяем файлы
+    files = request.files.getlist('test_files')
+    print(f"Получено файлов: {len(files)}")
+    
+    for i, f in enumerate(files):
+        print(f"Файл {i}: {f.filename}")
+        print(f"  content_length: {f.content_length}")
+        
+        if f and f.filename:
+            # Читаем первые байты
+            current_pos = f.tell()
+            f.seek(0)
+            first_bytes = f.read(10)
+            print(f"  Первые 10 байт (hex): {first_bytes.hex()}")
+            
+            # Пробуем прочитать весь файл
+            f.seek(0)
+            all_data = f.read()
+            print(f"  Прочитано всего байт: {len(all_data)}")
+            print(f"  Данные (первые 50): {all_data[:50]}")
+            
+            # Возвращаем позицию
+            f.seek(current_pos)
+    
+    return "OK", 200
