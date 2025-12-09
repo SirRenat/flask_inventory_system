@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.env
+.git/
+.gitignore
+README.md
+*.log
+instance/
+*.sqlite
+.DS_Store
+venv/
+env/
+.venv/
+*.pem
+*.key
