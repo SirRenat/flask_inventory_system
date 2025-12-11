@@ -67,6 +67,8 @@ def index():
 @login_required
 def dashboard():
     user_products = Product.query.options(joinedload(Product.product_category)).filter_by(user_id=current_user.id).order_by(Product.created_at.desc()).all()
+    
+    # Автоматически снимаем с публикации просроченные товары
     expired_count = Product.query.filter(
         Product.user_id == current_user.id,
         Product.status == Product.STATUS_PUBLISHED,
@@ -74,6 +76,14 @@ def dashboard():
     ).update({Product.status: Product.STATUS_READY_FOR_PUBLICATION})
     if expired_count > 0:
         db.session.commit()
+        # После коммита перезагружаем данные
+        user_products = Product.query.options(joinedload(Product.product_category)).filter_by(user_id=current_user.id).order_by(Product.created_at.desc()).all()
+
+    # Добавляем image_list к каждому объекту Product для корректного отображения в шаблоне
+    for product in user_products:
+        product.image_list = _deserialize_images(product.images)
+
+    # Подготавливаем JSON-данные для JS (остаётся как есть)
     products_data = []
     for product in user_products:
         product_dict = {
@@ -103,6 +113,7 @@ def dashboard():
             } if product.product_category else None
         }
         products_data.append(product_dict)
+
     return render_template('dashboard.html', 
                          products=user_products,
                          products_json=products_data,

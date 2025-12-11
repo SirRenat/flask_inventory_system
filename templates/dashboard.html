@@ -107,8 +107,8 @@
                      onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'"
                      style="cursor: pointer;">
                     <div class="product-image">
-                        {% if product.images and product.images|length > 0 %}
-                        <img src="/uploads/{{ product.images[0] }}" alt="{{ product.title }}">
+                        {% if product.image_list and product.image_list|length > 0 %}
+                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}" alt="{{ product.title }}">
                         {% else %}
                         <div class="no-image">📷</div>
                         {% endif %}
@@ -183,8 +183,8 @@
                      onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'"
                      style="cursor: pointer;">
                     <div class="list-product-image">
-                        {% if product.images and product.images|length > 0 %}
-                        <img src="/uploads/{{ product.images[0] }}" alt="{{ product.title }}">
+                        {% if product.image_list and product.image_list|length > 0 %}
+                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}" alt="{{ product.title }}">
                         {% else %}
                         <div class="no-image-small">📷</div>
                         {% endif %}
@@ -419,22 +419,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Активация текущего пункта меню (только для пунктов без реальных ссылок)
+    // Активация текущего пункта меню
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', function(e) {
             const link = this.querySelector('a');
-            
-            // Если ссылка есть и она не ведет на реальную страницу (# или пустая)
             if (link && (link.getAttribute('href') === '#' || !link.getAttribute('href'))) {
-                e.preventDefault(); // Блокируем переход только для заглушек
+                e.preventDefault();
                 navItems.forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
             }
-            // Если ссылка ведет на реальную страницу (например, /profile) - разрешаем переход
-            // JavaScript не блокирует клик
         });
     });
+    
     // Функция для сортировки таблицы
     function initializeTableSorting() {
         const sortableHeaders = document.querySelectorAll('.products-data-table th.sortable');
@@ -453,12 +450,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 const rows = Array.from(tbody.querySelectorAll('tr'));
                 
-                // Снимаем классы сортировки со всех заголовков
-                sortableHeaders.forEach(h => {
-                    h.classList.remove('sort-asc', 'sort-desc');
-                });
+                // Снимаем классы сортировки
+                sortableHeaders.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
                 
-                // Определяем направление сортировки
+                // Определяем направление
                 if (currentSort.column === column) {
                     currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
                 } else {
@@ -466,22 +461,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     currentSort.direction = 'asc';
                 }
                 
-                // Добавляем класс направления сортировки
                 this.classList.add(`sort-${currentSort.direction}`);
                 
-                // Сортируем строки
+                // Сортируем
                 rows.sort((a, b) => {
                     const aValue = getCellValue(a, column);
                     const bValue = getCellValue(b, column);
-                    
                     let comparison = 0;
                     if (aValue < bValue) comparison = -1;
                     if (aValue > bValue) comparison = 1;
-                    
                     return currentSort.direction === 'desc' ? comparison * -1 : comparison;
                 });
                 
-                // Переставляем строки в таблице
+                // Переставляем
                 rows.forEach(row => tbody.appendChild(row));
             });
         });
@@ -518,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 default:
                     return cell.textContent.toLowerCase();
             }
-    }
+        }
     }
     
     // Функция для пагинации таблицы
@@ -541,10 +533,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const endIndex = startIndex + itemsPerPage;
                 const pageProducts = products.slice(startIndex, endIndex);
                 
-                // Обновляем таблицу
                 const tbody = document.querySelector('.products-data-table tbody');
                 if (!tbody) return;
-                
                 tbody.innerHTML = '';
                 
                 pageProducts.forEach(product => {
@@ -552,10 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     tbody.appendChild(row);
                 });
                 
-                // Обновляем пагинацию
                 updatePaginationControls();
-                
-                // Обновляем информационное сообщение
                 const paginationInfo = document.querySelector('.pagination-info');
                 if (paginationInfo) {
                     paginationInfo.textContent = 
@@ -569,7 +556,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 row.style.cursor = 'pointer';
                 row.onclick = () => window.location.href = `/product/${product.id}`;
                 
-                // Название товара
                 const titleCell = document.createElement('td');
                 titleCell.className = 'product-title-cell';
                 titleCell.innerHTML = `
@@ -577,51 +563,43 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="table-category">${(product.product_category && product.product_category.name) || 'Без категории'}</div>
                 `;
                 
-                // Цена
                 const priceCell = document.createElement('td');
                 priceCell.className = 'product-price-cell';
                 const price = parseFloat(product.price) || 0;
                 priceCell.innerHTML = `<span class="table-price">${price.toFixed(2)} ₽</span>`;
                 
-                // НДС
                 const vatCell = document.createElement('td');
                 vatCell.className = 'product-vat-cell';
                 vatCell.innerHTML = product.vat_included ? 
                     '<span class="vat-badge vat-included">+</span>' : 
                     '<span class="vat-badge vat-excluded">-</span>';
                 
-                // Состояние
                 const conditionCell = document.createElement('td');
                 conditionCell.className = 'product-condition-cell';
                 conditionCell.innerHTML = (product.condition || 'new') === 'new' ? 
                     '<span class="condition-badge condition-new">Новое</span>' : 
                     '<span class="condition-badge condition-used">Б/У</span>';
                 
-                // Регион
                 const regionCell = document.createElement('td');
                 regionCell.className = 'product-region-cell';
                 regionCell.textContent = product.region || '—';
                 
-                // Город
                 const cityCell = document.createElement('td');
                 cityCell.className = 'product-city-cell';
                 cityCell.textContent = product.city || '—';
                 
-                // Доставка
                 const deliveryCell = document.createElement('td');
                 deliveryCell.className = 'product-delivery-cell';
                 deliveryCell.innerHTML = product.delivery ? 
                     '<span class="delivery-badge delivery-yes">Есть</span>' : 
                     '<span class="delivery-badge delivery-no">Нет</span>';
                 
-                // Статус
                 const statusCell = document.createElement('td');
                 statusCell.className = 'product-status-cell';
                 const statusMap = {1: 'Опубликован', 2: 'Снят с публикации', 3: 'Готов к публикации'};
                 const statusText = statusMap[product.status] || 'Неизвестно';
                 statusCell.innerHTML = `<span class="status-badge status-${product.status}">${statusText}</span>`;
                 
-                // Добавляем ячейки в строку
                 [titleCell, priceCell, vatCell, conditionCell, regionCell, cityCell, deliveryCell, statusCell].forEach(cell => {
                     row.appendChild(cell);
                 });
@@ -630,45 +608,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             function updatePaginationControls() {
-                // Обновляем активную страницу
                 pageNumbers.forEach((page, index) => {
                     page.classList.toggle('active', index + 1 === currentPage);
                 });
-                
-                // Обновляем состояние кнопок
                 if (prevBtn) prevBtn.disabled = currentPage === 1;
                 if (nextBtn) nextBtn.disabled = currentPage === totalPages;
             }
             
-            // Обработчики для кнопок пагинации
             if (prevBtn) {
                 prevBtn.addEventListener('click', () => {
-                    if (currentPage > 1) {
-                        updateTable(currentPage - 1);
-                    }
+                    if (currentPage > 1) updateTable(currentPage - 1);
                 });
             }
-            
             if (nextBtn) {
                 nextBtn.addEventListener('click', () => {
-                    if (currentPage < totalPages) {
-                        updateTable(currentPage + 1);
-                    }
+                    if (currentPage < totalPages) updateTable(currentPage + 1);
                 });
             }
-            
-            // Обработчики для номеров страниц
             pageNumbers.forEach((page, index) => {
                 page.addEventListener('click', () => {
-                    if (index + 1 !== currentPage) {
-                        updateTable(index + 1);
-                    }
+                    if (index + 1 !== currentPage) updateTable(index + 1);
                 });
             });
             
-            // Инициализация первой страницы
             updateTable(1);
-            
         } catch (error) {
             console.error('Ошибка при инициализации пагинации:', error);
         }
