@@ -2,7 +2,6 @@
 {% block title %}ASAUDA - Система быстрых продаж{% endblock %}
 {% block styles %}
 <style>
-    /* Используем стили из style.css, добавляем только специфичные для главной страницы */
     .hero-section {
         background: linear-gradient(135deg, var(--avito-blue) 0%, var(--avito-blue-hover) 100%);
         padding: 60px 0;
@@ -14,7 +13,6 @@
         margin-bottom: 32px;
         opacity: 0.9;
     }
-    /* Search Section - ПОЛНАЯ ШИРИНА */
     .search-section {
         background: var(--background);
         border-bottom: 1px solid var(--border);
@@ -34,7 +32,6 @@
         gap: 12px;
         margin: 0 auto;
     }
-    /* Увеличиваем контейнер поиска */
     .search-group {
         flex: 1;
         min-width: 0;
@@ -74,7 +71,6 @@
         border: 1px solid var(--border);
         margin-bottom: 40px;
     }
-    /* Custom layout without Bootstrap */
     .layout-container {
         display: flex;
         gap: 24px;
@@ -88,7 +84,6 @@
         width: 75%;
         flex-grow: 1;
     }
-    /* Стили для переключения видов */
     .view-controls {
         display: flex;
         justify-content: space-between;
@@ -123,156 +118,11 @@
         background: #0057FF;
         color: white;
     }
-    /* АКТИВНЫЕ СТИЛИ БУДУТ ДОБАВЛЯТЬСЯ ЧЕРЕЗ JS */
-    /* Стили для представления плиткой */
     .products-grid-view {
         display: grid;
-        grid-template-columns: repeat(3, 1fr); /* ВСЕГДА 3 КОЛОНКИ В ШИРИНУ */
-        gap: 20px; /* Уменьшаем отступы между карточками */
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
         margin-bottom: 20px;
-    }
-    /* Специфичные стили для представления списком */
-    .products-list-view .product-card {
-        display: flex;
-        flex-direction: row;
-        min-height: 150px;
-        align-items: stretch;
-    }
-    .products-list-view .product-image {
-        width: 150px;
-        height: 150px;
-        flex-shrink: 0;
-        min-width: 150px;
-    }
-    .products-list-view .product-info {
-        flex: 1;
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        min-width: 0;
-    }
-    .products-list-view .product-name {
-        -webkit-line-clamp: 2;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        margin-bottom: 8px;
-    }
-    /* Таблица товаров */
-    .products-data-table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-    }
-    .products-data-table thead {
-        background: #F8F9FA;
-        border-bottom: 2px solid #E0E0E0;
-    }
-    .products-data-table th {
-        padding: 16px;
-        text-align: left;
-        font-weight: 600;
-        font-size: 14px;
-        color: #1A1A1A;
-        border-right: 1px solid #E0E0E0;
-        position: relative;
-        cursor: pointer;
-        user-select: none;
-    }
-    .products-data-table th.sortable:hover {
-        background: #F0F0F0;
-    }
-    .products-data-table th:last-child {
-        border-right: none;
-    }
-    .table-header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .header-text {
-        flex: 1;
-    }
-    .sort-icon {
-        margin-left: 8px;
-        font-size: 12px;
-        opacity: 0.5;
-    }
-    .products-data-table th.sort-asc .sort-icon::before {
-        content: "↑";
-        opacity: 1;
-    }
-    .products-data-table th.sort-desc .sort-icon::before {
-        content: "↓";
-        opacity: 1;
-    }
-    .products-data-table tbody tr {
-        border-bottom: 1px solid #F0F0F0;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-    .products-data-table tbody tr:hover {
-        background: #F8F9FA;
-    }
-    .products-data-table tbody tr:last-child {
-        border-bottom: none;
-    }
-    .products-data-table td {
-        padding: 16px;
-        vertical-align: middle;
-        border-right: 1px solid #F0F0F0;
-    }
-    .products-data-table td:last-child {
-        border-right: none;
-    }
-    /* Стили для ячеек таблицы */
-    .table-product-title {
-        font-weight: 600;
-        font-size: 15px;
-        color: #1A1A1A;
-        margin-bottom: 4px;
-    }
-    .table-category {
-        font-size: 12px;
-        color: #999999;
-    }
-    .table-price {
-        font-weight: 700;
-        font-size: 16px;
-        color: #0057FF;
-    }
-    /* Бейджи для статусов */
-    .vat-badge, .condition-badge, .delivery-badge {
-        display: inline-block;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-    .vat-badge.vat-included {
-        background: #E6F7E9;
-        color: #00A326;
-    }
-    .vat-badge.vat-excluded {
-        background: #FFF2E6;
-        color: #FF6B00;
-    }
-    .condition-badge.condition-new {
-        background: #E6F2FF;
-        color: #0057FF;
-    }
-    .condition-badge.condition-used {
-        background: #F2F2F2;
-        color: #666666;
-    }
-    .delivery-badge.delivery-yes {
-        background: #E6F7E9;
-        color: #00A326;
-    }
-    .delivery-badge.delivery-no {
-        background: #FFE6E6;
-        color: #FF0000;
     }
     .location-button {
         flex: 0 0 auto;
@@ -290,173 +140,6 @@
         min-height: 28px;
         border: 1px solid transparent;
     }
-    /* Пагинация для таблицы */
-    .table-pagination {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 20px 16px;
-        border-top: 1px solid #E0E0E0;
-        background: #F8F9FA;
-    }
-    .pagination-info {
-        font-size: 14px;
-        color: #666666;
-    }
-    .pagination-controls {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .pagination-btn {
-        padding: 8px 16px;
-        background: white;
-        border: 1px solid #E0E0E0;
-        border-radius: 6px;
-        font-size: 14px;
-        color: #1A1A1A;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .pagination-btn:hover:not(:disabled) {
-        background: #F0F0F0;
-        border-color: #CCCCCC;
-    }
-    .pagination-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-    .page-numbers {
-        display: flex;
-        gap: 4px;
-    }
-    .page-number {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        color: #666666;
-        cursor: pointer;
-        border-radius: 6px;
-        transition: all 0.2s ease;
-    }
-    .page-number:hover {
-        background: #F0F0F0;
-    }
-    .page-number.active {
-        background: #0057FF;
-        color: white;
-    }
-    /* === Стили для модального окна локации === */
-    .location-search {
-        position: relative;
-        margin: 20px;
-    }
-    #locationInput {
-        width: 100%;
-        padding: 12px 40px 12px 14px;
-        border: 2px solid var(--border);
-        border-radius: 8px;
-        font-size: 16px;
-        outline: none;
-        transition: border-color 0.2s ease;
-    }
-    #locationInput:focus {
-        border-color: var(--avito-blue);
-    }
-    .clear-btn {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        font-size: 20px;
-        color: #999;
-        cursor: pointer;
-        padding: 4px;
-        line-height: 1;
-    }
-    .clear-btn:hover {
-        color: #666;
-    }
-    .location-suggestions {
-        margin: 0 20px 20px;
-        max-height: 400px;
-        overflow-y: auto;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: white;
-    }
-    .suggestion-item {
-        padding: 14px 16px;
-        cursor: pointer;
-        border-bottom: 1px solid #f0f0f0;
-        transition: all 0.2s ease;
-        font-size: 14px;
-    }
-    .suggestion-item:hover {
-        background: #f8f9fa;
-        padding-left: 20px;
-    }
-    .suggestion-item:last-child {
-        border-bottom: none;
-    }
-    .suggestion-item.no-results {
-        color: #999;
-        text-align: center;
-        cursor: default;
-    }
-    .suggestion-item.no-results:hover {
-        background: white;
-        padding-left: 16px;
-    }
-    .loading-indicator {
-        text-align: center;
-        padding: 20px;
-        color: #666;
-    }
-    .loading-indicator::after {
-        content: '...';
-        animation: dots 1.5s steps(4, end) infinite;
-    }
-    @keyframes dots {
-        0%, 20% { content: ''; }
-        40% { content: '.'; }
-        60% { content: '..'; }
-        80%, 100% { content: '...'; }
-    }
-    /* Стили для текущего местоположения */
-    .suggestion-item.current-location {
-        background-color: #e6f2ff;
-        font-weight: 600;
-        border-left: 4px solid #0057FF;
-    }
-    .suggestion-item.current-location:hover {
-        background-color: #d1e6ff;
-    }
-    .suggestion-separator {
-        padding: 10px 16px;
-        font-size: 12px;
-        color: #666;
-        background-color: #f8f9fa;
-        border-top: 1px solid #e0e0e0;
-        border-bottom: 1px solid #e0e0e0;
-        margin-top: 5px;
-    }
-    .suggestion-item.all-regions {
-        font-weight: 600;
-        color: #0057FF;
-        background-color: #f0f7ff;
-        border-left: 4px solid #0057FF;
-    }
-    .suggestion-item.all-regions:hover {
-        background-color: #e6f2ff;
-    }
-
-    /* ===== ИСПРАВЛЕНИЯ ДЛЯ ОТОБРАЖЕНИЯ СПИСКОВ И ТАБЛИЦ ===== */
     
     /* Плиточный вид */
     #productsGridView {
@@ -473,307 +156,26 @@
         display: none;
     }
     
-    /* Стили для плиточного вида */
-    .product-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: var(--shadow-light);
-    }
-    
-    .product-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-    
-    /* Стили для спискового вида */
-    .products-list-view {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .list-product-card {
-        background: white;
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 16px;
-        display: flex;
-        align-items: center;
-        gap: 20px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        box-shadow: var(--shadow-light);
-    }
-    
-    .list-product-card:hover {
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-    
-    .list-product-image {
-        width: 120px;
-        height: 120px;
-        flex-shrink: 0;
-        border-radius: 8px;
-        overflow: hidden;
-        background: var(--background-secondary);
-        position: relative;
-    }
-    
-    .list-product-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .no-photo-small {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #f0f0f0;
-        color: #999;
-    }
-    
-    .list-product-info {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .list-product-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin-bottom: 8px;
-        line-height: 1.4;
-    }
-    
-    .list-product-description {
-        font-size: 14px;
-        color: var(--text-secondary);
-        margin-bottom: 12px;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    .list-product-meta {
-        display: flex;
-        gap: 15px;
-        font-size: 12px;
-        color: var(--text-tertiary);
-    }
-    
-    .list-product-price {
-        width: 150px;
-        flex-shrink: 0;
-        text-align: right;
-    }
-    
-    .list-product-price .price-value {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--avito-blue);
-        display: block;
-        margin-bottom: 8px;
-    }
-    
-    .list-product-actions {
-        width: 120px;
-        flex-shrink: 0;
-        display: flex;
-        justify-content: flex-end;
-    }
-    
-    /* Стили для табличного вида */
-    .products-table-container {
-        display: block;
-        width: 100%;
-        overflow-x: auto;
-        margin-bottom: 20px;
-    }
-    
-    .table-wrapper {
-        min-width: 1000px;
-    }
-
-    /* Стили для локации на карточке товара */
-    .product-image {
-        position: relative;
-        height: 200px;
-        overflow: hidden;
-        background: #F8F9FA;
-        display: block;
-    }
-
-    .product-location-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%);
-        color: white;
-        padding: 10px 12px 20px;
-        font-size: 12px;
-        z-index: 1;
-        pointer-events: none;
-    }
-
-    .location-text {
-        background: rgba(0, 0, 0, 0.6);
-        padding: 4px 8px;
-        border-radius: 4px;
-        display: inline-block;
-        font-weight: 500;
-        backdrop-filter: blur(2px);
-        max-width: calc(100% - 30px);
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    /* Значок избранного должен быть поверх локации */
-    .favorite-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: white;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        z-index: 2;
-    }
-
-    /* Адаптивность для мобильных устройств */
+    /* Адаптивность */
     @media (max-width: 768px) {
-        /* Скрываем сайдбар категорий на мобильных */
-        .sidebar-container {
-            display: none !important;
-        }
-        
-        .content-container {
-            width: 100% !important;
-        }
-        
-        .layout-container {
-            flex-direction: column;
-        }
-        
-        /* Адаптация таблицы для мобильных */
-        .products-data-table {
-            display: block;
-            overflow-x: auto;
-        }
-        .products-data-table th,
-        .products-data-table td {
-            white-space: nowrap;
-            min-width: 100px;
-        }
-        .table-pagination {
-            flex-direction: column;
-            gap: 10px;
-            align-items: stretch;
-        }
-        /* Адаптация плитки для мобильных - 1 колонка */
         .products-grid-view {
-            grid-template-columns: 1fr !important;
-            gap: 20px !important;
+            grid-template-columns: 1fr;
         }
-        /* Адаптация списка для мобильных */
+        
         .list-product-card {
             flex-direction: column;
-            align-items: stretch;
-            gap: 15px;
-        }
-        
-        .list-product-image {
-            width: 100%;
-            height: 200px;
-        }
-        
-        .list-product-price,
-        .list-product-actions {
-            width: 100%;
-            text-align: left;
-        }
-        
-        .list-product-actions {
-            justify-content: flex-start;
-        }
-        
-        /* Адаптация переключения видов на мобильных */
-        .view-controls {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        /* Адаптивность модального окна локации для мобильных */
-        #locationModal .modal-content {
-            margin: 20% auto;
-            width: 95%;
-            max-width: 95%;
-            border-radius: 12px;
-        }
-        #locationModal .modal-header {
-            padding: 20px 20px 12px;
-        }
-        #locationModal .modal-header h3 {
-            font-size: 18px;
-        }
-        .location-search {
-            margin: 0 20px 16px;
-        }
-        #locationInput {
-            padding: 12px 40px 12px 14px;
-            font-size: 15px;
-        }
-        .location-suggestions {
-            margin: 0 20px 20px;
-            max-height: 300px;
-        }
-        .suggestion-item {
-            padding: 14px 16px;
-            font-size: 14px;
-        }
-        .suggestion-item:hover {
-            padding-left: 20px;
-        }
-
-        .product-location-overlay {
-            padding: 8px 10px 16px;
-            font-size: 11px;
-        }
-        
-        .location-text {
-            padding: 3px 6px;
         }
     }
     
-    /* Планшеты и ноутбуки */
     @media (min-width: 769px) and (max-width: 1024px) {
         .products-grid-view {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 20px !important;
+            grid-template-columns: repeat(2, 1fr);
         }
     }
     
-    /* Десктопы */
     @media (min-width: 1025px) {
         .products-grid-view {
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 20px !important;
+            grid-template-columns: repeat(3, 1fr);
         }
     }
 </style>
@@ -997,25 +399,6 @@
                                             <span class="vat-label vat-excluded">Без НДС</span>
                                         {% endif %}
                                     </div>
-                                    <!-- Убираем блок действий для спискового вида на главной странице -->
-                                    <!--
-                                    <div class="list-product-actions" onclick="event.stopPropagation();">
-                                        {% if product.status == product.STATUS_PUBLISHED %}
-                                        <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" method="POST" class="action-form">
-                                            <button type="submit" class="btn-unpublish" 
-                                                    onclick="event.stopPropagation(); return confirm('Снять товар с публикации? Он станет виден только вам.')">
-                                                🟡 Снять
-                                            </button>
-                                        </form>
-                                        {% elif product.status == product.STATUS_READY_FOR_PUBLICATION or product.status == product.STATUS_UNPUBLISHED %}
-                                        <form action="{{ url_for('main.renew_product', product_id=product.id) }}" method="POST" class="action-form">
-                                            <button type="submit" class="btn-publish" onclick="event.stopPropagation();">
-                                                🟢 Опубликовать
-                                            </button>
-                                        </form>
-                                        {% endif %}
-                                    </div>
-                                    -->
                                 </div>
                                 {% endfor %}
                             </div>
@@ -1489,22 +872,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Активируем представление
     activateView(savedView);
-    
-    // Дебаг: проверяем видимость контейнеров
-    setTimeout(() => {
-        const containers = {
-            grid: document.getElementById('productsGridView'),
-            list: document.getElementById('productsListView'),
-            table: document.getElementById('productsTableView')
-        };
-        
-        console.log('Состояние контейнеров после загрузки:');
-        for (let key in containers) {
-            if (containers[key]) {
-                console.log(`${key}: display = ${containers[key].style.display}, offsetHeight = ${containers[key].offsetHeight}`);
-            }
-        }
-    }, 100);
 });
 </script>
 {% endblock %}

@@ -4358,3 +4358,61 @@ select:focus-visible {
     hyphens: auto;
 }
 
+/* =============== ИСПРАВЛЕНИЯ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ =============== */
+
+/* Скрываем сайдбар категорий на мобильных */
+@media (max-width: 768px) {
+    .sidebar-container {
+        display: none !important;
+    }
+    
+    .content-container {
+        width: 100% !important;
+    }
+    
+    .layout-container {
+        flex-direction: column !important;
+    }
+}
+
+/* Для плиточного вида на главной - всегда 3 колонки */
+.products-grid-view {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+/* Адаптивность для плиточного вида */
+@media (max-width: 768px) {
+    .products-grid-view {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .products-grid-view {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (min-width: 1025px) {
+    .products-grid-view {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+
+/* Переопределяем медиа-запросы из основного файла, которые могут конфликтовать */
+@media (max-width: 768px) {
+    .sidebar {
+        display: none !important;
+    }
+    
+    .layout-container {
+        display: block !important;
+    }
+    
+    .products-grid-avito {
+        grid-template-columns: 1fr !important;
+    }
+}
