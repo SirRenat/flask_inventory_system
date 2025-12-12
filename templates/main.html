@@ -127,8 +127,8 @@
     /* Стили для представления плиткой */
     .products-grid-view {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 40px;
+        grid-template-columns: repeat(3, 1fr); /* ВСЕГДА 3 КОЛОНКИ В ШИРИНУ */
+        gap: 20px; /* Уменьшаем отступы между карточками */
         margin-bottom: 20px;
     }
     /* Специфичные стили для представления списком */
@@ -474,13 +474,6 @@
     }
     
     /* Стили для плиточного вида */
-    .products-grid-view {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 40px;
-        margin-bottom: 20px;
-    }
-    
     .product-card {
         background: white;
         border: 1px solid var(--border);
@@ -665,13 +658,19 @@
 
     /* Адаптивность для мобильных устройств */
     @media (max-width: 768px) {
+        /* Скрываем сайдбар категорий на мобильных */
+        .sidebar-container {
+            display: none !important;
+        }
+        
+        .content-container {
+            width: 100% !important;
+        }
+        
         .layout-container {
             flex-direction: column;
         }
-        .sidebar-container,
-        .content-container {
-            width: 100%;
-        }
+        
         /* Адаптация таблицы для мобильных */
         .products-data-table {
             display: block;
@@ -687,7 +686,7 @@
             gap: 10px;
             align-items: stretch;
         }
-        /* Адаптация плитки для мобильных */
+        /* Адаптация плитки для мобильных - 1 колонка */
         .products-grid-view {
             grid-template-columns: 1fr !important;
             gap: 20px !important;
@@ -751,10 +750,6 @@
         .suggestion-item:hover {
             padding-left: 20px;
         }
-        /* Скрываем боковое меню на мобильных */
-        .sidebar-container {
-            display: none;
-        }
 
         .product-location-overlay {
             padding: 8px 10px 16px;
@@ -763,6 +758,22 @@
         
         .location-text {
             padding: 3px 6px;
+        }
+    }
+    
+    /* Планшеты и ноутбуки */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .products-grid-view {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+        }
+    }
+    
+    /* Десктопы */
+    @media (min-width: 1025px) {
+        .products-grid-view {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 20px !important;
         }
     }
 </style>
