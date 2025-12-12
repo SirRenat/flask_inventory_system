@@ -23,7 +23,7 @@ class Config:
         print(f"🚀 ПРОДАКШЕН: Используется PostgreSQL с psycopg3")
         
         # В продакшене используем временную папку (лучше настроить S3 в будущем)
-        UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), 'uploads')
+        UPLOAD_FOLDER = '/opt/flask_inventory_system/uploads'
         
     else:
         # Локальная разработка
