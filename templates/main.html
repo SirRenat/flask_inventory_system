@@ -1922,30 +1922,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const savedView = localStorage.getItem('mainView') || 'grid';
     activateView(savedView);
     
-    // Принудительное исправление отображения категорий
-    function fixCategoriesLayout() {
-        const categoriesGrid = document.getElementById('categoriesGrid');
-        if (categoriesGrid) {
-            categoriesGrid.style.display = 'flex';
-            categoriesGrid.style.flexDirection = 'row';
-            categoriesGrid.style.flexWrap = 'wrap';
-            categoriesGrid.style.gap = '15px';
-            categoriesGrid.style.justifyContent = 'center';
-            
-            // Исправляем каждый элемент
-            const categoryItems = categoriesGrid.querySelectorAll('.main-category-item');
-            categoryItems.forEach(item => {
-                item.style.display = 'flex';
-                item.style.flexDirection = 'column';
-                item.style.alignItems = 'center';
-                item.style.flexShrink = '0';
-                item.style.width = '90px';
-                
-                // Принудительно применяем стили для анимации
-                item.style.transition = 'all 0.2s ease';
-            });
-        }
-    }
+    
     
     // Вызываем несколько раз для гарантии
     setTimeout(fixCategoriesLayout, 100);
