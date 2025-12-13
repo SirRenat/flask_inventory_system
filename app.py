@@ -11,7 +11,7 @@ app.jinja_env.auto_reload = True
 
 def migrate_database():
     """Автоматическая миграция базы данных"""
-    print("🔧 Проверяем необходимость миграции...")
+    print("[INFO] Проверяем необходимость миграции...")
     
     try:
         # Проверяем существование колонки status
@@ -20,27 +20,27 @@ def migrate_database():
         columns = [col['name'] for col in inspector.get_columns('product')]
         
         if 'status' not in columns:
-            print("🔄 Обнаружена старая структура БД, применяем миграцию...")
+            print("[INFO] Обнаружена старая структура БД, применяем миграцию...")
             
             # Добавляем колонку status
             db.session.execute('ALTER TABLE product ADD COLUMN status INTEGER DEFAULT 1')
-            print("✅ Добавлена колонка status")
+            print("[OK] Добавлена колонка status")
             
             # Добавляем колонку expires_at
             db.session.execute('ALTER TABLE product ADD COLUMN expires_at TIMESTAMP')
-            print("✅ Добавлена колонка expires_at")
+            print("[OK] Добавлена колонка expires_at")
             
             # Обновляем существующие записи
             db.session.execute("UPDATE product SET status = 1 WHERE status IS NULL")
             db.session.execute("UPDATE product SET expires_at = NOW() + INTERVAL '30 days' WHERE expires_at IS NULL")
             
             db.session.commit()
-            print("✅ Миграция базы данных завершена успешно!")
+            print("[SUCCESS] Миграция базы данных завершена успешно!")
         else:
-            print("✅ Структура базы данных актуальна")
+            print("[OK] Структура базы данных актуальна")
             
     except Exception as e:
-        print(f"⚠️ Ошибка при миграции: {e}")
+        print(f"[ERROR] Ошибка при миграции: {e}")
         db.session.rollback()
 
 def create_default_categories():
@@ -49,7 +49,7 @@ def create_default_categories():
         with open('categories_structure.json', 'r', encoding='utf-8') as f:
             categories_structure = json.load(f)
     except FileNotFoundError:
-        print("❌ Файл categories_structure.json не найден")
+        print("[ERROR] Файл categories_structure.json не найден")
         # Создаем базовые категории вручную
         categories_structure = [
             {
@@ -84,7 +84,7 @@ def create_default_categories():
                 )
                 db.session.add(category)
                 db.session.flush()  # Получаем ID созданной категории
-                print(f"✅ Создана категория: {category_data['name']}")
+                print(f"[OK] Создана категория: {category_data['name']}")
                 
                 # Рекурсивно создаем дочерние категории
                 if 'children' in category_data:
@@ -93,9 +93,9 @@ def create_default_categories():
     if Category.query.count() == 0:
         create_categories(None, categories_structure)
         db.session.commit()
-        print('✅ Структура категорий создана')
+        print('[OK] Структура категорий создана')
     else:
-        print('ℹ️ Категории уже существуют в базе данных')
+        print('[INFO] Категории уже существуют в базе данных')
 
 def setup_database():
     with app.app_context():
@@ -120,14 +120,14 @@ def setup_database():
             )
             db.session.add(admin_user)
             db.session.commit()
-            print('✅ Создан администратор: admin@example.com / admin123')
+            print('[OK] Создан администратор: admin@example.com / admin123')
         
-        print("✅ База данных готова к работе")
+        print("[OK] База данных готова к работе")
 
 # Диагностика путей в контексте приложения
 with app.app_context():
     print("=" * 50)
-    print("🔍 ДИАГНОСТИКА ПУТЕЙ:")
+    print("[INFO] ДИАГНОСТИКА ПУТЕЙ:")
     print(f"Текущая рабочая папка: {os.getcwd()}")
     print(f"Папка проекта: {os.path.dirname(os.path.abspath(__file__))}")
 

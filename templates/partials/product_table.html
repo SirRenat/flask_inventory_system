@@ -1,0 +1,118 @@
+<div class="table-responsive-wrapper">
+    <div class="table-responsive-inner">
+        <div class="table-scroll-container">
+            <table class="products-data-table">
+                <thead>
+                    <tr>
+                        <th data-sort="title" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">Название товара</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                        <th data-sort="price" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">Цена</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                        <th data-sort="vat_included" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">НДС</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                        <th data-sort="condition" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">Состояние</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                        <th data-sort="region" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">Регион</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                        <th data-sort="city" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">Город</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                        <th data-sort="delivery" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">Доставка</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                        <th data-sort="category" class="sortable">
+                            <div class="table-header-content">
+                                <div class="header-text">Категория</div>
+                                <div class="sort-icon">↕️</div>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr class="table-product-row"
+                        onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
+                        <td class="product-title-cell">
+                            <div class="table-product-title">{{ product.title }}</div>
+                            <div class="table-category">{{ product.product_category.name if product.product_category
+                                else 'Без категории' }}</div>
+                        </td>
+                        <td class="product-price-cell">
+                            <span class="table-price">{{ "%.2f"|format(product.price) }} ₽</span>
+                        </td>
+                        <td class="product-vat-cell">
+                            {% if product.vat_included %}
+                            <span class="vat-badge vat-included">+</span>
+                            {% else %}
+                            <span class="vat-badge vat-excluded">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="product-condition-cell">
+                            {% if product.condition == 'new' %}
+                            <span class="condition-badge condition-new">Новое</span>
+                            {% else %}
+                            <span class="condition-badge condition-used">Б/У</span>
+                            {% endif %}
+                        </td>
+                        <td class="product-region-cell">{{ product.region or '—' }}</td>
+                        <td class="product-city-cell">{{ product.city or '—' }}</td>
+                        <td class="product-delivery-cell">
+                            {% if product.delivery %}
+                            <span class="delivery-badge delivery-yes">Есть</span>
+                            {% else %}
+                            <span class="delivery-badge delivery-no">Нет</span>
+                            {% endif %}
+                        </td>
+                        <td class="product-category-cell">
+                            {{ product.product_category.name if product.product_category else 'Без категории' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% if products|length > 50 %}
+<div class="table-pagination">
+    <div class="pagination-info">
+        Показано 1-{{ [products|length, 50]|min }} из {{ products|length }} товаров
+    </div>
+    <div class="pagination-controls">
+        <button class="pagination-btn prev-btn" disabled>← Назад</button>
+        <div class="page-numbers">
+            <span class="page-number active">1</span>
+            {% for page in range(2, (products|length // 50) + 2) %}
+            <span class="page-number">{{ page }}</span>
+            {% endfor %}
+        </div>
+        <button class="pagination-btn next-btn">Вперед →</button>
+    </div>
+</div>
+{% endif %}

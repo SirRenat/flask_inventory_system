@@ -1,0 +1,59 @@
+<div class="list-responsive-wrapper">
+    <div class="products-list-view">
+        {% for product in products %}
+        <div class="list-product-card"
+            onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
+            <div class="list-product-image">
+                <!-- Значок избранного -->
+                {% if current_user.is_authenticated and product in current_user.favorited_products %}
+                <div class="favorite-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="1.5">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                </div>
+                {% endif %}
+                {% set image_list = product.images | deserialize_images %}
+                {% if image_list | length > 0 %}
+                <img src="{{ url_for('main.serve_uploaded_file', filename=image_list[0]) }}" alt="{{ product.title }}"
+                    onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="no-photo-small" style="display: none;">
+                    <div
+                        style="width:100%; height:100%; background:#ccc; display:flex; align-items:center; justify-content:center; color:#666; flex-direction:column;">
+                        <span style="font-size:48px; opacity:0.6;">🖼️</span>
+                        <span style="font-size:14px; color:#999;">Нет фото</span>
+                    </div>
+                </div>
+                {% else %}
+                <div class="no-photo-small">
+                    <div
+                        style="width:100%; height:100%; background:#ccc; display:flex; align-items:center; justify-content:center; color:#666; flex-direction:column;">
+                        <span style="font-size:48px; opacity:0.6;">🖼️</span>
+                        <span style="font-size:14px; color:#999;">Нет фото</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="list-product-info">
+                <div class="list-product-title">{{ product.title }}</div>
+                <div class="list-product-description">{{ product.description|truncate(150) if product.description else
+                    'Нет описания' }}</div>
+                <div class="list-product-meta">
+                    <span class="list-category">{{ product.product_category.name if product.product_category else 'Без
+                        категории' }}</span>
+                    <span class="list-date">{{ product.created_at.strftime('%d.%m.%Y') }}</span>
+                    <span class="list-status status-{{ product.status }}">{{ product.status_text }}</span>
+                </div>
+            </div>
+            <div class="list-product-price">
+                <span class="price-value">{{ "%.2f"|format(product.price) }} ₽</span>
+                {% if product.vat_included %}
+                <span class="vat-label vat-included">С НДС</span>
+                {% else %}
+                <span class="vat-label vat-excluded">Без НДС</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>

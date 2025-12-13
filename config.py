@@ -20,16 +20,16 @@ class Config:
         
         SQLALCHEMY_DATABASE_URI = database_url
         DEBUG = False
-        print(f"🚀 ПРОДАКШЕН: Используется PostgreSQL с psycopg3")
+        # print(f"🚀 ПРОДАКШЕН: Используется PostgreSQL с psycopg3")
         
         # В продакшене используем временную папку (лучше настроить S3 в будущем)
         UPLOAD_FOLDER = '/opt/flask_inventory_system/uploads'
         
     else:
         # Локальная разработка
-        SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:postgres@localhost:5432/flask_inventory'
+        SQLALCHEMY_DATABASE_URI = 'postgresql+psycopg://postgres:postgres@localhost:5432/flask_inventory'
         DEBUG = True
-        print("💻 РАЗРАБОТКА: Локальный PostgreSQL")
+        # print("💻 РАЗРАБОТКА: Локальный PostgreSQL")
         
         UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app', 'static', 'uploads')
     

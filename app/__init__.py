@@ -15,7 +15,7 @@ csrf = CSRFProtect()
 try:
     from .telegram_bot import telegram_bot
 except ImportError as e:
-    print(f"⚠️ Не удалось импортировать Telegram бот: {e}")
+    print(f"[ERROR] Не удалось импортировать Telegram бот: {e}")
     telegram_bot = None
 # ====================================
 
@@ -30,12 +30,12 @@ def create_app():
     csrf.init_app(app)
     
     # =========== ДОБАВЬТЕ ЭТО ===========
-    # Инициализируем Telegram бота
+    # Инициализируем Telegram ботаtemplate_folder='templates',
     if telegram_bot:
         telegram_bot.init_app(app)
-        print(f"✅ Telegram бот инициализирован: токен={'установлен' if app.config.get('TELEGRAM_BOT_TOKEN') else 'не указан'}, chat_id={app.config.get('TELEGRAM_CHAT_ID')}")
+        print(f"[OK] Telegram бот инициализирован: токен={'установлен' if app.config.get('TELEGRAM_BOT_TOKEN') else 'не указан'}, chat_id={app.config.get('TELEGRAM_CHAT_ID')}")
     else:
-        print("⚠️ Telegram бот не загружен")
+        print("[WARN] Telegram бот не загружен")
     # ====================================
     
     @app.before_request
@@ -67,35 +67,36 @@ def create_app():
         upload_folder = app.config.get('UPLOAD_FOLDER')
         if upload_folder:
             os.makedirs(upload_folder, exist_ok=True)
-            print(f"✅ Папка загрузок: {upload_folder}")
+            print(f"[OK] Папка загрузок: {upload_folder}")
             
             # Проверяем доступность папки
             test_file = os.path.join(upload_folder, 'test.txt')
             with open(test_file, 'w') as f:
                 f.write('test')
             os.remove(test_file)
-            print("✅ Папка загрузок доступна для записи")
+            print("[OK] Папка загрузок доступна для записи")
     except Exception as e:
-        print(f"⚠️ Ошибка папки загрузок: {e}")
+        print(f"[ERROR] Ошибка папки загрузок: {e}")
     
     # Регистрация blueprint
-    from app.routes import main
-    from app.auth import auth
-    from app.admin import admin_bp  # ← только один импорт
+    # Импорт Blueprint'ов
+    from app.blueprints.main import main
+    from app.blueprints.api import api_bp
+    from app.auth import auth as auth_blueprint
+    from app.admin import admin_bp
 
-    # Flask-Admin
+    app.register_blueprint(main)
+    app.register_blueprint(api_bp)
+    app.register_blueprint(auth_blueprint)
+    app.register_blueprint(admin_bp)
     from flask_admin import Admin
     from flask_admin.contrib.sqla import ModelView
 
     admin_flask = Admin(app, name='Админка')
     admin_flask.add_view(ModelView(Region, db.session, name='Регионы', category='Справочники'))
-
-    app.register_blueprint(main)
-    app.register_blueprint(auth)
-    app.register_blueprint(admin_bp)  # ← только одна регистрация
     
     print("=" * 50)
-    print("🎉 Приложение инициализировано успешно!")
+    print("[SUCCESS] Приложение инициализировано успешно!")
     print("=" * 50)
     
     return app

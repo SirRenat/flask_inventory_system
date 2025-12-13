@@ -6,54 +6,56 @@
                 <span></span>
                 <span>ASAUDA</span>
             </a>
-            
+
             <!-- Основная навигация -->
             <nav class="nav-links">
                 {% if current_user.is_authenticated %}
-                    {% if current_user.is_admin %}
-                        <a href="{{ url_for('main.admin_categories') }}" class="nav-link">
-                            📊 Админка
-                        </a>
-                    {% endif %}
+                {% if current_user.is_admin %}
+                <a href="{{ url_for('admin_bp.admin_categories') }}" class="nav-link">
+                    📊 Админка
+                </a>
+                {% endif %}
                 {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="nav-link">
-                        Войти
-                    </a>
-                    <a href="{{ url_for('auth.register') }}" class="nav-link">
-                        Регистрация
-                    </a>
+                <a href="{{ url_for('auth.login') }}" class="nav-link">
+                    Войти
+                </a>
+                <a href="{{ url_for('auth.register') }}" class="nav-link">
+                    Регистрация
+                </a>
                 {% endif %}
             </nav>
-            
+
             <!-- Правая часть с кнопками -->
             <div class="header-right">
                 {% if current_user.is_authenticated %}
-                    <!-- Кнопка "Добавить товар" -->
-                    <a href="{{ url_for('main.add_product') }}" class="btn-add-product">
-                        + Добавить товар
+                <!-- Кнопка "Добавить товар" -->
+                <a href="{{ url_for('main.add_product') }}" class="btn-add-product">
+                    + Добавить товар
+                </a>
+
+                <!-- Блок пользователя -->
+                <div class="user-menu">
+                    <!-- Ссылка на DASHBOARD (было profile) -->
+                    <a href="{{ url_for('main.dashboard') }}" class="user-profile-link">
+                        <img src="{{ url_for('static', filename='icons/user_icon.svg') }}" alt="Профиль"
+                            class="user-icon">
+                        <span class="user-name">
+                            {% if current_user.username %}
+                            {{ current_user.username }}
+                            {% elif current_user.company_name %}
+                            {{ current_user.company_name }}
+                            {% else %}
+                            {{ current_user.email.split('@')[0] }}
+                            {% endif %}
+                        </span>
                     </a>
-                    
-                    <!-- Блок пользователя -->
-                    <div class="user-menu">
-                        <!-- Ссылка на DASHBOARD (было profile) -->
-                        <a href="{{ url_for('main.dashboard') }}" class="user-profile-link">
-                            <img src="{{ url_for('static', filename='icons/user_icon.svg') }}" alt="Профиль" class="user-icon">
-                            <span class="user-name">
-                                {% if current_user.username %}
-                                    {{ current_user.username }}
-                                {% elif current_user.company_name %}
-                                    {{ current_user.company_name }}
-                                {% else %}
-                                    {{ current_user.email.split('@')[0] }}
-                                {% endif %}
-                            </span>
-                        </a>
-                        
-                        <!-- Кнопка выхода с иконкой -->
-                        <a href="{{ url_for('auth.logout') }}" class="logout-button" title="Выйти">
-                            <img src="{{ url_for('static', filename='icons/log_out_icon_128821.svg') }}" alt="Выйти" class="logout-icon">
-                        </a>
-                    </div>
+
+                    <!-- Кнопка выхода с иконкой -->
+                    <a href="{{ url_for('auth.logout') }}" class="logout-button" title="Выйти">
+                        <img src="{{ url_for('static', filename='icons/log_out_icon_128821.svg') }}" alt="Выйти"
+                            class="logout-icon">
+                    </a>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -61,26 +63,26 @@
 </header>
 
 <style>
-/* Только новые стили, которых нет в style.css */
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-left: auto;
-}
-
-/* Адаптивность - только специфичные стили */
-@media (max-width: 768px) {
+    /* Только новые стили, которых нет в style.css */
     .header-right {
-        margin-left: 0;
-        gap: 12px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-left: auto;
     }
-    
-    .user-name {
-        max-width: 100px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+
+    /* Адаптивность - только специфичные стили */
+    @media (max-width: 768px) {
+        .header-right {
+            margin-left: 0;
+            gap: 12px;
+        }
+
+        .user-name {
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     }
-}
 </style>

@@ -4424,3 +4424,162 @@ select:focus-visible {
     display: inline-block;
     vertical-align: middle;
 }
+
+/* ========================================= */
+/* АДАПТИВНОСТЬ (Extracted from main.html) */
+/* ========================================= */
+
+@media (max-width: 768px) {
+    /* Плиточный вид: 1 колонка на мобильных */
+    .products-grid-view {
+        grid-template-columns: 1fr !important;
+        gap: 20px !important;
+    }
+    
+    /* Адаптация спискового вида на мобильных */
+    .list-product-card {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 15px !important;
+    }
+    
+    .list-product-image {
+        width: 100% !important;
+        height: 200px !important;
+        border-radius: 8px 8px 0 0 !important;
+        margin: -16px -16px 0 -16px !important;
+        width: calc(100% + 32px) !important;
+    }
+    
+    .list-product-price,
+    .list-product-actions {
+        width: 100% !important;
+        text-align: left !important;
+        padding-left: 0 !important;
+        margin-top: 10px !important;
+    }
+    
+    .list-product-actions {
+        justify-content: flex-start !important;
+    }
+    
+    /* Адаптация переключения видов на мобильных */
+    .view-controls {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+    }
+    
+    /* Адаптация таблицы для мобильных */
+    .products-data-table {
+        display: block !important;
+        overflow-x: auto !important;
+    }
+    
+    .products-data-table th,
+    .products-data-table td {
+        white-space: nowrap !important;
+        min-width: 100px !important;
+        padding: 12px 8px !important;
+        font-size: 13px !important;
+    }
+    
+    .table-pagination {
+        flex-direction: column !important;
+        gap: 10px !important;
+        align-items: stretch !important;
+    }
+    
+    .pagination-controls {
+        justify-content: center !important;
+    }
+    
+    /* Адаптивность модального окна локации для мобильных */
+    #locationModal .modal-content {
+        margin: 20% auto !important;
+        width: 95% !important;
+        max-width: 95% !important;
+        border-radius: 12px !important;
+    }
+    
+    #locationModal .modal-header {
+        padding: 20px 20px 12px !important;
+    }
+    
+    #locationModal .modal-header h3 {
+        font-size: 18px !important;
+    }
+    
+    .location-search {
+        margin: 0 20px 16px !important;
+    }
+    
+    #locationInput {
+        padding: 12px 40px 12px 14px !important;
+        font-size: 15px !important;
+    }
+    
+    .location-suggestions {
+        margin: 0 20px 20px !important;
+        max-height: 300px !important;
+    }
+    
+    .suggestion-item {
+        padding: 14px 16px !important;
+        font-size: 14px !important;
+    }
+    
+    .suggestion-item:hover {
+        padding-left: 20px !important;
+    }
+    
+    .product-location-overlay {
+        padding: 8px 10px 16px !important;
+        font-size: 11px !important;
+    }
+    
+    .location-text {
+        padding: 3px 6px !important;
+    }
+}
+
+/* ========================================= */
+/* ПЛАНШЕТЫ (5 колонок для категорий) */
+/* ========================================= */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .products-grid-view {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 20px !important;
+    }
+}
+
+/* ========================================= */
+/* ДЕСКТОПЫ (7 колонок для категорий) */
+/* ========================================= */
+
+@media (min-width: 1025px) {
+    .listings-section .products-grid-view {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 16px !important;
+    }
+}
+
+/* Для очень маленьких экранов (до 480px) */
+@media (max-width: 480px) {
+    .products-grid-view {
+        gap: 16px !important;
+    }
+    
+    .product-card {
+        border-radius: 10px !important;
+    }
+    
+    .product-image {
+        height: 180px !important;
+    }
+    
+    .list-product-image {
+        height: 180px !important;
+    }
+}

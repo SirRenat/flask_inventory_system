@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import Product, Category, User
-from app.models import Region
+from app.models import Product, Category, User, Region, City
 import json
+from app.utils import save_uploaded_files, process_category_image
+import os
 
 admin_bp = Blueprint('admin_bp', __name__, url_prefix='/admin')
 
@@ -46,7 +47,86 @@ def admin_categories():
         
         elif action == 'edit_category':
             category_id = request.form.get('category_id')
-            flash('Редактирование категорий пока недоступно', 'info')
+            name = request.form.get('name')
+            parent_id = request.form.get('parent_id') or None
+            description = request.form.get('description')
+            remove_image = request.form.get('remove_image') == 'on'
+            
+            if not category_id:
+                flash('ID категории не найден', 'error')
+                return redirect(url_for('admin_bp.admin_categories'))
+                
+            category = Category.query.get(category_id)
+            if not category:
+                flash('Категория не найдена', 'error')
+                return redirect(url_for('admin_bp.admin_categories'))
+            
+            if not name:
+                flash('Название категории обязательно', 'error')
+                return redirect(url_for('admin_bp.admin_categories'))
+            
+            # Проверка на цикличность при смене родителя
+            if parent_id and str(parent_id) == str(category.id):
+                flash('Категория не может быть родительской сама для себя', 'error')
+                return redirect(url_for('admin_bp.admin_categories'))
+            
+            try:
+                category.name = name
+                category.description = description
+                category.parent_id = parent_id if parent_id else None
+                
+                # Обработка изображения
+                if remove_image and category.image:
+                    # Удаляем старое изображение
+                    try:
+                        base_filename = category.image.rsplit('.', 1)[0]
+                        ext = category.image.rsplit('.', 1)[1] if '.' in category.image else 'jpg'
+                        sizes = ['thumbnail', 'small', 'medium', 'large', 'original']
+                        
+                        folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'categories')
+                        
+                        for size in sizes:
+                            fname = category.image if size == 'thumbnail' else f"{base_filename}_{size}.{ext}"
+                            path = os.path.join(folder, fname)
+                            if os.path.exists(path):
+                                os.remove(path)
+                    except Exception as e:
+                        print(f"Ошибка удаления файла: {e}")
+                    
+                    category.image = None
+                
+                # Загрузка нового изображения
+                if 'category_image' in request.files:
+                    file = request.files['category_image']
+                    if file and file.filename:
+                        # Сначала удаляем старое если есть (и если не удалили выше)
+                        if category.image and not remove_image:
+                            try:
+                                base_filename = category.image.rsplit('.', 1)[0]
+                                ext = category.image.rsplit('.', 1)[1] if '.' in category.image else 'jpg'
+                                sizes = ['thumbnail', 'small', 'medium', 'large', 'original']
+                                folder = os.path.join(current_app.config['UPLOAD_FOLDER'], 'categories')
+                                for size in sizes:
+                                    fname = category.image if size == 'thumbnail' else f"{base_filename}_{size}.{ext}"
+                                    path = os.path.join(folder, fname)
+                                    if os.path.exists(path):
+                                        os.remove(path)
+                            except Exception as e:
+                                print(f"Ошибка удаления старого файла: {e}")
+
+                        # Обрабатываем новое
+                        filename, error = process_category_image(file, category.id)
+                        if error:
+                            flash(f'Ошибка обработки изображения: {error}', 'error')
+                        else:
+                            category.image = filename
+                
+                db.session.commit()
+                flash(f'Категория "{name}" обновлена', 'success')
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Ошибка при редактировании: {str(e)}', 'error')
         
         elif action == 'delete_category':
             category_id = request.form.get('category_id')
@@ -318,6 +398,196 @@ def upload_categories():
         db.session.rollback()
         flash(f'❌ Ошибка загрузки: {str(e)}', 'error')
     
+    return redirect(url_for('admin_bp.admin_categories'))
+
+@admin_bp.route('/upload-locations', methods=['POST'])
+@login_required
+def upload_locations():
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    if 'locations_file' not in request.files:
+        flash('Файл не выбран', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    file = request.files['locations_file']
+    if file.filename == '':
+        flash('Файл не выбран', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    file_type = request.form.get('file_type', 'json')
+    clear_existing = request.form.get('clear_existing') == 'on'
+    try:
+        if clear_existing:
+            products_count = Product.query.filter(
+                (Product.region_id.isnot(None)) | (Product.city_id.isnot(None))
+            ).count()
+            if products_count > 0:
+                flash(f'Нельзя удалить существующие данные - {products_count} товаров связаны с ними', 'error')
+                return redirect(url_for('admin_bp.admin_categories'))
+            City.query.delete()
+            Region.query.delete()
+            db.session.flush()
+        added_regions = 0
+        added_cities = 0
+        region_cache = {}
+        if file_type == 'csv':
+            import csv
+            import io
+            content = file.read().decode('utf-8')
+            for delimiter in [';', ',', '\t']:
+                try:
+                    csv_reader = csv.reader(io.StringIO(content), delimiter=delimiter)
+                    rows = list(csv_reader)
+                    if len(rows) > 0 and len(rows[0]) >= 2:
+                        break
+                except:
+                    continue
+            if rows and ('регион' in rows[0][0].lower() or 'region' in rows[0][0].lower()):
+                rows = rows[1:]
+            for row in rows:
+                if len(row) >= 2:
+                    region_name = row[0].strip()
+                    city_name = row[1].strip()
+                    if not region_name or not city_name:
+                        continue
+                    if region_name not in region_cache:
+                        region = Region.query.filter_by(name=region_name, parent_id=None).first()
+                        if not region:
+                            region = Region(name=region_name)
+                            db.session.add(region)
+                            db.session.flush()
+                            added_regions += 1
+                        region_cache[region_name] = region
+                    else:
+                        region = region_cache[region_name]
+                    existing_city = City.query.filter_by(
+                        name=city_name, 
+                        region_id=region.id
+                    ).first()
+                    if not existing_city:
+                        city = City(name=city_name, region_id=region.id)
+                        db.session.add(city)
+                        added_cities += 1
+        elif file_type == 'json':
+            import json
+            content = file.read().decode('utf-8')
+            data = json.loads(content)
+            if isinstance(data, dict) and 'regions' in data:
+                for region_data in data['regions']:
+                    region_name = region_data.get('name', '').strip()
+                    cities_list = region_data.get('cities', [])
+                    if not region_name:
+                        continue
+                    if region_name not in region_cache:
+                        region = Region.query.filter_by(name=region_name, parent_id=None).first()
+                        if not region:
+                            region = Region(name=region_name)
+                            db.session.add(region)
+                            db.session.flush()
+                            added_regions += 1
+                        region_cache[region_name] = region
+                    else:
+                        region = region_cache[region_name]
+                    for city_name in cities_list:
+                        if isinstance(city_name, str) and city_name.strip():
+                            city_name_clean = city_name.strip()
+                            existing_city = City.query.filter_by(
+                                name=city_name_clean, 
+                                region_id=region.id
+                            ).first()
+                            if not existing_city:
+                                city = City(name=city_name_clean, region_id=region.id)
+                                db.session.add(city)
+                                added_cities += 1
+            elif isinstance(data, list):
+                for item in data:
+                    if isinstance(item, dict):
+                        region_name = item.get('region', '').strip()
+                        city_name = item.get('city', '').strip()
+                        if not region_name or not city_name:
+                            continue
+                        if region_name not in region_cache:
+                            region = Region.query.filter_by(name=region_name, parent_id=None).first()
+                            if not region:
+                                region = Region(name=region_name)
+                                db.session.add(region)
+                                db.session.flush()
+                                added_regions += 1
+                            region_cache[region_name] = region
+                        else:
+                            region = region_cache[region_name]
+                        existing_city = City.query.filter_by(
+                            name=city_name, 
+                            region_id=region.id
+                        ).first()
+                        if not existing_city:
+                            city = City(name=city_name, region_id=region.id)
+                            db.session.add(city)
+                            added_cities += 1
+            else:
+                flash('❌ Неподдерживаемый формат JSON файла', 'error')
+                return redirect(url_for('admin_bp.admin_categories'))
+        db.session.commit()
+        if added_regions > 0 or added_cities > 0:
+            flash(f'✅ Успешно добавлено {added_regions} регионов и {added_cities} городов', 'success')
+        else:
+            flash('⚠️ Новых регионов и городов не обнаружено', 'info')
+    except json.JSONDecodeError as e:
+        db.session.rollback()
+        flash(f'❌ Ошибка чтения JSON: {str(e)}', 'error')
+        print(f"Ошибка JSON: {str(e)}")
+    except Exception as e:
+        db.session.rollback()
+        flash(f'❌ Ошибка загрузки: {str(e)}', 'error')
+        print(f"Ошибка загрузки локаций: {str(e)}")
+    return redirect(url_for('admin_bp.admin_categories'))
+
+@admin_bp.route('/cities/add', methods=['POST'])
+@login_required
+def add_city():
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    name = request.form.get('name', '').strip()
+    region_id = request.form.get('region_id')
+    description = request.form.get('description', '').strip()
+    if not name:
+        flash('Название города обязательно', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    if not region_id:
+        flash('Выберите регион', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    existing = City.query.filter_by(name=name, region_id=region_id).first()
+    if existing:
+        flash('Такой город уже существует в этом регионе', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    try:
+        new_city = City(
+            name=name,
+            region_id=int(region_id),
+            description=description
+        )
+        db.session.add(new_city)
+        db.session.commit()
+        flash(f'Город "{name}" добавлен', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Ошибка: {str(e)}', 'error')
+    return redirect(url_for('admin_bp.admin_categories'))
+
+@admin_bp.route('/cities/delete/<int:city_id>', methods=['POST'])
+@login_required
+def delete_city(city_id):
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    city = City.query.get_or_404(city_id)
+    products_count = Product.query.filter_by(city=city.name).count()
+    if products_count > 0:
+        flash(f'Нельзя удалить город "{city.name}" — в нем есть товары', 'error')
+        return redirect(url_for('admin_bp.admin_categories'))
+    db.session.delete(city)
+    db.session.commit()
+    flash(f'Город "{city.name}" удалён', 'success')
     return redirect(url_for('admin_bp.admin_categories'))
 
 @admin_bp.route('/clear-categories', methods=['POST'])

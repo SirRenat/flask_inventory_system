@@ -13,8 +13,8 @@
     <!-- Вкладки -->
     <div class="admin-tabs mb-4">
         <div class="tabs">
-            <a href="{{ url_for('main.admin_categories') }}" class="tab-btn">📂 Категории</a>
-            <a href="{{ url_for('main.admin_users') }}" class="tab-btn active">👥 Пользователи</a>
+            <a href="{{ url_for('admin_bp.admin_categories') }}" class="tab-btn">📂 Категории</a>
+            <a href="{{ url_for('admin_bp.admin_users') }}" class="tab-btn active">👥 Пользователи</a>
             <a href="#" class="tab-btn">📊 Статистика</a>
         </div>
     </div>
@@ -22,218 +22,239 @@
     <!-- Поиск -->
     <div class="admin-section mb-4">
         <form method="GET" class="d-flex">
-            <input type="text" 
-                   name="search" 
-                   class="form-control me-2" 
-                   placeholder="Поиск: имя, email, организация..."
-                   value="{{ search or '' }}">
+            <input type="text" name="search" class="form-control me-2" placeholder="Поиск: имя, email, организация..."
+                value="{{ search or '' }}">
             <button type="submit" class="btn btn-primary">🔍 Найти</button>
         </form>
     </div>
 
     <!-- Таблица пользователей -->
     {% if users %}
-        <div class="table-responsive" style="max-width: 100%; overflow-x: auto;">
-            <table class="table table-hover align-middle" style="width: 100%; table-layout: fixed; font-size: 13px;">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 18%;">Имя / Логин</th>
-                        <th style="width: 20%;">Организация</th>
-                        <th style="width: 18%;">Email</th>
-                        <th style="width: 15%;">Телефон</th>
-                        <th style="width: 8%;">Роль</th>
-                        <th style="width: 8%;">Статус</th>
-                        <th style="width: 13%;">Действия</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                    <tr>
-                        <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">
-                            <div class="d-flex align-items-center">
-                                <span class="me-2">👤</span>
-                                <div>
-                                    <div><strong>{{ user.username or user.email.split('@')[0] }}</strong></div>
-                                    <small class="text-muted">{{ user.contact_person or '—' }}</small>
-                                </div>
+    <div class="table-responsive" style="max-width: 100%; overflow-x: auto;">
+        <table class="table table-hover align-middle" style="width: 100%; table-layout: fixed; font-size: 13px;">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 18%;">Имя / Логин</th>
+                    <th style="width: 20%;">Организация</th>
+                    <th style="width: 18%;">Email</th>
+                    <th style="width: 15%;">Телефон</th>
+                    <th style="width: 8%;">Роль</th>
+                    <th style="width: 8%;">Статус</th>
+                    <th style="width: 13%;">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">
+                        <div class="d-flex align-items-center">
+                            <span class="me-2">👤</span>
+                            <div>
+                                <div><strong>{{ user.username or user.email.split('@')[0] }}</strong></div>
+                                <small class="text-muted">{{ user.contact_person or '—' }}</small>
                             </div>
-                        </td>
-                        <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">
-                            {{ user.company_name or '—' }}
-                            {% if user.inn %}<br><small class="text-muted">ИНН: {{ user.inn }}</small>{% endif %}
-                        </td>
-                        <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">{{ user.email }}</td>
-                        <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">{{ user.phone or '—' }}</td>
-                        <td style="padding: 8px 10px; font-size: 13px;">
-                            <span class="badge bg-{{ 'success' if user.is_admin else 'secondary' }}">
-                                {{ 'Админ' if user.is_admin else 'Пользователь' }}
-                            </span>
-                        </td>
-                        <td style="padding: 8px 10px; font-size: 13px;">
-                            {% if user.is_active %}
-                                <span class="badge bg-success">Активен</span>
-                            {% else %}
-                                <span class="badge bg-danger">Заблокирован</span>
-                            {% endif %}
-                        </td>
-                        <td style="padding: 8px 10px; font-size: 13px;">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <!-- Информация -->
-                                <a href="#" class="btn btn-outline-secondary p-2" title="Информация">
-                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M8 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Zm0 2.5a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5Z"/>
-                                    </svg>
-                                </a>
-                                
-                                <!-- Редактировать -->
-                                <a href="#" 
-                                class="btn btn-outline-warning p-2" 
-                                title="Редактировать"
-                                onclick="alert('Редактирование в разработке'); return false;">
-                                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 0 1-.707 0L12 2.707l-1.414 1.414a.5.5 0 0 1-.707 0L8.466 2.707l-1.414 1.414a.5.5 0 0 1-.707 0L4.934 2.707a.5.5 0 0 1 0-.707l1.414-1.414A.5.5 0 0 1 7.05 1.293L8.466 2.707l1.414-1.414a.5.5 0 0 1 .707 0L12 2.707l1.414-1.414a.5.5 0 0 1 .707 0l1.414 1.414Z"/>
-                                    </svg>
-                                </a>
-                                
-                                <!-- Удалить -->
+                        </div>
+                    </td>
+                    <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">
+                        {{ user.company_name or '—' }}
+                        {% if user.inn %}<br><small class="text-muted">ИНН: {{ user.inn }}</small>{% endif %}
+                    </td>
+                    <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">{{ user.email }}</td>
+                    <td style="word-break: break-word; padding: 8px 10px; font-size: 13px;">{{ user.phone or '—' }}</td>
+                    <td style="padding: 8px 10px; font-size: 13px;">
+                        <span class="badge bg-{{ 'success' if user.is_admin else 'secondary' }}">
+                            {{ 'Админ' if user.is_admin else 'Пользователь' }}
+                        </span>
+                    </td>
+                    <td style="padding: 8px 10px; font-size: 13px;">
+                        {% if user.is_active %}
+                        <span class="badge bg-success">Активен</span>
+                        {% else %}
+                        <span class="badge bg-danger">Заблокирован</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 8px 10px; font-size: 13px;">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <!-- Информация -->
+                            <a href="#" class="btn btn-outline-secondary p-2" title="Информация">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path
+                                        d="M8 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Zm0 2.5a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-1 0v-1a.5.5 0 0 1 .5-.5Z" />
+                                </svg>
+                            </a>
 
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="text-muted mt-3">
-            Всего пользователей: {{ users|length }}
-        </div>
+                            <!-- Редактировать -->
+                            <a href="#" class="btn btn-outline-warning p-2" title="Редактировать"
+                                onclick="alert('Редактирование в разработке'); return false;">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path
+                                        d="M15.502 1.94a.5.5 0 0 1 0 .707l-1.414 1.414a.5.5 0 0 1-.707 0L12 2.707l-1.414 1.414a.5.5 0 0 1-.707 0L8.466 2.707l-1.414 1.414a.5.5 0 0 1-.707 0L4.934 2.707a.5.5 0 0 1 0-.707l1.414-1.414A.5.5 0 0 1 7.05 1.293L8.466 2.707l1.414-1.414a.5.5 0 0 1 .707 0L12 2.707l1.414-1.414a.5.5 0 0 1 .707 0l1.414 1.414Z" />
+                                </svg>
+                            </a>
+
+                            <!-- Удалить -->
+                            <a href="#" class="btn btn-outline-danger p-2" title="Удалить"
+                                onclick="if(confirm('Вы уверены? Это действие нельзя отменить.')) { document.getElementById('delete-user-{{ user.id }}').submit(); } return false;">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path
+                                        d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
+                                    <path
+                                        d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
+                                </svg>
+                            </a>
+                            <form id="delete-user-{{ user.id }}"
+                                action="{{ url_for('admin_bp.delete_user', user_id=user.id) }}" method="POST"
+                                style="display: none;">
+                            </form>
+
+                            <!-- Войти как пользователь -->
+                            <a href="{{ url_for('admin_bp.impersonate_user', user_id=user.id) }}"
+                                class="btn btn-outline-dark p-2" title="Войти как этот пользователь"
+                                onclick="return confirm('Вы уверены, что хотите войти под именем {{ user.email }}?');">
+                                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path fill-rule="evenodd"
+                                        d="M6 3.5a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-2a.5.5 0 0 0-1 0v2A1.5 1.5 0 0 0 6.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2h-8A1.5 1.5 0 0 0 5 3.5v2a.5.5 0 0 0 1 0v-2z" />
+                                    <path fill-rule="evenodd"
+                                        d="M11.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H1.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z" />
+                                </svg>
+                            </a>
+                            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="text-muted mt-3">
+        Всего пользователей: {{ users|length }}
+    </div>
     {% else %}
-        <div class="text-center py-5">
-            <div class="fs-1 mb-3">📭</div>
-            <h4>Пользователи не найдены</h4>
-            <p>Начните вводить запрос в поиске</p>
-        </div>
+    <div class="text-center py-5">
+        <div class="fs-1 mb-3">📭</div>
+        <h4>Пользователи не найдены</h4>
+        <p>Начните вводить запрос в поиске</p>
+    </div>
     {% endif %}
 </div>
 
 <style>
-/* === ЕДИНЫЙ ДИЗАЙН С admin_categories.html === */
+    /* === ЕДИНЫЙ ДИЗАЙН С admin_categories.html === */
 
-.admin-header {
-    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-    color: white;
-    padding: 32px;
-    border-radius: 12px;
-    margin-bottom: 24px;
-    text-align: center;
-}
+    .admin-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        padding: 32px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        text-align: center;
+    }
 
-.admin-header .page-title {
-    font-size: 32px;
-    margin-bottom: 8px;
-}
+    .admin-header .page-title {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
 
-.admin-tabs {
-    background: var(--background);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    margin-bottom: 24px;
-    overflow: hidden;
-}
+    .admin-tabs {
+        background: var(--background);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
 
-.tabs {
-    display: flex;
-    gap: 2px;
-    background: var(--background-secondary);
-    padding: 4px;
-}
+    .tabs {
+        display: flex;
+        gap: 2px;
+        background: var(--background-secondary);
+        padding: 4px;
+    }
 
-.tab-btn {
-    flex: 1;
-    padding: 14px 20px;
-    background: transparent;
-    border: none;
-    border-radius: calc(var(--radius) - 2px);
-    font-weight: 500;
-    color: var(--text-secondary);
-    text-decoration: none;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 14px;
-}
+    .tab-btn {
+        flex: 1;
+        padding: 14px 20px;
+        background: transparent;
+        border: none;
+        border-radius: calc(var(--radius) - 2px);
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+    }
 
-.tab-btn:hover {
-    background: var(--background);
-    color: var(--text-primary);
-}
+    .tab-btn:hover {
+        background: var(--background);
+        color: var(--text-primary);
+    }
 
-.tab-btn.active {
-    background: var(--background);
-    color: var(--avito-blue);
-    box-shadow: var(--shadow-light);
-}
+    .tab-btn.active {
+        background: var(--background);
+        color: var(--avito-blue);
+        box-shadow: var(--shadow-light);
+    }
 
-.admin-section {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    border: 1px solid #e0e0e0;
-}
+    .admin-section {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e0e0e0;
+    }
 
-.table-responsive {
-    max-width: 100%;
-    overflow-x: auto;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-}
+    .table-responsive {
+        max-width: 100%;
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
 
-.table {
-    margin-bottom: 0;
-    width: 100%;
-    table-layout: fixed;
-    font-size: 13px;
-}
+    .table {
+        margin-bottom: 0;
+        width: 100%;
+        table-layout: fixed;
+        font-size: 13px;
+    }
 
-.table th, .table td {
-    padding: 8px 10px;
-    vertical-align: middle;
-    word-break: break-word;
-    font-size: 13px;
-}
+    .table th,
+    .table td {
+        padding: 8px 10px;
+        vertical-align: middle;
+        word-break: break-word;
+        font-size: 13px;
+    }
 
-.badge {
-    font-weight: 500;
-    padding: 4px 8px;
-    font-size: 12px;
-}
-
-.btn-group .btn {
-    padding: 4px 6px;
-    font-size: 12px;
-    line-height: 1;
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
-    .table th, .table td {
-        padding: 6px 8px;
+    .badge {
+        font-weight: 500;
+        padding: 4px 8px;
         font-size: 12px;
     }
-    
+
     .btn-group .btn {
         padding: 4px 6px;
-        font-size: 11px;
-    }
-    
-    .tabs .tab-btn {
         font-size: 12px;
-        padding: 10px 12px;
+        line-height: 1;
     }
-}
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+
+        .table th,
+        .table td {
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+
+        .btn-group .btn {
+            padding: 4px 6px;
+            font-size: 11px;
+        }
+
+        .tabs .tab-btn {
+            font-size: 12px;
+            padding: 10px 12px;
+        }
+    }
 </style>
 {% endblock %}
