@@ -186,6 +186,35 @@
 
     <!-- Блок для страницоспецифичных стилей — должен быть ПОСЛЕ всех CSS -->
     {% block styles %}{% endblock %}
+    <!-- Cookie Banner -->
+    <div id="cookie-banner" class="cookie-banner">
+        <div class="cookie-text">
+            Мы используем файлы cookie для улучшения работы сайта.
+            Продолжая использовать сайт, вы соглашаетесь с условиями.
+        </div>
+        <button id="cookie-accept" class="cookie-btn">Понятно</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const cookieBanner = document.getElementById('cookie-banner');
+            const acceptBtn = document.getElementById('cookie-accept');
+
+            if (!localStorage.getItem('cookieConsent')) {
+                // Show banner with a slight delay
+                setTimeout(() => {
+                    cookieBanner.classList.add('visible');
+                }, 1000);
+            }
+
+            if (acceptBtn) {
+                acceptBtn.addEventListener('click', function () {
+                    localStorage.setItem('cookieConsent', 'true');
+                    cookieBanner.classList.remove('visible');
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
