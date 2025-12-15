@@ -610,3 +610,35 @@ def clear_categories():
         flash(f'❌ Ошибка очистки: {str(e)}', 'error')
     
     return redirect(url_for('admin_bp.admin_categories'))
+
+# === ОБРАТНАЯ СВЯЗЬ ===
+@admin_bp.route('/contact-requests')
+@login_required
+def admin_contact_requests():
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('main.index'))
+    
+    from app.models import ContactRequest
+    requests = ContactRequest.query.order_by(ContactRequest.created_at.desc()).all()
+    return render_template('admin_contact_requests.html', requests=requests)
+
+@admin_bp.route('/contact-requests/<int:request_id>/toggle-status', methods=['POST'])
+@login_required
+def toggle_request_status(request_id):
+    if not current_user.is_admin:
+        flash('Недостаточно прав', 'error')
+        return redirect(url_for('admin_bp.admin_contact_requests'))
+        
+    from app.models import ContactRequest
+    req = ContactRequest.query.get_or_404(request_id)
+    if req.status == 'new':
+        req.status = 'read'
+    elif req.status == 'read':
+        req.status = 'resolved'
+    else:
+        req.status = 'new'
+    db.session.commit()
+    flash('Статус обновлен', 'success')
+    return redirect(url_for('admin_bp.admin_contact_requests'))
+

@@ -265,3 +265,14 @@ class City(db.Model):
         if self.region:
             return f"{self.name} ({self.region.name})"
         return self.name
+
+class ContactRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    contact_info = db.Column(db.String(200), nullable=False)
+    category = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='new')  # new, read, resolved
+
+    def __repr__(self):
+        return f'<ContactRequest {self.id} {self.category}>'

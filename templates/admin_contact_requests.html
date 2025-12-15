@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Сообщения — Админка{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="admin-header">
+        <h1 class="page-title">💬 Сообщения от пользователей</h1>
+        <p class="admin-subtitle">Обратная связь и запросы поддержки</p>
+    </div>
+
+    <!-- Вкладки -->
+    <div class="admin-tabs mb-4">
+        <div class="tabs">
+            <a href="{{ url_for('admin_bp.admin_categories') }}" class="tab-btn">📂 Категории</a>
+            <a href="{{ url_for('admin_bp.admin_users') }}" class="tab-btn">👥 Пользователи</a>
+            <a href="{{ url_for('admin_bp.admin_contact_requests') }}" class="tab-btn active">💬 Сообщения</a>
+        </div>
+    </div>
+
+    <div class="admin-section mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Список обращений</h5>
+            <span class="badge bg-secondary">{{ requests|length if requests else 0 }} всего</span>
+        </div>
+    </div>
+
+    <!-- Таблица сообщений -->
+    {% if requests %}
+    <div class="table-responsive" style="max-width: 100%; overflow-x: auto;">
+        <table class="table table-hover align-middle" style="width: 100%; table-layout: fixed; font-size: 13px;">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 5%;">ID</th>
+                    <th style="width: 12%;">Дата</th>
+                    <th style="width: 15%;">Категория</th>
+                    <th style="width: 20%;">Контакт</th>
+                    <th style="width: 33%;">Сообщение</th>
+                    <th style="width: 8%;">Статус</th>
+                    <th style="width: 7%;">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td style="padding: 8px 10px;">{{ req.id }}</td>
+                    <td style="padding: 8px 10px;">{{ req.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td style="padding: 8px 10px;">
+                        <span class="badge bg-secondary">{{ req.category }}</span>
+                    </td>
+                    <td style="word-break: break-word; padding: 8px 10px;">{{ req.contact_info }}</td>
+                    <td style="word-break: break-word; padding: 8px 10px;">
+                        <div style="max-height: 80px; overflow-y: auto;">
+                            {{ req.message }}
+                        </div>
+                    </td>
+                    <td style="padding: 8px 10px;">
+                        {% if req.status == 'new' %}
+                        <span class="badge bg-danger">Новое</span>
+                        {% elif req.status == 'read' %}
+                        <span class="badge bg-warning text-dark">Прочитано</span>
+                        {% else %}
+                        <span class="badge bg-success">Решено</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 8px 10px;">
+                        <form action="{{ url_for('admin_bp.toggle_request_status', request_id=req.id) }}" method="POST"
+                            class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-sm btn-outline-primary"
+                                title="Переключить статус (Новое -> Прочитано -> Решено)">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <div class="fs-1 mb-3">📭</div>
+        <h4>Нет новых сообщений</h4>
+        <p>Здесь будут отображаться запросы от пользователей</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    /* === ЕДИНЫЙ ДИЗАЙН С admin_categories.html === */
+
+    .admin-header {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: white;
+        padding: 32px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+
+    .admin-header .page-title {
+        font-size: 32px;
+        margin-bottom: 8px;
+    }
+
+    .admin-tabs {
+        background: var(--background);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        margin-bottom: 24px;
+        overflow: hidden;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 2px;
+        background: var(--background-secondary);
+        padding: 4px;
+    }
+
+    .tab-btn {
+        flex: 1;
+        padding: 14px 20px;
+        background: transparent;
+        border: none;
+        border-radius: calc(var(--radius) - 2px);
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .tab-btn:hover {
+        background: var(--background);
+        color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+        background: var(--background);
+        color: var(--avito-blue);
+        box-shadow: var(--shadow-light);
+    }
+
+    .admin-section {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e0e0e0;
+    }
+
+    .table-responsive {
+        max-width: 100%;
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .table {
+        margin-bottom: 0;
+        width: 100%;
+        table-layout: fixed;
+        font-size: 13px;
+    }
+
+    .table th,
+    .table td {
+        padding: 8px 10px;
+        vertical-align: middle;
+        word-break: break-word;
+        font-size: 13px;
+    }
+</style>
+{% endblock %}

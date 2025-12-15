@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -67,7 +68,8 @@
             border-color: #c3e6cb;
         }
 
-        .flash-messages .error, .flash-messages .danger {
+        .flash-messages .error,
+        .flash-messages .danger {
             background-color: #f8d7da;
             color: #721c24;
             border-color: #f5c6cb;
@@ -90,18 +92,18 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-SXMDF15XTT"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
+        function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
         gtag('config', 'G-SXMDF15XTT');
     </script>
 
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">
-        (function(m,e,t,r,i,k,a){
-            m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
-            m[i].l=1*new Date();
-            for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
-            k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)
+        (function (m, e, t, r, i, k, a) {
+            m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+            m[i].l = 1 * new Date();
+            for (var j = 0; j < document.scripts.length; j++) { if (document.scripts[j].src === r) { return; } }
+            k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
         })(window, document, 'script', 'https://mc.yandex.ru/metrika/tag.js?id=105811501', 'ym');
 
         ym(105811501, 'init', {
@@ -120,18 +122,19 @@
     </noscript>
     <!-- /Yandex.Metrika counter -->
 </head>
+
 <body>
     {% include 'partials/header.html' %}
 
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <div class="flash {{ category }}">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
         {% endwith %}
 
         {% block content %}{% endblock %}
@@ -139,10 +142,50 @@
 
     {% include 'partials/footer.html' %}
 
+    <!-- Contact Us Modal -->
+    <div id="contact-modal" class="contact-modal-overlay">
+        <div class="contact-modal-content">
+            <button class="contact-modal-close">&times;</button>
+            <h2 class="contact-modal-title">Напишите нам</h2>
+
+            <form id="contact-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="contact-form-group">
+                    <label class="contact-form-label">Ваши контакты (телефон или email)</label>
+                    <input type="text" name="contact_info" class="contact-form-control" required
+                        placeholder="+7 900 000-00-00 или email@example.com">
+                </div>
+
+                <div class="contact-form-group">
+                    <label class="contact-form-label">Тема обращения</label>
+                    <select name="category" class="contact-form-control">
+                        <option value="support">Техническая поддержка</option>
+                        <option value="billing">Вопросы оплаты</option>
+                        <option value="suggestion">Предложение/Пожелание</option>
+                        <option value="other">Другое</option>
+                    </select>
+                </div>
+
+                <div class="contact-form-group">
+                    <label class="contact-form-label">Сообщение</label>
+                    <textarea name="message" class="contact-form-control" required
+                        placeholder="Опишите ваш вопрос..."></textarea>
+                </div>
+
+                <button type="submit" class="contact-submit-btn">Отправить сообщение</button>
+
+                <div id="contact-form-status" style="display: none;"></div>
+            </form>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/contact.js') }}"></script>
 
     <!-- Блок для страницоспецифичных стилей — должен быть ПОСЛЕ всех CSS -->
     {% block styles %}{% endblock %}
 </body>
+
 </html>

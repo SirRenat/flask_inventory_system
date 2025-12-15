@@ -760,3 +760,30 @@ def category_image(filename):
         os.path.join(current_app.config['UPLOAD_FOLDER'], 'categories'),
         filename
     )
+
+@main.route('/contact', methods=['POST'])
+def contact():
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'message': 'No data provided'}), 400
+    
+    contact_info = data.get('contact_info')
+    category = data.get('category')
+    message = data.get('message')
+    
+    if not contact_info or not message:
+        return jsonify({'success': False, 'message': 'Заполните обязательные поля'}), 400
+        
+    try:
+        from app.models import ContactRequest
+        new_request = ContactRequest(
+            contact_info=contact_info,
+            category=category,
+            message=message
+        )
+        db.session.add(new_request)
+        db.session.commit()
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500

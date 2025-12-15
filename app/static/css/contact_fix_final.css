@@ -1,0 +1,116 @@
+/* Contact Modal Styles */
+.contact-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.contact-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.contact-modal-content {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    padding: 32px;
+    position: relative;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.contact-modal-overlay.active .contact-modal-content {
+    transform: translateY(0);
+}
+
+.contact-modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.contact-modal-close:hover {
+    color: var(--text-primary);
+}
+
+.contact-modal-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: var(--text-primary);
+}
+
+.contact-form-group {
+    margin-bottom: 20px;
+}
+
+.contact-form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.contact-form-control {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s;
+    font-family: inherit;
+}
+
+.contact-form-control:focus {
+    outline: none;
+    border-color: var(--avito-blue);
+}
+
+textarea.contact-form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.contact-submit-btn {
+    width: 100%;
+    background: var(--avito-blue);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.contact-submit-btn:hover {
+    background: var(--avito-blue-hover);
+}
+
+.contact-submit-btn:disabled {
+    background: var(--text-secondary);
+    cursor: not-allowed;
+}
