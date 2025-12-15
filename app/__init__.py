@@ -11,6 +11,10 @@ migrate = Migrate()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 
+    # Initialize Flask-Mail - Removed
+    # from flask_mail import Mail
+    # mail = Mail()
+
 # =========== ДОБАВЬТЕ ЭТО ===========
 try:
     from .telegram_bot import telegram_bot
@@ -28,6 +32,7 @@ def create_app():
     migrate.init_app(app, db) 
     login_manager.init_app(app)
     csrf.init_app(app)
+    # mail.init_app(app) # Отключено, используем smtplib в app/email.py
     
     # =========== ДОБАВЬТЕ ЭТО ===========
     # Инициализируем Telegram ботаtemplate_folder='templates',

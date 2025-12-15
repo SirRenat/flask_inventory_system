@@ -105,6 +105,36 @@
                             <form id="delete-user-{{ user.id }}"
                                 action="{{ url_for('admin_bp.delete_user', user_id=user.id) }}" method="POST"
                                 style="display: none;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            </form>
+
+                            <!-- Блокировка/Разблокировка -->
+                            <form action="{{ url_for('admin_bp.toggle_user_active', user_id=user.id) }}" method="POST"
+                                class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {% if user.is_active %}
+                                <button type="submit" class="btn btn-outline-danger p-2" title="Заблокировать"
+                                    onclick="return confirm('Заблокировать пользователя?');">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-slash-circle" viewBox="0 0 16 16">
+                                        <path
+                                            d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                        <path
+                                            d="M11.354 4.646a.5.5 0 0 0-.708 0l-6 6a.5.5 0 0 0 .708.708l6-6a.5.5 0 0 0 0-.708z" />
+                                    </svg>
+                                </button>
+                                {% else %}
+                                <button type="submit" class="btn btn-outline-success p-2" title="Разблокировать"
+                                    onclick="return confirm('Разблокировать пользователя?');">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                        class="bi bi-check-circle" viewBox="0 0 16 16">
+                                        <path
+                                            d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                        <path
+                                            d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.5.5 0 0 0-.708.708l2.5 2.5a.5.5 0 0 0 .708 0l4-4a.5.5 0 0 0-.708-.708z" />
+                                    </svg>
+                                </button>
+                                {% endif %}
                             </form>
 
                             <!-- Войти как пользователь -->

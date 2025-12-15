@@ -42,5 +42,13 @@ class Config:
     TELEGRAM_CHAT_ID = '390300'  # Ваш Chat ID
     TELEGRAM_ENABLED = True
 
+    # Email settings
+    MAIL_SERVER = 'mail.hosting.reg.ru'
+    MAIL_PORT = 465
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = 'no-reply@asauda.ru'
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or '!Mat604192'
+    MAIL_DEFAULT_SENDER = 'no-reply@asauda.ru'
+
     # DaData API
     DADATA_API_KEY = os.environ.get('DADATA_API_KEY') or '101eb3d6682561b0db5bf155c592a3f8dad52dcf'

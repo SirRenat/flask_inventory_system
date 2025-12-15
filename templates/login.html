@@ -8,35 +8,28 @@
         <h1 class="page-title">Вход для организаций</h1>
         <p class="page-subtitle">Войдите в корпоративный аккаунт</p>
     </div>
-    
+
     <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="form-group">
             <label class="form-label">Email</label>
-            <input type="email" 
-                   name="email" 
-                   class="form-control" 
-                   placeholder="contact@company.ru" 
-                   required>
+            <input type="email" name="email" class="form-control" placeholder="contact@company.ru" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Пароль</label>
-            <input type="password" 
-                   name="password" 
-                   class="form-control" 
-                   placeholder="Ваш пароль" 
-                   required>
+            <input type="password" name="password" class="form-control" placeholder="Ваш пароль" required>
         </div>
-        
-        <button type="submit" class="btn-primary" style="width: 100%;">
+
+        <button type="submit" class="btn-primary"
+            style="width: 100%; display: flex; justify-content: center; align-items: center;">
             Войти в систему
         </button>
     </form>
-    
+
     <div class="text-center mt-4">
         <p class="text-muted">
-            Нет корпоративного аккаунта? 
+            Нет корпоративного аккаунта?
             <a href="{{ url_for('auth.register') }}" class="text-avito-blue">
                 Зарегистрируйте организацию
             </a>

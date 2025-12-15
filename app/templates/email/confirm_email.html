@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Добро пожаловать в ASAUDA!</h2>
+        <p>Здравствуйте,</p>
+        <p>Спасибо за регистрацию. Для завершения создания аккаунта, пожалуйста, подтвердите ваш email адрес.</p>
+        <p>
+            <a href="{{ confirm_url }}" class="button">Подтвердить Email</a>
+        </p>
+        <p>Или скопируйте эту ссылку в браузер:</p>
+        <p>{{ confirm_url }}</p>
+        <p>Ссылка действительна в течение 24 часов.</p>
+        <br>
+        <p>С уважением,<br>Команда ASAUDA</p>
+    </div>
+</body>
+
+</html>

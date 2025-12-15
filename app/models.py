@@ -27,6 +27,7 @@ class User(UserMixin, db.Model):
     about = db.Column(db.Text)
     role = db.Column(db.String(20), default='user')
     is_active = db.Column(db.Boolean, default=True)
+    confirmed_at = db.Column(db.DateTime)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     favorited_products = db.relationship('Product', secondary=user_favorites, lazy='dynamic', backref='favorited_by')
