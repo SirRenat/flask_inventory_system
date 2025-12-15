@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <h1 class="mb-4 text-center">Помощь по системе</h1>
+
+            <div class="accordion" id="helpAccordion">
+
+                <!-- Начало работы -->
+                <div class="accordion-item mb-3 border rounded shadow-sm">
+                    <h2 class="accordion-header" id="headingOne">
+                        <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                            <strong>🏁 Начало работы</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne"
+                        data-bs-parent="#helpAccordion">
+                        <div class="accordion-body">
+                            <p>Добро пожаловать в систему продажи остатков! Здесь вы можете:</p>
+                            <ul>
+                                <li>Искать и покупать товары по выгодным ценам.</li>
+                                <li>Продавать свои остатки материалов, оборудования и других товаров.</li>
+                            </ul>
+                            <p>Для полного доступа к функциям (продажа, избранное, сообщения) необходимо <a
+                                    href="{{ url_for('auth.register') }}">зарегистрироваться</a> или <a
+                                    href="{{ url_for('auth.login') }}">войти</a> в свой аккаунт.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Покупателям -->
+                <div class="accordion-item mb-3 border rounded shadow-sm">
+                    <h2 class="accordion-header" id="headingTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                            <strong>🛒 Покупателям</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo"
+                        data-bs-parent="#helpAccordion">
+                        <div class="accordion-body">
+                            <h5>Поиск товаров</h5>
+                            <p>Используйте строку поиска вверху страницы для ввода названия товара. Вы также можете
+                                фильтровать товары по:</p>
+                            <ul>
+                                <li>Категории (выберите нужную категорию на главной странице)</li>
+                                <li>Региону и городу</li>
+                            </ul>
+
+                            <h5>Избранное</h5>
+                            <p>Чтобы не потерять интересный товар, нажмите на значок ❤️ ("Добавить в избранное"). Все
+                                сохраненные товары находятся в разделе "Избранное" в личном кабинете.</p>
+
+                            <h5>Связь с продавцом</h5>
+                            <p>На странице товара вы найдете контакты продавца (телефон) или можете написать ему
+                                сообщение через форму на сайте (если доступно).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Продавцам -->
+                <div class="accordion-item mb-3 border rounded shadow-sm">
+                    <h2 class="accordion-header" id="headingThree">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                            <strong>💼 Продавцам</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree"
+                        data-bs-parent="#helpAccordion">
+                        <div class="accordion-body">
+                            <h5>Как добавить товар?</h5>
+                            <ol>
+                                <li>Нажмите кнопку <strong>"➕ Разместить объявление"</strong> в верхней части сайта.
+                                </li>
+                                <li>Заполните обязательные поля: название, цена, категория, регион.</li>
+                                <li>Добавьте фотографии. Вы можете просто перетащить их в область загрузки или выбрать
+                                    файлы на устройстве. Качественные фото повышают шанс продажи!</li>
+                                <li>Нажмите "Разместить". Товар появится на сайте сразу после публикации.</li>
+                            </ol>
+
+                            <h5>Управление товарами (Dashboard)</h5>
+                            <p>В личном кабинете в разделе "Мои объявления" вы видите все свои товары:</p>
+                            <ul>
+                                <li><span class="badge bg-success">Опубликован</span> — товар виден всем.</li>
+                                <li><span class="badge bg-warning text-dark">Снят с публикации</span> — товар виден
+                                    только вам. Вы можете снова опубликовать его в любой момент.</li>
+                                <li><span class="badge bg-info text-dark">Готов к публикации</span> — срок публикации
+                                    истек, но товар можно продлить.</li>
+                            </ul>
+                            <p>Вы можете <strong>Редактировать</strong>, <strong>Снимать с публикации</strong> или
+                                <strong>Удалять</strong> свои товары с помощью кнопок на карточке товара.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Профиль и настройки -->
+                <div class="accordion-item mb-3 border rounded shadow-sm">
+                    <h2 class="accordion-header" id="headingFour">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                            <strong>⚙️ Профиль и настройки</strong>
+                        </button>
+                    </h2>
+                    <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour"
+                        data-bs-parent="#helpAccordion">
+                        <div class="accordion-body">
+                            <p>В разделе "Профиль" вы можете:</p>
+                            <ul>
+                                <li>Изменить свои контактные данные (имя, телефон, компания).</li>
+                                <li>Сменить пароль.</li>
+                                <li>Указать реквизиты организации (ИНН, Юр. адрес) для повышения доверия покупателей.
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="text-center mt-5">
+                <p class="text-muted">Остались вопросы?</p>
+                <a href="#" onclick="openContactModal(); return false;" class="btn btn-outline-primary">Напишите нам</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .accordion-button:not(.collapsed) {
+        background-color: var(--avito-blue-light);
+        color: var(--avito-blue);
+    }
+
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(0, 87, 255, 0.25);
+        border-color: var(--avito-blue);
+    }
+</style>
+{% endblock %}

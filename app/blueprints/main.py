@@ -31,6 +31,10 @@ def deserialize_images_filter(images_field):
 def privacy_policy():
     return render_template('policy.html')
 
+@main.route('/help')
+def help():
+    return render_template('help.html')
+
 
 
 @main.route('/')
