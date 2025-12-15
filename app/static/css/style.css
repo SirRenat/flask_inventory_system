@@ -646,11 +646,18 @@
     padding: 0 20px 20px 20px;
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+}
+
+.product-actions>* {
+    flex: 1;
+    min-width: 0;
+    /* Prevent overflow */
 }
 
 .action-form {
     margin: 0;
+    display: flex;
 }
 
 .btn-view,
@@ -658,26 +665,29 @@
 .btn-unpublish,
 .btn-delete,
 .btn-renew {
-    padding: 8px 16px;
+    padding: 10px 4px;
     border-radius: var(--radius);
     font-weight: 500;
     cursor: pointer;
     text-decoration: none;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
     font-size: 13px;
     transition: all 0.2s ease;
     border: none;
-    min-width: 90px;
+    width: 100%;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: none;
 }
 
 .btn-view {
     background: var(--background-secondary);
     color: var(--text-primary);
-    border: 1px solid var(--border);
 }
 
 .btn-view:hover {
@@ -685,52 +695,36 @@
     color: var(--text-primary);
 }
 
-.btn-publish {
-    background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
-    color: white;
-    border: 1px solid rgba(76, 175, 80, 0.3);
-    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+.btn-publish,
+.btn-renew {
+    background: var(--avito-blue-light);
+    color: var(--avito-blue);
 }
 
-.btn-publish:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+.btn-publish:hover,
+.btn-renew:hover {
+    background: #D1E3FF;
+    color: var(--avito-blue-hover);
 }
 
 .btn-unpublish {
-    background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
-    color: white;
-    border: 1px solid rgba(255, 152, 0, 0.3);
-    box-shadow: 0 2px 4px rgba(255, 152, 0, 0.2);
+    background: #FFF3E0;
+    color: #E65100;
 }
 
 .btn-unpublish:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+    background: #FFE0B2;
+    color: #EF6C00;
 }
 
 .btn-delete {
-    background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-    color: white;
-    border: 1px solid rgba(244, 67, 54, 0.3);
-    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+    background: #FFF1F0;
+    color: #FF3B30;
 }
 
 .btn-delete:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.3);
-}
-
-.btn-renew {
-    background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-    color: white;
-    border: 1px solid rgba(33, 150, 243, 0.3);
-    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
-}
-
-.btn-renew:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+    background: #FFE5E5;
+    color: #D32F2F;
 }
 
 /* Стили для списка товаров */
@@ -901,10 +895,12 @@
 }
 
 .list-product-actions {
-    width: 100px;
+    min-width: 140px;
+    width: auto;
     flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
+    align-items: center;
 }
 
 /* Стили для таблицы товаров */

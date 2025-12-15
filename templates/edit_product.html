@@ -24,16 +24,16 @@
                         <label class="form-label" for="title">
                             Название товара <span class="required">*</span>
                         </label>
-                        <input type="text" class="form-control" id="title" name="title" 
-                               value="{{ product.title }}" required>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ product.title }}"
+                            required>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="category_id">Категория <span class="required">*</span></label>
                         <select class="form-select" id="category_id" name="category_id" required>
                             <option value="">Выберите категорию</option>
                             {% for category in categories %}
-                            <option value="{{ category.id }}" 
-                                    {% if product.category_id == category.id %}selected{% endif %}>
+                            <option value="{{ category.id }}" {% if product.category_id==category.id %}selected{% endif
+                                %}>
                                 {{ category.name }}
                             </option>
                             {% endfor %}
@@ -42,31 +42,27 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="manufacturer">Производитель</label>
-                            <input type="text" class="form-control" id="manufacturer" name="manufacturer" 
-                                   value="{{ product.manufacturer or '' }}"
-                                   placeholder="Например: IKEA, Herman Miller, Xiaomi">
+                            <input type="text" class="form-control" id="manufacturer" name="manufacturer"
+                                value="{{ product.manufacturer or '' }}"
+                                placeholder="Например: IKEA, Herman Miller, Xiaomi">
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="quantity">Количество</label>
-                            <input type="number" class="form-control" id="quantity" name="quantity" 
-                                   value="{{ product.quantity or 1 }}"
-                                   min="1" step="1">
+                            <input type="number" class="form-control" id="quantity" name="quantity"
+                                value="{{ product.quantity or 1 }}" min="1" step="1">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Цена <span class="required">*</span></label>
                         <div class="price-input-wrapper">
                             <div class="price-input-container">
-                                <input type="number" class="form-control" id="price" name="price" 
-                                       value="{{ product.price }}" step="0.01" min="0" required>
+                                <input type="number" class="form-control" id="price" name="price"
+                                    value="{{ product.price }}" step="0.01" min="0" required>
                             </div>
                             <span class="price-currency">₽</span>
                             <div class="vat-checkbox-container">
-                                <input type="checkbox" 
-                                       name="vat_included" 
-                                       id="vat_included"
-                                       class="vat-checkbox"
-                                       {% if product.vat_included %}checked{% endif %}>
+                                <input type="checkbox" name="vat_included" id="vat_included" class="vat-checkbox" {% if
+                                    product.vat_included %}checked{% endif %}>
                                 <label for="vat_included" class="vat-label">с НДС</label>
                             </div>
                         </div>
@@ -74,13 +70,13 @@
                     <div class="form-group">
                         <label class="form-label">Состояние</label>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="condition" id="conditionNew" value="new" 
-                                {% if product.condition == 'new' or not product.condition %}checked{% endif %}>
+                            <input class="form-check-input" type="radio" name="condition" id="conditionNew" value="new"
+                                {% if product.condition=='new' or not product.condition %}checked{% endif %}>
                             <label class="form-check-label" for="conditionNew">Новое</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="condition" id="conditionUsed" value="used"
-                                {% if product.condition == 'used' %}checked{% endif %}>
+                            <input class="form-check-input" type="radio" name="condition" id="conditionUsed"
+                                value="used" {% if product.condition=='used' %}checked{% endif %}>
                             <label class="form-check-label" for="conditionUsed">Б/у</label>
                         </div>
                     </div>
@@ -90,9 +86,8 @@
                             <select class="form-select" id="region_id" name="region_id" required>
                                 <option value="">Выберите субъект РФ</option>
                                 {% for region in regions %}
-                                <option value="{{ region.id }}" 
-                                        data-region-name="{{ region.name }}"
-                                        {% if product.region_id == region.id %}selected{% endif %}>
+                                <option value="{{ region.id }}" data-region-name="{{ region.name }}" {% if
+                                    product.region_id==region.id %}selected{% endif %}>
                                     {{ region.name }}
                                 </option>
                                 {% endfor %}
@@ -103,8 +98,7 @@
                             <select class="form-select" id="city_id" name="city_id" required>
                                 <option value="">Выберите город</option>
                                 {% for city in cities %}
-                                <option value="{{ city.id }}" 
-                                        {% if product.city_id == city.id %}selected{% endif %}>
+                                <option value="{{ city.id }}" {% if product.city_id==city.id %}selected{% endif %}>
                                     {{ city.name }}
                                 </option>
                                 {% endfor %}
@@ -115,15 +109,15 @@
                     <input type="hidden" id="old_city" name="old_city" value="{{ product.city or '' }}">
                     <div class="form-group">
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="delivery" id="delivery" value="on"
-                                {% if product.delivery %}checked{% endif %}>
+                            <input class="form-check-input" type="checkbox" name="delivery" id="delivery" value="on" {%
+                                if product.delivery %}checked{% endif %}>
                             <label class="form-check-label" for="delivery">Возможна доставка</label>
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="description">Описание</label>
-                        <textarea class="form-control" id="description" name="description" 
-                                  rows="6" placeholder="Подробное описание товара...">{{ product.description or '' }}</textarea>
+                        <textarea class="form-control" id="description" name="description" rows="6"
+                            placeholder="Подробное описание товара...">{{ product.description or '' }}</textarea>
                         <div class="form-text">Опишите состояние, характеристики, комплектацию и размеры товара</div>
                     </div>
                 </div>
@@ -142,16 +136,33 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="image_files">Добавить новые изображения</label>
-                        <div class="file-upload-area" id="file-upload-area">
-                            <input type="file" class="file-input" id="image_files" name="image_files" 
-                                multiple accept="image/*" style="display: none;">
-                            <div class="upload-placeholder" onclick="document.getElementById('image_files').click()">
-                                <div class="upload-icon">📁</div>
-                                <div class="upload-text">
-                                    <strong>Нажмите для выбора файлов</strong>
-                                    <span>или перетащите сюда изображения</span>
+
+                        <div class="file-upload-wrapper">
+                            <input type="file" name="image_files" id="image_files" multiple accept="image/*"
+                                class="file-input">
+
+                            <div class="file-upload-area" id="file-upload-area">
+                                <div class="upload-placeholder">
+                                    <div class="upload-icon">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="1.5">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                            <polyline points="17 8 12 3 7 8"></polyline>
+                                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                                        </svg>
+                                    </div>
+                                    <div class="upload-text">
+                                        <strong>Нажмите для выбора файлов</strong>
+                                        <span>или перетащите сюда изображения</span>
+                                    </div>
+                                    <div class="upload-hint">
+                                        <strong>Поддерживаются:</strong> JPG, PNG, GIF, WEBP (максимум 5 МБ)
+                                        <ul>
+                                            <li>Можно выбрать до 8 изображений всего</li>
+                                            <li>Рекомендуемый размер: 1200×800 пикселей</li>
+                                        </ul>
+                                    </div>
                                 </div>
-                                <div class="upload-hint">Можно добавить до 8 изображений всего</div>
                             </div>
                         </div>
                     </div>
@@ -177,17 +188,17 @@
                             {% for image in product_images %}
                             <div class="existing-image-item" id="existing-image-{{ loop.index0 }}">
                                 <div class="existing-image-wrapper">
-                                    <img src="/uploads/{{ image }}" 
-                                        alt="Изображение {{ loop.index }}"
+                                    <img src="/uploads/{{ image }}" alt="Изображение {{ loop.index }}"
                                         onerror="this.src='/static/images/no-image.png'">
-                                    <button type="button" class="btn-edit-existing" 
-                                            onclick="editExistingImage('{{ image }}', {{ loop.index0 }})">
+                                    <button type="button" class="btn-edit-existing"
+                                        onclick="editExistingImage('{{ image }}', {{ loop.index0 }})">
                                         ✏️
                                     </button>
-                                    <button type="button" class="btn-remove-existing" 
-                                            onclick="removeExistingImage('{{ image }}', {{ loop.index0 }})">
+                                    <button type="button" class="btn-remove-existing"
+                                        onclick="removeExistingImage('{{ image }}', {{ loop.index0 }})">
                                         <svg width="16" height="16" viewBox="0 0 16 16">
-                                            <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                            <path d="M4 12L12 4M4 4L12 12" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" />
                                         </svg>
                                     </button>
                                 </div>
@@ -210,9 +221,10 @@
                     <div class="form-group">
                         <label class="form-label" for="status">Статус товара</label>
                         <select class="form-select" id="status" name="status" required>
-                            <option value="1" {% if product.status == 1 %}selected{% endif %}>✅ Опубликован</option>
-                            <option value="4" {% if product.status == 4 %}selected{% endif %}>🚫 Не опубликован</option>
-                            <option value="3" {% if product.status == 3 %}selected{% endif %}>⏳ Готов к публикации</option>
+                            <option value="1" {% if product.status==1 %}selected{% endif %}>✅ Опубликован</option>
+                            <option value="4" {% if product.status==4 %}selected{% endif %}>🚫 Не опубликован</option>
+                            <option value="3" {% if product.status==3 %}selected{% endif %}>⏳ Готов к публикации
+                            </option>
                         </select>
                         <div class="form-text">
                             • Опубликован — виден всем пользователям<br>
@@ -222,8 +234,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="expires_at">Действует до</label>
-                        <input type="datetime-local" class="form-control" id="expires_at" name="expires_at" 
-                               value="{{ product.expires_at.strftime('%Y-%m-%dT%H:%M') if product.expires_at else '' }}">
+                        <input type="datetime-local" class="form-control" id="expires_at" name="expires_at"
+                            value="{{ product.expires_at.strftime('%Y-%m-%dT%H:%M') if product.expires_at else '' }}">
                         <div class="form-text">Дата, до которой товар будет опубликован</div>
                     </div>
                 </div>
@@ -247,753 +259,919 @@
     </div>
 </div>
 <style>
-:root {
-    --avito-blue: #0057FF;
-    --avito-blue-light: #E6F0FF;
-    --avito-blue-hover: #0047D6;
-    --text-primary: #1A1A1A;
-    --text-secondary: #666666;
-    --text-tertiary: #999999;
-    --border: #E0E0E0;
-    --border-light: #F0F0F0;
-    --background-secondary: #F8F9FA;
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --radius: 8px;
-    --success: #34C759;
-    --info: #007AFF;
-    --warning: #FF9500;
-    --danger: #FF3B30;
-}
-.edit-product-container {
-    background: white;
-    border-radius: 12px;
-    padding: 32px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    max-width: 900px;
-    margin: 0 auto;
-}
-.edit-product-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 32px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-light);
-}
-.edit-product-title {
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-}
-.edit-product-subtitle {
-    color: var(--text-secondary);
-    font-size: 14px;
-}
-.btn-back {
-    color: var(--avito-blue);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 8px 16px;
-    border-radius: var(--radius);
-    transition: all 0.2s ease;
-    border: 1px solid var(--border);
-    font-size: 14px;
-}
-.btn-back:hover {
-    background: var(--avito-blue-light);
-    color: var(--avito-blue);
-}
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    margin-bottom: 32px;
-}
-.form-section {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-.form-section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-.form-section-icon {
-    font-size: 20px;
-}
-.form-section h3 {
-    color: var(--text-primary);
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
-}
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
-.form-label {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-    font-size: 14px;
-}
-.required {
-    color: #FF3B30;
-}
-.form-control, .form-select {
-    padding: 12px 16px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 14px;
-    transition: all 0.2s ease;
-    background: white;
-    width: 100%;
-    box-sizing: border-box;
-}
-.form-control:focus, .form-select:focus {
-    border-color: var(--avito-blue);
-    box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
-    outline: none;
-}
-.price-input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-}
-.price-input-container {
-    flex: 1;
-    position: relative;
-}
-.price-input-container .form-control {
-    padding-right: 40px;
-    width: 100%;
-}
-.price-currency {
-    color: var(--text-secondary);
-    font-weight: 500;
-    font-size: 16px;
-    white-space: nowrap;
-}
-.vat-checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-.vat-checkbox {
-    margin: 0;
-}
-.vat-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    cursor: pointer;
-}
-.form-text {
-    color: var(--text-tertiary);
-    font-size: 12px;
-    line-height: 1.4;
-    margin-top: 4px;
-}
-.image-info-alert {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: #F0F9FF;
-    border-radius: var(--radius);
-    border: 1px solid #E1F0FF;
-    margin-bottom: 16px;
-}
-.alert-icon {
-    font-size: 18px;
-}
-.alert-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-.alert-content strong {
-    color: var(--text-primary);
-    font-size: 14px;
-    font-weight: 600;
-}
-.alert-content span {
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-.file-upload-area {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 30px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: var(--background-secondary);
-}
-.file-upload-area:hover {
-    border-color: var(--avito-blue);
-    background: rgba(0, 87, 255, 0.05);
-}
-.upload-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-}
-.upload-icon {
-    font-size: 32px;
-    opacity: 0.7;
-}
-.upload-text {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-.upload-text strong {
-    color: var(--text-primary);
-    font-size: 14px;
-}
-.upload-text span {
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-.upload-hint {
-    color: var(--text-tertiary);
-    font-size: 12px;
-    margin-top: 8px;
-}
-.new-images-preview {
-    margin-top: 16px;
-    padding: 16px;
-    background: #F0F9FF;
-    border-radius: var(--radius);
-    border: 1px solid #E1F0FF;
-}
-.new-images-preview h4 {
-    color: var(--text-primary);
-    margin-bottom: 12px;
-    font-size: 15px;
-    font-weight: 600;
-}
-.image-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 10px;
-    margin-bottom: 16px;
-}
-.existing-images {
-    margin-top: 16px;
-    padding: 16px;
-    background: var(--background-secondary);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light);
-}
-.existing-images h4 {
-    color: var(--text-primary);
-    margin-bottom: 12px;
-    font-size: 15px;
-    font-weight: 600;
-}
-.existing-images-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 12px;
-}
-.existing-image-item {
-    position: relative;
-}
-.existing-image-wrapper {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 2px solid var(--border);
-    background: white;
-}
-.existing-image-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-.existing-image-wrapper:hover img {
-    transform: scale(1.05);
-}
-.btn-edit-existing, .btn-remove-existing {
-    position: absolute;
-    top: 4px;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    padding: 0;
-    font-size: 10px;
-    line-height: 1;
-}
-.btn-edit-existing {
-    right: 30px;
-    background: rgba(0, 87, 255, 0.8);
-    color: white;
-}
-.btn-edit-existing:hover {
-    background: var(--avito-blue);
-    transform: scale(1.1);
-}
-.btn-remove-existing {
-    right: 4px;
-    background: rgba(255, 59, 48, 0.9);
-    color: white;
-}
-.btn-remove-existing:hover {
-    background: #FF3B30;
-    transform: scale(1.1);
-}
-.image-number {
-    text-align: center;
-    font-size: 11px;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}
-.existing-image-item.removed {
-    opacity: 0.5;
-}
-.existing-image-item.removed .existing-image-wrapper {
-    border: 2px dashed #FF3B30;
-}
-.existing-image-item.removed .btn-remove-existing,
-.existing-image-item.removed .btn-edit-existing {
-    display: none;
-}
-.cropper-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-}
-.cropper-content {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 450px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    text-align: center;
-}
-.cropper-hint {
-    font-size: 13px;
-    color: var(--text-tertiary);
-    margin: 0 0 15px 0;
-}
-.cropper-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
-}
-.form-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 24px;
-    border-top: 1px solid var(--border-light);
-    margin-top: 24px;
-}
-.action-buttons {
-    display: flex;
-    gap: 12px;
-}
-.btn {
-    padding: 12px 24px;
-    border-radius: var(--radius);
-    font-weight: 500;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-.btn-primary {
-    background: linear-gradient(135deg, var(--avito-blue) 0%, var(--avito-blue-hover) 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(0, 87, 255, 0.3);
-}
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 87, 255, 0.4);
-    color: white;
-}
-.btn-secondary {
-    background: var(--background-secondary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-}
-.btn-secondary:hover {
-    background: var(--border-light);
-    color: var(--text-primary);
-}
-.btn-outline {
-    background: transparent;
-    color: var(--text-secondary);
-    border: 1px solid var(--border);
-}
-.btn-outline:hover {
-    background: var(--background-secondary);
-    color: var(--text-primary);
-}
-@media (max-width: 768px) {
+    :root {
+        --avito-blue: #0057FF;
+        --avito-blue-light: #E6F0FF;
+        --avito-blue-hover: #0047D6;
+        --text-primary: #1A1A1A;
+        --text-secondary: #666666;
+        --text-tertiary: #999999;
+        --border: #E0E0E0;
+        --border-light: #F0F0F0;
+        --background-secondary: #F8F9FA;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        --radius: 8px;
+        --success: #34C759;
+        --info: #007AFF;
+        --warning: #FF9500;
+        --danger: #FF3B30;
+    }
+
     .edit-product-container {
-        padding: 20px;
-        margin: 0 16px;
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        max-width: 900px;
+        margin: 0 auto;
     }
+
     .edit-product-header {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 32px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-light);
     }
+
+    .edit-product-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .edit-product-subtitle {
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .btn-back {
+        color: var(--avito-blue);
+        text-decoration: none;
+        font-weight: 500;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        transition: all 0.2s ease;
+        border: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+    .btn-back:hover {
+        background: var(--avito-blue-light);
+        color: var(--avito-blue);
+    }
+
     .form-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin-bottom: 32px;
     }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .form-section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .form-section-icon {
+        font-size: 20px;
+    }
+
+    .form-section h3 {
+        color: var(--text-primary);
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
     .form-row {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 16px;
     }
-    .form-actions {
-        flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        font-size: 14px;
     }
-    .action-buttons {
-        flex-direction: column;
+
+    .required {
+        color: #FF3B30;
     }
-    .btn {
+
+    .form-control,
+    .form-select {
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: white;
         width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--avito-blue);
+        box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
+        outline: none;
+    }
+
+    .price-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .price-input-container {
+        flex: 1;
+        position: relative;
+    }
+
+    .price-input-container .form-control {
+        padding-right: 40px;
+        width: 100%;
+    }
+
+    .price-currency {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .vat-checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .vat-checkbox {
+        margin: 0;
+    }
+
+    .vat-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        cursor: pointer;
+    }
+
+    .form-text {
+        color: var(--text-tertiary);
+        font-size: 12px;
+        line-height: 1.4;
+        margin-top: 4px;
+    }
+
+    .image-info-alert {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: #F0F9FF;
+        border-radius: var(--radius);
+        border: 1px solid #E1F0FF;
+        margin-bottom: 16px;
+    }
+
+    .alert-icon {
+        font-size: 18px;
+    }
+
+    .alert-content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .alert-content strong {
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .alert-content span {
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    /* Стили для загрузки файлов */
+    .file-upload-wrapper {
+        position: relative;
+    }
+
+    .file-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 10;
+        top: 0;
+        left: 0;
+    }
+
+    .file-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: var(--background-secondary);
+        position: relative;
+        min-height: 180px;
+        display: flex;
+        align-items: center;
         justify-content: center;
     }
-    .price-input-wrapper {
+
+    .file-upload-area:hover {
+        border-color: var(--avito-blue);
+        background: rgba(0, 87, 255, 0.05);
+    }
+
+    .file-upload-area.drag-over {
+        border-color: var(--avito-blue);
+        background: rgba(0, 87, 255, 0.1);
+        border-style: solid;
+    }
+
+    .upload-placeholder {
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        width: 100%;
+        pointer-events: none;
     }
-}
-@media (max-width: 480px) {
-    .edit-product-container {
+
+    .upload-icon {
+        color: var(--text-tertiary);
+        margin-bottom: 5px;
+        font-size: 16px;
+        /* Reset font size for SVG */
+        opacity: 1;
+        /* Reset opacity */
+    }
+
+    .upload-icon svg {
+        stroke: var(--text-tertiary);
+    }
+
+    .file-upload-area:hover .upload-icon svg {
+        stroke: var(--avito-blue);
+    }
+
+    .upload-text {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+    }
+
+    .upload-text strong {
+        color: var(--text-primary);
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .upload-text span {
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .upload-hint {
+        color: var(--text-tertiary);
+        font-size: 13px;
+        margin-top: 10px;
+        text-align: center;
+        max-width: 400px;
+    }
+
+    .upload-hint strong {
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .upload-hint ul {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0;
+        text-align: left;
+        display: inline-block;
+    }
+
+    .upload-hint li {
+        padding: 2px 0;
+        position: relative;
+        padding-left: 15px;
+        color: var(--text-secondary);
+        font-size: 12px;
+    }
+
+    .upload-hint li:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--avito-blue);
+        font-size: 16px;
+    }
+
+    .new-images-preview {
+        margin-top: 16px;
         padding: 16px;
+        background: #F0F9FF;
+        border-radius: var(--radius);
+        border: 1px solid #E1F0FF;
     }
+
+    .new-images-preview h4 {
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .existing-images {
+        margin-top: 16px;
+        padding: 16px;
+        background: var(--background-secondary);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+    }
+
+    .existing-images h4 {
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .existing-images-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 12px;
+    }
+
+    .existing-image-item {
+        position: relative;
+    }
+
     .existing-image-wrapper {
-        width: 80px;
-        height: 80px;
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid var(--border);
+        background: white;
     }
-    .btn-edit-existing {
-        right: 24px;
-        width: 18px;
-        height: 18px;
+
+    .existing-image-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
     }
+
+    .existing-image-wrapper:hover img {
+        transform: scale(1.05);
+    }
+
+    .btn-edit-existing,
     .btn-remove-existing {
-        right: 2px;
-        width: 18px;
-        height: 18px;
+        position: absolute;
+        top: 4px;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+        font-size: 10px;
+        line-height: 1;
     }
-}
-.form-grid + .form-section {
-    margin-top: 32px;
-    width: 100%;
-    grid-column: 1 / -1;
-}
-.edit-product-form > .form-section:last-of-type {
-    width: 100%;
-    margin-top: 24px;
-}
+
+    .btn-edit-existing {
+        right: 30px;
+        background: rgba(0, 87, 255, 0.8);
+        color: white;
+    }
+
+    .btn-edit-existing:hover {
+        background: var(--avito-blue);
+        transform: scale(1.1);
+    }
+
+    .btn-remove-existing {
+        right: 4px;
+        background: rgba(255, 59, 48, 0.9);
+        color: white;
+    }
+
+    .btn-remove-existing:hover {
+        background: #FF3B30;
+        transform: scale(1.1);
+    }
+
+    .image-number {
+        text-align: center;
+        font-size: 11px;
+        color: var(--text-secondary);
+        margin-top: 4px;
+    }
+
+    .existing-image-item.removed {
+        opacity: 0.5;
+    }
+
+    .existing-image-item.removed .existing-image-wrapper {
+        border: 2px dashed #FF3B30;
+    }
+
+    .existing-image-item.removed .btn-remove-existing,
+    .existing-image-item.removed .btn-edit-existing {
+        display: none;
+    }
+
+    .cropper-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+
+    .cropper-content {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+
+    .cropper-hint {
+        font-size: 13px;
+        color: var(--text-tertiary);
+        margin: 0 0 15px 0;
+    }
+
+    .cropper-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-light);
+        margin-top: 24px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: var(--radius);
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--avito-blue) 0%, var(--avito-blue-hover) 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 87, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(0, 87, 255, 0.4);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: var(--background-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-light);
+        color: var(--text-primary);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-outline:hover {
+        background: var(--background-secondary);
+        color: var(--text-primary);
+    }
+
+    @media (max-width: 768px) {
+        .edit-product-container {
+            padding: 20px;
+            margin: 0 16px;
+        }
+
+        .edit-product-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .price-input-wrapper {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .edit-product-container {
+            padding: 16px;
+        }
+
+        .existing-image-wrapper {
+            width: 80px;
+            height: 80px;
+        }
+
+        .btn-edit-existing {
+            right: 24px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-remove-existing {
+            right: 2px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    .form-grid+.form-section {
+        margin-top: 32px;
+        width: 100%;
+        grid-column: 1 / -1;
+    }
+
+    .edit-product-form>.form-section:last-of-type {
+        width: 100%;
+        margin-top: 24px;
+    }
 </style>
 <link rel="stylesheet" href="https://unpkg.com/croppie@2.6.5/croppie.css">
 <script src="https://unpkg.com/croppie@2.6.5/croppie.min.js"></script>
 <script>
-let removedExistingImages = [];
-let newImages = [];
-let editedExistingImages = {};
-let croppieInstance = null;
-let currentCropMode = null;
-let currentFileIndex = null;
-let currentExistingFilename = null;
+    let removedExistingImages = [];
+    let newImages = [];
+    let editedExistingImages = {};
+    let croppieInstance = null;
+    let currentCropMode = null;
+    let currentFileIndex = null;
+    let currentExistingFilename = null;
 
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('image_files');
-    const uploadArea = document.getElementById('file-upload-area');
-    const regionSelect = document.getElementById('region_id');
-    const citySelect = document.getElementById('city_id');
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.getElementById('image_files');
+        const uploadArea = document.getElementById('file-upload-area');
+        const regionSelect = document.getElementById('region_id');
+        const citySelect = document.getElementById('city_id');
 
-    if (regionSelect.value) {
-        loadCitiesForRegion(regionSelect.value);
-    }
-
-    regionSelect.addEventListener('change', () => loadCitiesForRegion(regionSelect.value));
-    fileInput.addEventListener('change', handleNewFileSelect);
-    uploadArea.addEventListener('dragover', e => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--avito-blue)';
-        uploadArea.style.background = 'rgba(0, 87, 255, 0.1)';
-    });
-    uploadArea.addEventListener('dragleave', e => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--border)';
-        uploadArea.style.background = 'var(--background-secondary)';
-    });
-    uploadArea.addEventListener('drop', e => {
-        e.preventDefault();
-        uploadArea.style.borderColor = 'var(--border)';
-        uploadArea.style.background = 'var(--background-secondary)';
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            handleNewFileSelect({ target: fileInput });
+        if (regionSelect.value) {
+            loadCitiesForRegion(regionSelect.value);
         }
-    });
-    uploadArea.addEventListener('click', e => {
-        if (e.target === uploadArea || e.target.closest('.upload-placeholder')) {
-            fileInput.click();
-        }
-    });
-    updateImageCounter();
-});
 
-function loadCitiesForRegion(regionId) {
-    const citySelect = document.getElementById('city_id');
-    if (!regionId) {
-        citySelect.innerHTML = '<option value="">Сначала выберите субъект РФ</option>';
-        citySelect.disabled = true;
-        return;
-    }
-    citySelect.innerHTML = '<option value="">Загрузка городов...</option>';
-    citySelect.disabled = true;
-    fetch(`/api/cities/by-region/${regionId}`)
-        .then(response => response.ok ? response.json() : Promise.reject())
-        .then(cities => {
-            citySelect.innerHTML = '<option value="">Выберите город</option>';
-            cities.forEach(city => {
-                const option = document.createElement('option');
-                option.value = city.id;
-                option.textContent = city.name;
-                citySelect.appendChild(option);
-            });
-            citySelect.disabled = false;
-            const savedCityId = {{ product.city_id|tojson|safe }};
-            if (savedCityId) citySelect.value = savedCityId;
-        })
-        .catch(() => {
-            citySelect.innerHTML = '<option value="">Ошибка загрузки городов</option>';
+        regionSelect.addEventListener('change', () => loadCitiesForRegion(regionSelect.value));
+        fileInput.addEventListener('change', handleNewFileSelect);
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
         });
+        uploadArea.addEventListener('dragleave', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+        });
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleNewFileSelect({ target: fileInput });
+            }
+        });
+        // Click handler is handled by the overlay input
+        updateImageCounter();
+    });
+
+    function loadCitiesForRegion(regionId) {
+        const citySelect = document.getElementById('city_id');
+        if (!regionId) {
+            citySelect.innerHTML = '<option value="">Сначала выберите субъект РФ</option>';
+            citySelect.disabled = true;
+            return;
+        }
+        citySelect.innerHTML = '<option value="">Загрузка городов...</option>';
+        citySelect.disabled = true;
+        fetch(`/api/cities/by-region/${regionId}`)
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(cities => {
+                citySelect.innerHTML = '<option value="">Выберите город</option>';
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    citySelect.appendChild(option);
+                });
+                citySelect.disabled = false;
+                const savedCityId = {{ product.city_id| tojson | safe
+            }};
+    if (savedCityId) citySelect.value = savedCityId;
+        })
+        .catch (() => {
+        citySelect.innerHTML = '<option value="">Ошибка загрузки городов</option>';
+    });
 }
 
-function handleNewFileSelect(event) {
-    const files = Array.from(event.target.files);
-    const currentCount = getActualImageCount();
-    if (currentCount + files.length > 8) {
-        alert(`Максимум 8 изображений! У вас уже ${currentCount}, вы пытаетесь добавить ${files.length}.`);
-        event.target.value = '';
-        return;
+    function handleNewFileSelect(event) {
+        const files = Array.from(event.target.files);
+        const currentCount = getActualImageCount();
+        if (currentCount + files.length > 8) {
+            alert(`Максимум 8 изображений! У вас уже ${currentCount}, вы пытаетесь добавить ${files.length}.`);
+            event.target.value = '';
+            return;
+        }
+        if (files.some(f => f.size > 5 * 1024 * 1024)) {
+            alert('Файл слишком большой! Максимум 5 МБ.');
+            event.target.value = '';
+            return;
+        }
+        newImages = files.map(file => ({
+            originalFile: file,
+            croppedBlob: null,
+            croppedFile: null,
+            url: URL.createObjectURL(file)
+        }));
+        renderNewImagesPreview();
+        document.getElementById('new-images-preview').style.display = 'block';
+        updateImageCounter();
     }
-    if (files.some(f => f.size > 5 * 1024 * 1024)) {
-        alert('Файл слишком большой! Максимум 5 МБ.');
-        event.target.value = '';
-        return;
-    }
-    newImages = files.map(file => ({
-        originalFile: file,
-        croppedBlob: null,
-        croppedFile: null,
-        url: URL.createObjectURL(file)
-    }));
-    renderNewImagesPreview();
-    document.getElementById('new-images-preview').style.display = 'block';
-    updateImageCounter();
-}
 
-function renderNewImagesPreview() {
-    const container = document.getElementById('new-images-container');
-    container.innerHTML = '';
-    newImages.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'existing-image-item';
-        div.innerHTML = `
+    function renderNewImagesPreview() {
+        const container = document.getElementById('new-images-container');
+        container.innerHTML = '';
+        newImages.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'existing-image-item';
+            div.innerHTML = `
             <div class="existing-image-wrapper" onclick="openCropperForNew(${index})">
                 <img src="${item.croppedBlob ? URL.createObjectURL(item.croppedBlob) : item.url}" alt="Новое">
                 <button type="button" class="btn-edit-existing" style="right:30px;">✏️</button>
             </div>
             <div class="image-number">Новое ${index + 1}</div>
         `;
-        container.appendChild(div);
-    });
-}
-
-function editExistingImage(filename, index) {
-    currentCropMode = 'existing';
-    currentExistingFilename = filename;
-    openCropper(`/uploads/${filename}`);
-}
-
-function openCropperForNew(index) {
-    currentCropMode = 'new';
-    currentFileIndex = index;
-    openCropper(newImages[index].url);
-}
-
-function openCropper(imageUrl) {
-    const container = document.getElementById('cropper-container');
-    container.innerHTML = '';
-    croppieInstance = new Croppie(container, {
-        viewport: { width: 300, height: 200, type: 'rectangle' },
-        boundary: { width: 350, height: 250 },
-        enableOrientation: true,
-        enableZoom: true,
-        mouseWheelZoom: true
-    });
-    croppieInstance.bind({ url: imageUrl });
-    document.getElementById('cropper-modal').style.display = 'flex';
-}
-
-function closeCropper() {
-    if (croppieInstance) {
-        croppieInstance.destroy();
-        croppieInstance = null;
-    }
-    document.getElementById('cropper-modal').style.display = 'none';
-    currentCropMode = null;
-    currentFileIndex = null;
-    currentExistingFilename = null;
-}
-
-function applyCrop() {
-    if (!croppieInstance) return;
-    croppieInstance.result({
-        type: 'blob',
-        size: { width: 600, height: 400 },
-        format: 'jpeg',
-        quality: 0.92
-    }).then(blob => {
-        const now = new Date().getTime();
-        if (currentCropMode === 'new' && currentFileIndex !== null) {
-            const originalFile = newImages[currentFileIndex].originalFile;
-            const newFile = new File([blob], originalFile.name.replace(/\.[^/.]+$/, "") + ".jpg", {
-                type: 'image/jpeg',
-                lastModified: now
-            });
-            newImages[currentFileIndex].croppedBlob = blob;
-            newImages[currentFileIndex].croppedFile = newFile;
-            renderNewImagesPreview();
-        } else if (currentCropMode === 'existing' && currentExistingFilename) {
-            const newFile = new File([blob], currentExistingFilename.replace(/\.[^/.]+$/, "") + ".jpg", {
-                type: 'image/jpeg',
-                lastModified: now
-            });
-            editedExistingImages[currentExistingFilename] = { blob, file: newFile };
-            const imgIndex = Object.keys(editedExistingImages).indexOf(currentExistingFilename);
-            const img = document.querySelector(`#existing-image-${imgIndex} img`);
-            if (img) img.src = URL.createObjectURL(blob);
-        }
-        closeCropper();
-        updateImageCounter();
-    });
-}
-
-function removeExistingImage(imageName, index) {
-    if (confirm('Удалить это изображение?')) {
-        removedExistingImages.push(imageName);
-        document.getElementById('removed_images').value = removedExistingImages.join(',');
-        document.getElementById(`existing-image-${index}`).classList.add('removed');
-        delete editedExistingImages[imageName];
-        updateImageCounter();
-    }
-}
-
-function getActualImageCount() {
-    const existingCount = document.querySelectorAll('#existing-images-grid .existing-image-item:not(.removed)').length;
-    return existingCount + newImages.length;
-}
-
-function updateImageCounter() {
-    const count = getActualImageCount();
-    document.getElementById('image-counter').textContent = `Текущие: ${count}/8`;
-    const uploadArea = document.getElementById('file-upload-area');
-    uploadArea.style.pointerEvents = count >= 8 ? 'none' : 'auto';
-    uploadArea.style.opacity = count >= 8 ? '0.6' : '1';
-}
-
-document.getElementById('editProductForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const formData = new FormData();
-    const formElements = this.elements;
-    for (let i = 0; i < formElements.length; i++) {
-        const el = formElements[i];
-        if (el.name && el.type !== 'file') {
-            if ((el.type === 'checkbox' || el.type === 'radio') && el.checked) {
-                formData.append(el.name, el.value);
-            } else if (el.type !== 'checkbox' && el.type !== 'radio') {
-                formData.append(el.name, el.value);
-            }
-        }
-    }
-    const csrfInput = document.querySelector('input[name="csrf_token"]');
-    if (csrfInput) formData.append('csrf_token', csrfInput.value);
-    newImages.forEach(item => {
-        formData.append('image_files', item.croppedFile || item.originalFile);
-    });
-    Object.values(editedExistingImages).forEach(item => {
-        if (item && item.file) formData.append('image_files', item.file);
-    });
-    if (removedExistingImages.length) {
-        formData.append('removed_images', removedExistingImages.join(','));
-    }
-    const editedFilenames = Object.keys(editedExistingImages).join(',');
-    if (editedFilenames) formData.append('edited_images_data', editedFilenames);
-    const regionSelect = document.getElementById('region_id');
-    const citySelect = document.getElementById('city_id');
-    if (regionSelect?.selectedOptions[0]?.dataset.regionName) {
-        formData.append('old_region', regionSelect.selectedOptions[0].dataset.regionName);
-    }
-    if (citySelect?.selectedOptions[0]?.textContent) {
-        formData.append('old_city', citySelect.selectedOptions[0].textContent);
-    }
-    const submitBtn = this.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '🔄 Сохранение...';
-    submitBtn.disabled = true;
-    fetch(this.action, { method: 'POST', body: formData })
-        .then(response => {
-            if (response.redirected) {
-                window.location.href = response.url;
-            } else {
-                window.location.reload();
-            }
-        })
-        .catch(error => {
-            alert('Ошибка сохранения: ' + (error.message || 'неизвестная ошибка'));
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+            container.appendChild(div);
         });
-});
+    }
+
+    function editExistingImage(filename, index) {
+        currentCropMode = 'existing';
+        currentExistingFilename = filename;
+        openCropper(`/uploads/${filename}`);
+    }
+
+    function openCropperForNew(index) {
+        currentCropMode = 'new';
+        currentFileIndex = index;
+        openCropper(newImages[index].url);
+    }
+
+    function openCropper(imageUrl) {
+        const container = document.getElementById('cropper-container');
+        container.innerHTML = '';
+        croppieInstance = new Croppie(container, {
+            viewport: { width: 300, height: 200, type: 'rectangle' },
+            boundary: { width: 350, height: 250 },
+            enableOrientation: true,
+            enableZoom: true,
+            mouseWheelZoom: true
+        });
+        croppieInstance.bind({ url: imageUrl });
+        document.getElementById('cropper-modal').style.display = 'flex';
+    }
+
+    function closeCropper() {
+        if (croppieInstance) {
+            croppieInstance.destroy();
+            croppieInstance = null;
+        }
+        document.getElementById('cropper-modal').style.display = 'none';
+        currentCropMode = null;
+        currentFileIndex = null;
+        currentExistingFilename = null;
+    }
+
+    function applyCrop() {
+        if (!croppieInstance) return;
+        croppieInstance.result({
+            type: 'blob',
+            size: { width: 600, height: 400 },
+            format: 'jpeg',
+            quality: 0.92
+        }).then(blob => {
+            const now = new Date().getTime();
+            if (currentCropMode === 'new' && currentFileIndex !== null) {
+                const originalFile = newImages[currentFileIndex].originalFile;
+                const newFile = new File([blob], originalFile.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                    type: 'image/jpeg',
+                    lastModified: now
+                });
+                newImages[currentFileIndex].croppedBlob = blob;
+                newImages[currentFileIndex].croppedFile = newFile;
+                renderNewImagesPreview();
+            } else if (currentCropMode === 'existing' && currentExistingFilename) {
+                const newFile = new File([blob], currentExistingFilename.replace(/\.[^/.]+$/, "") + ".jpg", {
+                    type: 'image/jpeg',
+                    lastModified: now
+                });
+                editedExistingImages[currentExistingFilename] = { blob, file: newFile };
+                const imgIndex = Object.keys(editedExistingImages).indexOf(currentExistingFilename);
+                const img = document.querySelector(`#existing-image-${imgIndex} img`);
+                if (img) img.src = URL.createObjectURL(blob);
+            }
+            closeCropper();
+            updateImageCounter();
+        });
+    }
+
+    function removeExistingImage(imageName, index) {
+        if (confirm('Удалить это изображение?')) {
+            removedExistingImages.push(imageName);
+            document.getElementById('removed_images').value = removedExistingImages.join(',');
+            document.getElementById(`existing-image-${index}`).classList.add('removed');
+            delete editedExistingImages[imageName];
+            updateImageCounter();
+        }
+    }
+
+    function getActualImageCount() {
+        const existingCount = document.querySelectorAll('#existing-images-grid .existing-image-item:not(.removed)').length;
+        return existingCount + newImages.length;
+    }
+
+    function updateImageCounter() {
+        const count = getActualImageCount();
+        document.getElementById('image-counter').textContent = `Текущие: ${count}/8`;
+        const uploadArea = document.getElementById('file-upload-area');
+        const fileInput = document.getElementById('image_files');
+
+        if (count >= 8) {
+            uploadArea.style.opacity = '0.6';
+            fileInput.disabled = true;
+            uploadArea.style.cursor = 'not-allowed';
+        } else {
+            uploadArea.style.opacity = '1';
+            fileInput.disabled = false;
+            uploadArea.style.cursor = 'pointer';
+        }
+    }
+
+    document.getElementById('editProductForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData();
+        const formElements = this.elements;
+        for (let i = 0; i < formElements.length; i++) {
+            const el = formElements[i];
+            if (el.name && el.type !== 'file') {
+                if ((el.type === 'checkbox' || el.type === 'radio') && el.checked) {
+                    formData.append(el.name, el.value);
+                } else if (el.type !== 'checkbox' && el.type !== 'radio') {
+                    formData.append(el.name, el.value);
+                }
+            }
+        }
+        const csrfInput = document.querySelector('input[name="csrf_token"]');
+        if (csrfInput) formData.append('csrf_token', csrfInput.value);
+        newImages.forEach(item => {
+            formData.append('image_files', item.croppedFile || item.originalFile);
+        });
+        Object.values(editedExistingImages).forEach(item => {
+            if (item && item.file) formData.append('image_files', item.file);
+        });
+        if (removedExistingImages.length) {
+            formData.append('removed_images', removedExistingImages.join(','));
+        }
+        const editedFilenames = Object.keys(editedExistingImages).join(',');
+        if (editedFilenames) formData.append('edited_images_data', editedFilenames);
+        const regionSelect = document.getElementById('region_id');
+        const citySelect = document.getElementById('city_id');
+        if (regionSelect?.selectedOptions[0]?.dataset.regionName) {
+            formData.append('old_region', regionSelect.selectedOptions[0].dataset.regionName);
+        }
+        if (citySelect?.selectedOptions[0]?.textContent) {
+            formData.append('old_city', citySelect.selectedOptions[0].textContent);
+        }
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '🔄 Сохранение...';
+        submitBtn.disabled = true;
+        fetch(this.action, { method: 'POST', body: formData })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else {
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                alert('Ошибка сохранения: ' + (error.message || 'неизвестная ошибка'));
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+    });
 </script>
 {% endblock %}

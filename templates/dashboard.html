@@ -67,17 +67,17 @@
                 <div class="header-top-row">
                     <h1>
                         {% if current_user.company_name %}
-                            {{ current_user.company_name }}
+                        {{ current_user.company_name }}
                         {% else %}
-                            Название организации не указано
+                        Название организации не указано
                         {% endif %}
                         -
                         {% if current_user.contact_person %}
-                            {{ current_user.contact_person }}
+                        {{ current_user.contact_person }}
                         {% elif current_user.username %}
-                            {{ current_user.username }}
+                        {{ current_user.username }}
                         {% else %}
-                            {{ current_user.email }}
+                        {{ current_user.email }}
                         {% endif %}
                     </h1>
                 </div>
@@ -103,16 +103,17 @@
             <!-- Вид плиткой (по умолчанию) -->
             <div class="products-grid" id="productsGrid">
                 {% for product in products %}
-                <div class="product-card {% if product.status != product.STATUS_PUBLISHED %}product-unpublished{% endif %}" 
-                     onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'"
-                     style="cursor: pointer;">
+                <div class="product-card {% if product.status != product.STATUS_PUBLISHED %}product-unpublished{% endif %}"
+                    onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'"
+                    style="cursor: pointer;">
                     <div class="product-image">
                         {% if product.image_list and product.image_list|length > 0 %}
-                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}" alt="{{ product.title }}">
+                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}"
+                            alt="{{ product.title }}">
                         {% else %}
                         <div class="no-image">📷</div>
                         {% endif %}
-                        
+
                         <!-- Бейдж статуса -->
                         <div class="product-status-badge status-{{ product.status }}">
                             {{ product.status_text }}
@@ -123,52 +124,58 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="product-info">
                         <h3 class="product-title">{{ product.title }}</h3>
                         <p class="product-price">
                             {{ "%.2f"|format(product.price) }} ₽
                             {% if product.vat_included %}
-                                <span class="vat-label vat-included">С НДС</span>
+                            <span class="vat-label vat-included">С НДС</span>
                             {% else %}
-                                <span class="vat-label vat-excluded">Без НДС</span>
+                            <span class="vat-label vat-excluded">Без НДС</span>
                             {% endif %}
                         </p>
                         <div class="product-views">
                             <span class="views-count">👁️ {{ product.view_count if product.view_count else 0 }}</span>
                         </div>
-                        <p class="product-description">{{ product.description|truncate(100) if product.description else 'Нет описания' }}</p>
-                        
+                        <p class="product-description">{{ product.description|truncate(100) if product.description else
+                            'Нет описания' }}</p>
+
                         <div class="product-meta">
-                            <span class="category">{{ product.product_category.name if product.product_category else 'Без категории' }}</span>
+                            <span class="category">{{ product.product_category.name if product.product_category else
+                                'Без категории' }}</span>
                             <span class="date">{{ product.created_at.strftime('%d.%m.%Y') }}</span>
                         </div>
                     </div>
-                    
+
                     <div class="product-actions" onclick="event.stopPropagation();">
                         <a href="{{ url_for('main.product_detail', product_id=product.id) }}" class="btn-view">
-                            👁️ Посмотреть
+                            Посмотреть
                         </a>
-                        
+
                         {% if product.status == product.STATUS_PUBLISHED %}
-                        <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" method="POST" class="action-form">
-                            <button type="submit" class="btn-unpublish" 
-                                    onclick="event.stopPropagation(); return confirm('Снять товар с публикации? Он станет виден только вам.')">
-                                🟡 Снять
+                        <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" method="POST"
+                            class="action-form">
+                            <button type="submit" class="btn-unpublish"
+                                onclick="event.stopPropagation(); return confirm('Снять товар с публикации? Он станет виден только вам.')">
+                                Снять
                             </button>
                         </form>
-                        {% elif product.status == product.STATUS_READY_FOR_PUBLICATION or product.status == product.STATUS_UNPUBLISHED %}
-                        <form action="{{ url_for('main.renew_product', product_id=product.id) }}" method="POST" class="action-form">
+                        {% elif product.status == product.STATUS_READY_FOR_PUBLICATION or product.status ==
+                        product.STATUS_UNPUBLISHED %}
+                        <form action="{{ url_for('main.renew_product', product_id=product.id) }}" method="POST"
+                            class="action-form">
                             <button type="submit" class="btn-publish" onclick="event.stopPropagation();">
-                                🟢 Опубликовать
+                                Опубликовать
                             </button>
                         </form>
                         {% endif %}
-                        
-                        <form action="{{ url_for('main.delete_product', product_id=product.id) }}" method="POST" class="action-form"
-                              onsubmit="event.stopPropagation(); return confirm('Удалить товар? Это действие нельзя отменить.')">
+
+                        <form action="{{ url_for('main.delete_product', product_id=product.id) }}" method="POST"
+                            class="action-form"
+                            onsubmit="event.stopPropagation(); return confirm('Удалить товар? Это действие нельзя отменить.')">
                             <button type="submit" class="btn-delete" onclick="event.stopPropagation();">
-                                🚫 Удалить
+                                Удалить
                             </button>
                         </form>
                     </div>
@@ -179,49 +186,55 @@
             <!-- Вид списком -->
             <div class="products-list" id="productsList" style="display: none;">
                 {% for product in products %}
-                <div class="list-product-card {% if product.status != product.STATUS_PUBLISHED %}product-unpublished{% endif %}" 
-                     onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'"
-                     style="cursor: pointer;">
+                <div class="list-product-card {% if product.status != product.STATUS_PUBLISHED %}product-unpublished{% endif %}"
+                    onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'"
+                    style="cursor: pointer;">
                     <div class="list-product-image">
                         {% if product.image_list and product.image_list|length > 0 %}
-                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}" alt="{{ product.title }}">
+                        <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}"
+                            alt="{{ product.title }}">
                         {% else %}
                         <div class="no-image-small">📷</div>
                         {% endif %}
                     </div>
-                    
+
                     <div class="list-product-info">
                         <h3 class="list-product-title">{{ product.title }}</h3>
-                        <p class="list-product-description">{{ product.description|truncate(150) if product.description else 'Нет описания' }}</p>
-                        
+                        <p class="list-product-description">{{ product.description|truncate(150) if product.description
+                            else 'Нет описания' }}</p>
+
                         <div class="list-product-meta">
-                            <span class="list-category">{{ product.product_category.name if product.product_category else 'Без категории' }}</span>
+                            <span class="list-category">{{ product.product_category.name if product.product_category
+                                else 'Без категории' }}</span>
                             <span class="list-date">{{ product.created_at.strftime('%d.%m.%Y') }}</span>
                             <span class="list-status status-{{ product.status }}">{{ product.status_text }}</span>
                         </div>
                     </div>
-                    
+
                     <div class="list-product-price">
                         <span class="price-value">{{ "%.2f"|format(product.price) }} ₽</span>
                         {% if product.vat_included %}
-                            <span class="vat-label vat-included">С НДС</span>
+                        <span class="vat-label vat-included">С НДС</span>
                         {% else %}
-                            <span class="vat-label vat-excluded">Без НДС</span>
+                        <span class="vat-label vat-excluded">Без НДС</span>
                         {% endif %}
                     </div>
-                    
+
                     <div class="list-product-actions" onclick="event.stopPropagation();">
                         {% if product.status == product.STATUS_PUBLISHED %}
-                        <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" method="POST" class="action-form">
-                            <button type="submit" class="btn-unpublish" 
-                                    onclick="event.stopPropagation(); return confirm('Снять товар с публикации? Он станет виден только вам.')">
-                                🟡 Снять
+                        <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" method="POST"
+                            class="action-form">
+                            <button type="submit" class="btn-unpublish"
+                                onclick="event.stopPropagation(); return confirm('Снять товар с публикации? Он станет виден только вам.')">
+                                Снять
                             </button>
                         </form>
-                        {% elif product.status == product.STATUS_READY_FOR_PUBLICATION or product.status == product.STATUS_UNPUBLISHED %}
-                        <form action="{{ url_for('main.renew_product', product_id=product.id) }}" method="POST" class="action-form">
+                        {% elif product.status == product.STATUS_READY_FOR_PUBLICATION or product.status ==
+                        product.STATUS_UNPUBLISHED %}
+                        <form action="{{ url_for('main.renew_product', product_id=product.id) }}" method="POST"
+                            class="action-form">
                             <button type="submit" class="btn-publish" onclick="event.stopPropagation();">
-                                🟢 Опубликовать
+                                Опубликовать
                             </button>
                         </form>
                         {% endif %}
@@ -288,12 +301,13 @@
                         </thead>
                         <tbody>
                             {% for product in products[:20] %}
-                            <tr class="table-product-row {% if product.status != product.STATUS_PUBLISHED %}product-unpublished{% endif %}" 
+                            <tr class="table-product-row {% if product.status != product.STATUS_PUBLISHED %}product-unpublished{% endif %}"
                                 onclick="window.location.href='{{ url_for('main.product_detail', product_id=product.id) }}'"
                                 style="cursor: pointer;">
                                 <td class="product-title-cell">
                                     <div class="table-product-title">{{ product.title }}</div>
-                                    <div class="table-category">{{ product.product_category.name if product.product_category else 'Без категории' }}</div>
+                                    <div class="table-category">{{ product.product_category.name if
+                                        product.product_category else 'Без категории' }}</div>
                                 </td>
                                 <td class="product-price-cell">
                                     <span class="table-price">{{ "%.2f"|format(product.price) }} ₽</span>
@@ -366,275 +380,276 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const viewButtons = document.querySelectorAll('.view-btn');
-    const productsGrid = document.getElementById('productsGrid');
-    const productsList = document.getElementById('productsList');
-    const productsTable = document.getElementById('productsTable');
-    
-    // Загружаем сохраненный вид или используем 'grid' по умолчанию
-    const savedView = localStorage.getItem('dashboardView') || 'grid';
-    setActiveView(savedView);
-    
-    // Обработчики для кнопок переключения вида
-    viewButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const viewType = this.getAttribute('data-view');
-            setActiveView(viewType);
-            localStorage.setItem('dashboardView', viewType);
-        });
-    });
-    
-    function setActiveView(viewType) {
-        // Обновляем кнопки
-        viewButtons.forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-view') === viewType) {
-                btn.classList.add('active');
-            }
-        });
-        
-        // Скрываем все виды
-        if (productsGrid) productsGrid.style.display = 'none';
-        if (productsList) productsList.style.display = 'none';
-        if (productsTable) productsTable.style.display = 'none';
-        
-        // Показываем выбранный вид
-        switch(viewType) {
-            case 'grid':
-                if (productsGrid) productsGrid.style.display = 'grid';
-                break;
-            case 'list':
-                if (productsList) productsList.style.display = 'block';
-                break;
-            case 'table':
-                if (productsTable) productsTable.style.display = 'block';
-                // Инициализируем сортировку и пагинацию для таблицы
-                setTimeout(() => {
-                    initializeTableSorting();
-                    initializePagination();
-                }, 100);
-                break;
-        }
-    }
-    
-    // Активация текущего пункта меню
-    const navItems = document.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', function(e) {
-            const link = this.querySelector('a');
-            if (link && (link.getAttribute('href') === '#' || !link.getAttribute('href'))) {
+    document.addEventListener('DOMContentLoaded', function () {
+        const viewButtons = document.querySelectorAll('.view-btn');
+        const productsGrid = document.getElementById('productsGrid');
+        const productsList = document.getElementById('productsList');
+        const productsTable = document.getElementById('productsTable');
+
+        // Загружаем сохраненный вид или используем 'grid' по умолчанию
+        const savedView = localStorage.getItem('dashboardView') || 'grid';
+        setActiveView(savedView);
+
+        // Обработчики для кнопок переключения вида
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function (e) {
                 e.preventDefault();
-                navItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            }
-        });
-    });
-    
-    // Функция для сортировки таблицы
-    function initializeTableSorting() {
-        const sortableHeaders = document.querySelectorAll('.products-data-table th.sortable');
-        if (!sortableHeaders.length) return;
-        
-        let currentSort = { column: null, direction: 'asc' };
-        
-        sortableHeaders.forEach(header => {
-            header.addEventListener('click', function() {
-                const column = this.getAttribute('data-sort');
-                const table = this.closest('table');
-                if (!table) return;
-                
-                const tbody = table.querySelector('tbody');
-                if (!tbody) return;
-                
-                const rows = Array.from(tbody.querySelectorAll('tr'));
-                
-                // Снимаем классы сортировки
-                sortableHeaders.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
-                
-                // Определяем направление
-                if (currentSort.column === column) {
-                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-                } else {
-                    currentSort.column = column;
-                    currentSort.direction = 'asc';
-                }
-                
-                this.classList.add(`sort-${currentSort.direction}`);
-                
-                // Сортируем
-                rows.sort((a, b) => {
-                    const aValue = getCellValue(a, column);
-                    const bValue = getCellValue(b, column);
-                    let comparison = 0;
-                    if (aValue < bValue) comparison = -1;
-                    if (aValue > bValue) comparison = 1;
-                    return currentSort.direction === 'desc' ? comparison * -1 : comparison;
-                });
-                
-                // Переставляем
-                rows.forEach(row => tbody.appendChild(row));
+                const viewType = this.getAttribute('data-view');
+                setActiveView(viewType);
+                localStorage.setItem('dashboardView', viewType);
             });
         });
-        
-        function getCellValue(row, column) {
-            const cell = row.querySelector(`.product-${column}-cell`);
-            if (!cell) return '';
-            
-            switch(column) {
-                case 'title':
-                    const titleElem = cell.querySelector('.table-product-title');
-                    return titleElem ? titleElem.textContent.toLowerCase() : '';
-                case 'price':
-                    const priceElem = cell.querySelector('.table-price');
-                    if (!priceElem) return 0;
-                    const priceText = priceElem.textContent;
-                    return parseFloat(priceText.replace(/[^\d.]/g, '')) || 0;
-                case 'vat_included':
-                    const vatElem = cell.querySelector('.vat-badge');
-                    return vatElem ? (vatElem.textContent === '+' ? 1 : 0) : 0;
-                case 'condition':
-                    const conditionElem = cell.querySelector('.condition-badge');
-                    return conditionElem ? conditionElem.textContent.toLowerCase() : '';
-                case 'region':
-                    return cell.textContent.toLowerCase();
-                case 'city':
-                    return cell.textContent.toLowerCase();
-                case 'delivery':
-                    const deliveryElem = cell.querySelector('.delivery-badge');
-                    return deliveryElem ? (deliveryElem.textContent === 'Есть' ? 1 : 0) : 0;
-                case 'status':
-                    const statusElem = cell.querySelector('.status-badge');
-                    return statusElem ? statusElem.textContent.toLowerCase() : '';
-                default:
-                    return cell.textContent.toLowerCase();
+
+        function setActiveView(viewType) {
+            // Обновляем кнопки
+            viewButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.getAttribute('data-view') === viewType) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // Скрываем все виды
+            if (productsGrid) productsGrid.style.display = 'none';
+            if (productsList) productsList.style.display = 'none';
+            if (productsTable) productsTable.style.display = 'none';
+
+            // Показываем выбранный вид
+            switch (viewType) {
+                case 'grid':
+                    if (productsGrid) productsGrid.style.display = 'grid';
+                    break;
+                case 'list':
+                    if (productsList) productsList.style.display = 'block';
+                    break;
+                case 'table':
+                    if (productsTable) productsTable.style.display = 'block';
+                    // Инициализируем сортировку и пагинацию для таблицы
+                    setTimeout(() => {
+                        initializeTableSorting();
+                        initializePagination();
+                    }, 100);
+                    break;
             }
         }
-    }
-    
-    // Функция для пагинации таблицы
-    function initializePagination() {
-        try {
-            const products = {{ products_json|tojson|safe if products_json else '[]' }};
-            const pageNumbers = document.querySelectorAll('.page-number');
-            const prevBtn = document.querySelector('.prev-btn');
-            const nextBtn = document.querySelector('.next-btn');
-            
-            if (!products || products.length <= 20) return;
-            
-            let currentPage = 1;
-            const itemsPerPage = 20;
-            const totalPages = Math.ceil(products.length / itemsPerPage);
-            
-            function updateTable(page) {
-                currentPage = page;
-                const startIndex = (page - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                const pageProducts = products.slice(startIndex, endIndex);
-                
-                const tbody = document.querySelector('.products-data-table tbody');
-                if (!tbody) return;
-                tbody.innerHTML = '';
-                
-                pageProducts.forEach(product => {
-                    const row = createTableRow(product);
-                    tbody.appendChild(row);
+
+        // Активация текущего пункта меню
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', function (e) {
+                const link = this.querySelector('a');
+                if (link && (link.getAttribute('href') === '#' || !link.getAttribute('href'))) {
+                    e.preventDefault();
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Функция для сортировки таблицы
+        function initializeTableSorting() {
+            const sortableHeaders = document.querySelectorAll('.products-data-table th.sortable');
+            if (!sortableHeaders.length) return;
+
+            let currentSort = { column: null, direction: 'asc' };
+
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', function () {
+                    const column = this.getAttribute('data-sort');
+                    const table = this.closest('table');
+                    if (!table) return;
+
+                    const tbody = table.querySelector('tbody');
+                    if (!tbody) return;
+
+                    const rows = Array.from(tbody.querySelectorAll('tr'));
+
+                    // Снимаем классы сортировки
+                    sortableHeaders.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+
+                    // Определяем направление
+                    if (currentSort.column === column) {
+                        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSort.column = column;
+                        currentSort.direction = 'asc';
+                    }
+
+                    this.classList.add(`sort-${currentSort.direction}`);
+
+                    // Сортируем
+                    rows.sort((a, b) => {
+                        const aValue = getCellValue(a, column);
+                        const bValue = getCellValue(b, column);
+                        let comparison = 0;
+                        if (aValue < bValue) comparison = -1;
+                        if (aValue > bValue) comparison = 1;
+                        return currentSort.direction === 'desc' ? comparison * -1 : comparison;
+                    });
+
+                    // Переставляем
+                    rows.forEach(row => tbody.appendChild(row));
                 });
-                
-                updatePaginationControls();
-                const paginationInfo = document.querySelector('.pagination-info');
-                if (paginationInfo) {
-                    paginationInfo.textContent = 
-                        `Показано ${startIndex + 1}-${Math.min(endIndex, products.length)} из ${products.length} товаров`;
+            });
+
+            function getCellValue(row, column) {
+                const cell = row.querySelector(`.product-${column}-cell`);
+                if (!cell) return '';
+
+                switch (column) {
+                    case 'title':
+                        const titleElem = cell.querySelector('.table-product-title');
+                        return titleElem ? titleElem.textContent.toLowerCase() : '';
+                    case 'price':
+                        const priceElem = cell.querySelector('.table-price');
+                        if (!priceElem) return 0;
+                        const priceText = priceElem.textContent;
+                        return parseFloat(priceText.replace(/[^\d.]/g, '')) || 0;
+                    case 'vat_included':
+                        const vatElem = cell.querySelector('.vat-badge');
+                        return vatElem ? (vatElem.textContent === '+' ? 1 : 0) : 0;
+                    case 'condition':
+                        const conditionElem = cell.querySelector('.condition-badge');
+                        return conditionElem ? conditionElem.textContent.toLowerCase() : '';
+                    case 'region':
+                        return cell.textContent.toLowerCase();
+                    case 'city':
+                        return cell.textContent.toLowerCase();
+                    case 'delivery':
+                        const deliveryElem = cell.querySelector('.delivery-badge');
+                        return deliveryElem ? (deliveryElem.textContent === 'Есть' ? 1 : 0) : 0;
+                    case 'status':
+                        const statusElem = cell.querySelector('.status-badge');
+                        return statusElem ? statusElem.textContent.toLowerCase() : '';
+                    default:
+                        return cell.textContent.toLowerCase();
                 }
             }
-            
-            function createTableRow(product) {
-                const row = document.createElement('tr');
-                row.className = `table-product-row ${product.status !== 1 ? 'product-unpublished' : ''}`;
-                row.style.cursor = 'pointer';
-                row.onclick = () => window.location.href = `/product/${product.id}`;
-                
-                const titleCell = document.createElement('td');
-                titleCell.className = 'product-title-cell';
-                titleCell.innerHTML = `
+        }
+
+        // Функция для пагинации таблицы
+        function initializePagination() {
+            try {
+                const products = {{ products_json| tojson | safe if products_json else '[]'
+            }};
+        const pageNumbers = document.querySelectorAll('.page-number');
+        const prevBtn = document.querySelector('.prev-btn');
+        const nextBtn = document.querySelector('.next-btn');
+
+        if (!products || products.length <= 20) return;
+
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        const totalPages = Math.ceil(products.length / itemsPerPage);
+
+        function updateTable(page) {
+            currentPage = page;
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageProducts = products.slice(startIndex, endIndex);
+
+            const tbody = document.querySelector('.products-data-table tbody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            pageProducts.forEach(product => {
+                const row = createTableRow(product);
+                tbody.appendChild(row);
+            });
+
+            updatePaginationControls();
+            const paginationInfo = document.querySelector('.pagination-info');
+            if (paginationInfo) {
+                paginationInfo.textContent =
+                    `Показано ${startIndex + 1}-${Math.min(endIndex, products.length)} из ${products.length} товаров`;
+            }
+        }
+
+        function createTableRow(product) {
+            const row = document.createElement('tr');
+            row.className = `table-product-row ${product.status !== 1 ? 'product-unpublished' : ''}`;
+            row.style.cursor = 'pointer';
+            row.onclick = () => window.location.href = `/product/${product.id}`;
+
+            const titleCell = document.createElement('td');
+            titleCell.className = 'product-title-cell';
+            titleCell.innerHTML = `
                     <div class="table-product-title">${product.title || ''}</div>
                     <div class="table-category">${(product.product_category && product.product_category.name) || 'Без категории'}</div>
                 `;
-                
-                const priceCell = document.createElement('td');
-                priceCell.className = 'product-price-cell';
-                const price = parseFloat(product.price) || 0;
-                priceCell.innerHTML = `<span class="table-price">${price.toFixed(2)} ₽</span>`;
-                
-                const vatCell = document.createElement('td');
-                vatCell.className = 'product-vat-cell';
-                vatCell.innerHTML = product.vat_included ? 
-                    '<span class="vat-badge vat-included">+</span>' : 
-                    '<span class="vat-badge vat-excluded">-</span>';
-                
-                const conditionCell = document.createElement('td');
-                conditionCell.className = 'product-condition-cell';
-                conditionCell.innerHTML = (product.condition || 'new') === 'new' ? 
-                    '<span class="condition-badge condition-new">Новое</span>' : 
-                    '<span class="condition-badge condition-used">Б/У</span>';
-                
-                const regionCell = document.createElement('td');
-                regionCell.className = 'product-region-cell';
-                regionCell.textContent = product.region || '—';
-                
-                const cityCell = document.createElement('td');
-                cityCell.className = 'product-city-cell';
-                cityCell.textContent = product.city || '—';
-                
-                const deliveryCell = document.createElement('td');
-                deliveryCell.className = 'product-delivery-cell';
-                deliveryCell.innerHTML = product.delivery ? 
-                    '<span class="delivery-badge delivery-yes">Есть</span>' : 
-                    '<span class="delivery-badge delivery-no">Нет</span>';
-                
-                const statusCell = document.createElement('td');
-                statusCell.className = 'product-status-cell';
-                const statusMap = {1: 'Опубликован', 2: 'Снят с публикации', 3: 'Готов к публикации'};
-                const statusText = statusMap[product.status] || 'Неизвестно';
-                statusCell.innerHTML = `<span class="status-badge status-${product.status}">${statusText}</span>`;
-                
-                [titleCell, priceCell, vatCell, conditionCell, regionCell, cityCell, deliveryCell, statusCell].forEach(cell => {
-                    row.appendChild(cell);
-                });
-                
-                return row;
-            }
-            
-            function updatePaginationControls() {
-                pageNumbers.forEach((page, index) => {
-                    page.classList.toggle('active', index + 1 === currentPage);
-                });
-                if (prevBtn) prevBtn.disabled = currentPage === 1;
-                if (nextBtn) nextBtn.disabled = currentPage === totalPages;
-            }
-            
-            if (prevBtn) {
-                prevBtn.addEventListener('click', () => {
-                    if (currentPage > 1) updateTable(currentPage - 1);
-                });
-            }
-            if (nextBtn) {
-                nextBtn.addEventListener('click', () => {
-                    if (currentPage < totalPages) updateTable(currentPage + 1);
-                });
-            }
-            pageNumbers.forEach((page, index) => {
-                page.addEventListener('click', () => {
-                    if (index + 1 !== currentPage) updateTable(index + 1);
-                });
+
+            const priceCell = document.createElement('td');
+            priceCell.className = 'product-price-cell';
+            const price = parseFloat(product.price) || 0;
+            priceCell.innerHTML = `<span class="table-price">${price.toFixed(2)} ₽</span>`;
+
+            const vatCell = document.createElement('td');
+            vatCell.className = 'product-vat-cell';
+            vatCell.innerHTML = product.vat_included ?
+                '<span class="vat-badge vat-included">+</span>' :
+                '<span class="vat-badge vat-excluded">-</span>';
+
+            const conditionCell = document.createElement('td');
+            conditionCell.className = 'product-condition-cell';
+            conditionCell.innerHTML = (product.condition || 'new') === 'new' ?
+                '<span class="condition-badge condition-new">Новое</span>' :
+                '<span class="condition-badge condition-used">Б/У</span>';
+
+            const regionCell = document.createElement('td');
+            regionCell.className = 'product-region-cell';
+            regionCell.textContent = product.region || '—';
+
+            const cityCell = document.createElement('td');
+            cityCell.className = 'product-city-cell';
+            cityCell.textContent = product.city || '—';
+
+            const deliveryCell = document.createElement('td');
+            deliveryCell.className = 'product-delivery-cell';
+            deliveryCell.innerHTML = product.delivery ?
+                '<span class="delivery-badge delivery-yes">Есть</span>' :
+                '<span class="delivery-badge delivery-no">Нет</span>';
+
+            const statusCell = document.createElement('td');
+            statusCell.className = 'product-status-cell';
+            const statusMap = { 1: 'Опубликован', 2: 'Снят с публикации', 3: 'Готов к публикации' };
+            const statusText = statusMap[product.status] || 'Неизвестно';
+            statusCell.innerHTML = `<span class="status-badge status-${product.status}">${statusText}</span>`;
+
+            [titleCell, priceCell, vatCell, conditionCell, regionCell, cityCell, deliveryCell, statusCell].forEach(cell => {
+                row.appendChild(cell);
             });
-            
-            updateTable(1);
-        } catch (error) {
-            console.error('Ошибка при инициализации пагинации:', error);
+
+            return row;
         }
+
+        function updatePaginationControls() {
+            pageNumbers.forEach((page, index) => {
+                page.classList.toggle('active', index + 1 === currentPage);
+            });
+            if (prevBtn) prevBtn.disabled = currentPage === 1;
+            if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+        }
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                if (currentPage > 1) updateTable(currentPage - 1);
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                if (currentPage < totalPages) updateTable(currentPage + 1);
+            });
+        }
+        pageNumbers.forEach((page, index) => {
+            page.addEventListener('click', () => {
+                if (index + 1 !== currentPage) updateTable(index + 1);
+            });
+        });
+
+        updateTable(1);
+    } catch (error) {
+        console.error('Ошибка при инициализации пагинации:', error);
+    }
     }
 });
 </script>
