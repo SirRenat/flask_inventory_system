@@ -27,6 +27,11 @@ def deserialize_images_filter(images_field):
     """Jinja-фильтр для безопасной десериализации изображений"""
     return _deserialize_images(images_field)
 
+@main.route('/privacy-policy')
+def privacy_policy():
+    return render_template('policy.html')
+
+
 
 @main.route('/')
 def index():

@@ -1,8 +1,51 @@
 from flask import Blueprint, jsonify, request, current_app
 from app.models import City, Region, Product
 import json
+import requests
 
 api_bp = Blueprint('api', __name__)
+
+@api_bp.route('/api/dadata/company', methods=['POST'])
+def get_dadata_company():
+    try:
+        data = request.get_json()
+        inn = data.get('inn')
+        if not inn:
+            return jsonify({'error': 'ИНН обязателен'}), 400
+
+        api_key = current_app.config.get('DADATA_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'API ключ не настроен'}), 500
+
+        url = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/findById/party"
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Token {api_key}"
+        }
+        payload = {"query": inn}
+        
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()
+        result = response.json()
+        
+        if not result['suggestions']:
+            return jsonify({'error': 'Организация не найдена'}), 404
+
+        company = result['suggestions'][0]['data']
+        company_name = result['suggestions'][0]['value']
+        
+        return jsonify({
+            'name': company_name,
+            'address': company.get('address', {}).get('value'),
+            'kpp': company.get('kpp'),
+            'ogrn': company.get('ogrn'),
+            'management_name': company.get('management', {}).get('name')
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @api_bp.route('/api/locations')
 def get_locations():

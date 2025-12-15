@@ -41,3 +41,6 @@ class Config:
     TELEGRAM_BOT_TOKEN = '8576859315:AAFUsWf2_L2ZaJEE8lUxTgOxK_e2IlOTnD0' 
     TELEGRAM_CHAT_ID = '390300'  # Ваш Chat ID
     TELEGRAM_ENABLED = True
+
+    # DaData API
+    DADATA_API_KEY = os.environ.get('DADATA_API_KEY') or '101eb3d6682561b0db5bf155c592a3f8dad52dcf'

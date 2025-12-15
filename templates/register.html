@@ -8,105 +8,83 @@
         <h1 class="page-title">Регистрация организации</h1>
         <p class="page-subtitle">Создайте аккаунт для вашей компании</p>
     </div>
-    
+
     <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <!-- ✅ ДОБАВЛЕНО: Поле для username -->
         <div class="form-group">
             <label class="form-label">Имя пользователя (логин) *</label>
-            <input type="text" 
-                   name="username" 
-                   class="form-control" 
-                   placeholder="mycompany" 
-                   required>
+            <input type="text" name="username" class="form-control" placeholder="mycompany" required>
             <small class="text-muted">Будет отображаться в системе. Можно использовать латинские буквы и цифры.</small>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Email *</label>
-            <input type="email" 
-                   name="email" 
-                   class="form-control" 
-                   placeholder="contact@company.ru" 
-                   required>
+            <input type="email" name="email" class="form-control" placeholder="contact@company.ru" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Пароль *</label>
-            <input type="password" 
-                   name="password" 
-                   class="form-control" 
-                   placeholder="Придумайте надежный пароль" 
-                   minlength="6"
-                   required>
+            <input type="password" name="password" class="form-control" placeholder="Придумайте надежный пароль"
+                minlength="6" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Подтверждение пароля *</label>
-            <input type="password" 
-                   name="confirm_password" 
-                   class="form-control" 
-                   placeholder="Повторите пароль" 
-                   required>
+            <input type="password" name="confirm_password" class="form-control" placeholder="Повторите пароль" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Название организации *</label>
-            <input type="text" 
-                   name="company_name" 
-                   class="form-control" 
-                   placeholder="ООО 'Ромашка'" 
-                   required>
+            <input type="text" name="company_name" class="form-control bg-light"
+                placeholder="ООО 'Ромашка' (Заполнится автоматически)" readonly required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">ИНН *</label>
-            <input type="text" 
-                   name="inn" 
-                   class="form-control" 
-                   placeholder="1234567890" 
-                   maxlength="12"
-                   pattern="[0-9]{10,12}"
-                   required>
-            <small class="text-muted">10 цифр для юрлиц, 12 для ИП</small>
+            <input type="text" name="inn" class="form-control" placeholder="1234567890" maxlength="12"
+                pattern="[0-9]{10,12}" required>
+            <small class="text-muted">Введите ИНН и нажмите кнопку поиска</small>
         </div>
-        
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">КПП</label>
+                    <input type="text" name="kpp" class="form-control bg-light" placeholder="Заполнится автоматически"
+                        readonly>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">ОГРН</label>
+                    <input type="text" name="ogrn" class="form-control bg-light" placeholder="Заполнится автоматически"
+                        readonly>
+                </div>
+            </div>
+        </div>
+
         <div class="form-group">
             <label class="form-label">Юридический адрес *</label>
-            <input type="text" 
-                   name="legal_address" 
-                   class="form-control" 
-                   placeholder="г. Москва, ул. Примерная, д. 1" 
-                   required>
+            <input type="text" name="legal_address" class="form-control bg-light"
+                placeholder="г. Москва, ул. Примерная, д. 1 (Заполнится автоматически)" readonly required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">ФИО контактного лица *</label>
-            <input type="text" 
-                   name="contact_person" 
-                   class="form-control" 
-                   placeholder="Иванов Иван Иванович" 
-                   required>
+            <input type="text" name="contact_person" class="form-control" placeholder="Иванов Иван Иванович" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Должность *</label>
-            <input type="text" 
-                   name="position" 
-                   class="form-control" 
-                   placeholder="Менеджер по закупкам" 
-                   required>
+            <input type="text" name="position" class="form-control" placeholder="Менеджер по закупкам" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Телефон *</label>
-            <input type="tel" 
-                   name="phone" 
-                   class="form-control" 
-                   placeholder="+7 (999) 123-45-67" 
-                   required>
+            <input type="tel" name="phone" class="form-control" placeholder="+7 (999) 123-45-67" required>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">Сфера деятельности</label>
             <select name="industry" class="form-select">
@@ -121,37 +99,32 @@
                 <option value="other">Другое</option>
             </select>
         </div>
-        
+
         <div class="form-group">
             <label class="form-label">О компании</label>
-            <textarea name="about" 
-                      class="form-control" 
-                      rows="3" 
-                      placeholder="Краткое описание деятельности компании"></textarea>
+            <textarea name="about" class="form-control" rows="3"
+                placeholder="Краткое описание деятельности компании"></textarea>
         </div>
-        
+
         <div class="form-group">
             <div class="form-check">
-                <input type="checkbox" 
-                       name="agree_terms" 
-                       class="form-check-input" 
-                       id="agree_terms" 
-                       required>
+                <input type="checkbox" name="agree_terms" class="form-check-input" id="agree_terms" required>
                 <label class="form-check-label" for="agree_terms">
-                    Я согласен с <a href="#" class="text-avito-blue">условиями использования</a> 
-                    и <a href="{{ url_for('main.privacy_policy') }}" target="_blank" class="text-avito-blue">политикой конфиденциальности</a> *
+                    Я согласен с <a href="#" class="text-avito-blue">условиями использования</a>
+                    и <a href="{{ url_for('main.privacy_policy') }}" target="_blank" class="text-avito-blue">политикой
+                        конфиденциальности</a> *
                 </label>
             </div>
         </div>
-        
+
         <button type="submit" class="btn-primary" style="width: 100%;">
             Зарегистрировать организацию
         </button>
     </form>
-    
+
     <div class="text-center mt-4">
         <p class="text-muted">
-            Уже есть аккаунт? 
+            Уже есть аккаунт?
             <a href="{{ url_for('auth.login') }}" class="text-avito-blue">
                 Войдите
             </a>
@@ -160,29 +133,30 @@
 </div>
 
 <style>
-.form-check {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-}
+    .form-check {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
 
-.form-check-input {
-    margin-top: 0.2rem;
-}
+    .form-check-input {
+        margin-top: 0.2rem;
+    }
 
-.form-check-label {
-    font-size: 14px;
-    line-height: 1.4;
-}
+    .form-check-label {
+        font-size: 14px;
+        line-height: 1.4;
+    }
 
-.text-avito-blue {
-    color: #0057FF;
-    text-decoration: none;
-}
+    .text-avito-blue {
+        color: #0057FF;
+        text-decoration: none;
+    }
 
-.text-avito-blue:hover {
-    text-decoration: underline;
-    color: #0044CC;
-}
+    .text-avito-blue:hover {
+        text-decoration: underline;
+        color: #0044CC;
+    }
 </style>
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
 {% endblock %}
