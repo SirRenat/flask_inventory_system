@@ -1345,105 +1345,193 @@
     </div>
 </div>
 
-<!-- Блок категорий -->
-<div class="categories-section">
-    <div class="container">
-        <div class="categories-container">
+<!-- WRAPPER FOR 2-COLUMN LAYOUT -->
+<div class="container-fluid mt-2 px-4">
+    <div class="main-layout-wrapper" style="display: flex; gap: 20px; align-items: flex-start;">
 
-            <div class="categories-grid" id="categoriesGrid">
-                <!-- Все категории -->
-                <div class="main-category-item {% if not request.args.get('category_id') %}active{% endif %}"
-                    data-category-id="" data-category-name="Все категории" onclick="selectCategory(this, '')"
-                    title="Все категории">
-                    <span class="category-tile-name">Все<br>категории</span>
-                    <div class="main-category-icon">
-                        <div class="main-category-icon-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                            </svg>
+        <!-- LEFT COLUMN: Categories + Content -->
+        <div class="layout-main-column" style="flex: 1; min-width: 0;">
+
+            <!-- Блок категорий -->
+            <div class="categories-section"
+                style="border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+                <div class="container-fluid px-2"> <!-- Changed to fluid/px-2 for better fit -->
+                    <div class="categories-container">
+
+                        <div class="categories-grid" id="categoriesGrid">
+                            <!-- Все категории -->
+                            <div class="main-category-item {% if not request.args.get('category_id') %}active{% endif %}"
+                                data-category-id="" data-category-name="Все категории"
+                                onclick="selectCategory(this, '')" title="Все категории">
+                                <span class="category-tile-name">Все<br>категории</span>
+                                <div class="main-category-icon">
+                                    <div class="main-category-icon-inner">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"
+                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                                            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                                            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                                            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Родительские категории из базы данных -->
+                            {% for category in categories if not category.parent_id %}
+                            <div class="main-category-item {% if request.args.get('category_id') == category.id|string %}active{% endif %}"
+                                data-category-id="{{ category.id }}" data-category-name="{{ category.name }}"
+                                onclick="selectCategory(this, '{{ category.id }}')" title="{{ category.name }}">
+                                <span class="category-tile-name">{{ category.name }}</span>
+                                <div class="main-category-icon">
+                                    <div class="main-category-icon-inner">
+                                        {% if category.image %}
+                                        <img src="{{ url_for('main.get_category_image_by_size', category_id=category.id, size='thumbnail') }}"
+                                            alt="{{ category.name }}"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="category-fallback" style="display: none;">
+                                            {{ category.name|first|upper }}
+                                        </div>
+                                        {% else %}
+                                        <div class="category-fallback">
+                                            {{ category.name|first|upper }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Родительские категории из базы данных -->
-                {% for category in categories if not category.parent_id %}
-                <div class="main-category-item {% if request.args.get('category_id') == category.id|string %}active{% endif %}"
-                    data-category-id="{{ category.id }}" data-category-name="{{ category.name }}"
-                    onclick="selectCategory(this, '{{ category.id }}')" title="{{ category.name }}">
-                    <span class="category-tile-name">{{ category.name }}</span>
-                    <div class="main-category-icon">
-                        <div class="main-category-icon-inner">
-                            {% if category.image %}
-                            <img src="{{ url_for('main.get_category_image_by_size', category_id=category.id, size='thumbnail') }}"
-                                alt="{{ category.name }}"
-                                onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="category-fallback" style="display: none;">
-                                {{ category.name|first|upper }}
-                            </div>
-                            {% else %}
-                            <div class="category-fallback">
-                                {{ category.name|first|upper }}
-                            </div>
-                            {% endif %}
+            <!-- Main Content -->
+            <div class="content-container">
+                <div class="listings-section">
+                    <!-- Кнопки переключения видов -->
+                    <div class="view-controls">
+                        <div class="view-toggle">
+                            <button class="view-btn active" data-view="grid" title="Плитка">
+                                ⬜⬜
+                            </button>
+                            <button class="view-btn" data-view="list" title="Список">
+                                ☰
+                            </button>
+                            <button class="view-btn" data-view="table" title="Таблица">
+                                ══
+                            </button>
                         </div>
+                        <span class="text-muted">Найдено: {{ products|length }}</span>
                     </div>
-
+                    {% if products %}
+                    <!-- Grid View -->
+                    <div id="productsGridView">
+                        {% include 'partials/product_grid.html' %}
+                    </div>
+                    <!-- List View -->
+                    <div id="productsListView">
+                        {% include 'partials/product_list.html' %}
+                    </div>
+                    <!-- Table View -->
+                    <div id="productsTableView">
+                        {% include 'partials/product_table.html' %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <h4>Товары не найдены</h4>
+                        <p>Попробуйте изменить параметры поиска или выбрать другую категорию</p>
+                        {% if not current_user.is_authenticated %}
+                        <a href="{{ url_for('auth.login') }}" class="btn-primary mt-3">Войти, чтобы добавить товар</a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
-                {% endfor %}
+            </div>
+        </div> <!-- End Left Column -->
+
+        <!-- RIGHT COLUMN: Sidebar -->
+        <div class="layout-sidebar" style="width: 300px; flex-shrink: 0; display: none;">
+
+            <!-- Ad Block -->
+            <div class="ad-block"
+                style="background: white; border-radius: 8px; border: 1px solid #e0e0e0; height: 400px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                <div style="text-align: center; color: #999;">
+                    <span style="font-size: 14px; display: block; margin-bottom: 8px;">Реклама</span>
+                    <span style="font-size: 24px; opacity: 0.3;">AD</span>
+                </div>
+            </div>
+
+            <!-- News Block -->
+            <div class="news-block"
+                style="background: white; border-radius: 8px; border: 1px solid #e0e0e0; padding: 20px; position: sticky; top: 20px;">
+                <h5 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #1A1A1A;">Новости</h5>
+
+                <div class="news-item"
+                    style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+                    <div style="font-size: 11px; color: #999; margin-bottom: 4px;">15 декабря 2025</div>
+                    <a href="#"
+                        style="font-size: 13px; font-weight: 500; color: #333; text-decoration: none; line-height: 1.4; display: block;">
+                        Запуск системы безопасных сделок для юридических лиц
+                    </a>
+                </div>
+
+                <div class="news-item"
+                    style="margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0;">
+                    <div style="font-size: 11px; color: #999; margin-bottom: 4px;">12 декабря 2025</div>
+                    <a href="#"
+                        style="font-size: 13px; font-weight: 500; color: #333; text-decoration: none; line-height: 1.4; display: block;">
+                        Обновление категорий: добавлено оборудование для HoReCa
+                    </a>
+                </div>
+
+                <div class="news-item">
+                    <div style="font-size: 11px; color: #999; margin-bottom: 4px;">10 декабря 2025</div>
+                    <a href="#"
+                        style="font-size: 13px; font-weight: 500; color: #333; text-decoration: none; line-height: 1.4; display: block;">
+                        Технические работы завершены
+                    </a>
+                </div>
+
+                <a href="#"
+                    style="display: block; margin-top: 16px; font-size: 13px; color: var(--avito-blue); text-decoration: none; font-weight: 500;">
+                    Все новости &rarr;
+                </a>
             </div>
         </div>
+
     </div>
 </div>
 
-<!-- Main Content - УБИРАЕМ ЛЕВЫЙ БЛОК, ОСТАВЛЯЕМ ТОЛЬКО КОНТЕНТ -->
-<div class="container-fluid mt-4 px-4">
-    <div class="content-container">
-        <div class="listings-section">
-            <!-- Кнопки переключения видов -->
-            <div class="view-controls">
-                <div class="view-toggle">
-                    <button class="view-btn active" data-view="grid" title="Плитка">
-                        ⬜⬜
-                    </button>
-                    <button class="view-btn" data-view="list" title="Список">
-                        ☰
-                    </button>
-                    <button class="view-btn" data-view="table" title="Таблица">
-                        ══
-                    </button>
-                </div>
-                <span class="text-muted">Найдено: {{ products|length }}</span>
-            </div>
-            {% if products %}
-            <!-- Grid View -->
-            <div id="productsGridView">
-                {% include 'partials/product_grid.html' %}
-            </div>
-            <!-- List View -->
-            <div id="productsListView">
-                {% include 'partials/product_list.html' %}
-            </div>
-            <!-- Table View -->
-            <div id="productsTableView">
-                {% include 'partials/product_table.html' %}
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <h4>Товары не найдены</h4>
-                <p>Попробуйте изменить параметры поиска или выбрать другую категорию</p>
-                {% if not current_user.is_authenticated %}
-                <a href="{{ url_for('auth.login') }}" class="btn-primary mt-3">Войти, чтобы добавить товар</a>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
+<style>
+    /* Responsive Sidebar Visibility */
+    .layout-sidebar {
+        display: block !important;
+    }
+
+    @media (max-width: 992px) {
+        .main-layout-wrapper {
+            flex-direction: column;
+        }
+
+        .layout-sidebar {
+            width: 100% !important;
+            display: none !important;
+            /* Hide on mobile/tablet for now or move to bottom */
+        }
+
+        .ad-block {
+            height: 200px !important;
+            /* Smaller on mobile if shown */
+        }
+
+        .layout-main-column {
+            width: 100%;
+        }
+    }
+</style>
 
 
 <style>
@@ -1516,15 +1604,22 @@
     /* Overlays */
     .product-card-v2 .location-overlay-v2 {
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0, 0, 0, 0.6) 0%, transparent 100%);
-        padding: 20px 8px 6px;
+        top: 6px;
+        bottom: auto;
+        left: 6px;
+        right: auto;
+        background: rgba(0, 0, 0, 0.6);
+        padding: 4px 8px;
         color: white;
         font-size: 11px;
         z-index: 2;
         pointer-events: none;
+        border-radius: 6px;
+        text-align: left;
+        max-width: calc(100% - 40px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .product-card-v2 .favorite-btn-v2 {
