@@ -725,8 +725,8 @@ def get_category_image_by_size(category_id, size='thumbnail'):
     if not category.image:
         # Возвращаем дефолтное изображение
         return send_from_directory(
-            os.path.join(current_app.root_path, 'static', 'icons'),
-            'category_default.png'
+            os.path.join(current_app.root_path, 'static', 'images'),
+            'no-image.png'
         )
     
     # Определяем имя файла нужного размера
@@ -748,8 +748,16 @@ def get_category_image_by_size(category_id, size='thumbnail'):
     filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], 'categories', filename)
     
     if not os.path.exists(filepath):
-        # Если файла нужного размера нет, возвращаем thumbnail
+        # Если файла нужного размера нет, пробуем вернуть оригинал (thumbnail)
         filename = category.image
+        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], 'categories', filename)
+        
+        # Если и оригинала нет, возвращаем заглушку
+        if not os.path.exists(filepath):
+            return send_from_directory(
+                os.path.join(current_app.root_path, 'static', 'images'),
+                'no-image.png'
+            )
     
     return send_from_directory(
         os.path.join(current_app.config['UPLOAD_FOLDER'], 'categories'),
