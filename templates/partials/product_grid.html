@@ -1,67 +1,67 @@
-                    <div class="products-grid-view">
-                        {% for product in products %}
-                        <div class="product-card" onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
-                            <div class="product-image">
-                                <!-- Добавляем регион-город над фото -->
-                                <div class="product-location-overlay">
-                                    {% if product.region or product.city %}
-                                        <span class="location-text">
-                                            {% if product.city %}{{ product.city }}{% endif %}
-                                            {% if product.region and product.city %}, {% endif %}
-                                            {% if product.region %}{{ product.region }}{% endif %}
-                                        </span>
-                                    {% endif %}
-                                </div>
-                                <!-- Значок избранного -->
-                                {% if current_user.is_authenticated and product in current_user.favorited_products %}
-                                <div class="favorite-badge">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="red" stroke="red" stroke-width="1.5">
-                                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                                    </svg>
-                                </div>
-                                {% endif %}
-                                {% set image_list = product.images | deserialize_images %}
-                                {% if image_list | length > 0 %}
-                                    <img src="{{ url_for('main.serve_uploaded_file', filename=image_list[0]) }}" 
-                                        alt="{{ product.title }}"
-                                        onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="no-photo" style="display: none;">
-                                        <div style="width:100%; height:100%; background:#ccc; display:flex; align-items:center; justify-content:center; color:#666; flex-direction:column;">
-                                            <span style="font-size:48px; opacity:0.6;">🖼️</span>
-                                            <span style="font-size:14px; color:#999;">Нет фото</span>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <div class="no-photo">
-                                        <div style="width:100%; height:100%; background:#ccc; display:flex; align-items:center; justify-content:center; color:#666; flex-direction:column;">
-                                            <span style="font-size:48px; opacity:0.6;">🖼️</span>
-                                            <span style="font-size:14px; color:#999;">Нет фото</span>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="product-info">
-                                <div class="product-category">
-                                    {{ product.product_category.name if product.product_category else 'Без категории' }}
-                                </div>
-                                <div class="product-name">{{ product.title }}</div>
-                                <div class="product-price">
-                                    <span class="current-price">{{ "%.2f"|format(product.price) }} ₽</span>
-                                    {% if product.vat_included %}
-                                        <span class="vat-label vat-included">С НДС</span>
-                                    {% else %}
-                                        <span class="vat-label vat-excluded">Без НДС</span>
-                                    {% endif %}
-                                </div>                                
-                                <div class="product-meta">
-                                    <span class="views-count">
-                                        <img src="{{ url_for('static', filename='icons/eye_icon.svg') }}" alt="Просмотры" class="eye-icon">
-                                        {{ product.view_count if product.view_count else 0 }}
-                                    </span>
-                                    <span class="date">{{ product.created_at.strftime('%d.%m.%Y') }}</span>
-                                    
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
+<div class="product-grid-v2">
+    {% for product in products %}
+    <div class="product-card-v2" onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
+
+        <!-- Image Area -->
+        <div class="card-image-wrapper">
+            <!-- Location Overlay -->
+            <div class="location-overlay-v2">
+                {% if product.city %}{{ product.city }}{% endif %}
+                {% if product.region and product.city %}, {% endif %}
+                {% if product.region %}{{ product.region }}{% endif %}
+            </div>
+
+            <!-- Favorite Badge -->
+            {% if current_user.is_authenticated and product in current_user.favorited_products %}
+            <div class="favorite-btn-v2" title="В избранном">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000" stroke="#FF0000" stroke-width="1.5">
+                    <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+            </div>
+            {% endif %}
+
+            <!-- Image Logic -->
+            {% set image_list = product.images | deserialize_images %}
+            {% if image_list | length > 0 %}
+            <img src="{{ url_for('main.serve_uploaded_file', filename=image_list[0]) }}" alt="{{ product.title }}"
+                onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="no-photo-v2" style="display: none;">
+                <span style="font-size:32px; opacity:0.6;">🖼️</span>
+            </div>
+            {% else %}
+            <div class="no-photo-v2">
+                <span style="font-size:32px; opacity:0.6;">🖼️</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Info Area -->
+        <div class="card-info">
+            <!-- Title -->
+            <div class="card-title">{{ product.title }}</div>
+
+            <!-- Price -->
+            <div class="card-price">
+                {{ "%.0f"|format(product.price) }} ₽
+            </div>
+
+            <!-- VAT / Condition (Optional, kept minimal for compact view) -->
+            <!-- <div style="font-size: 10px; color: #999;">
+                {{ 'С НДС' if product.vat_included else 'Без НДС' }}
+            </div> -->
+
+            <!-- Meta: Date & Views -->
+            <div class="card-meta">
+                <span>{{ product.created_at.strftime('%d.%m') }}</span>
+                <span style="margin-left: auto; display: flex; align-items: center; gap: 4px;">
+                    <img src="{{ url_for('static', filename='icons/eye_icon.svg') }}" alt=""
+                        style="width: 12px; height: 12px; opacity: 0.6;">
+                    {{ product.view_count if product.view_count else 0 }}
+                </span>
+            </div>
+        </div>
+
+    </div>
+    {% endfor %}
+</div>

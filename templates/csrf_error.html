@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Ошибка безопасности{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 50px 0; text-align: center;">
+    <h1 style="margin-bottom: 20px;">⚠️ Ошибка безопасности</h1>
+    <p style="font-size: 1.1em; color: #555;">{{ reason }}</p>
+    <p>Возможно, время действия формы истекло. Пожалуйста, обновите страницу и попробуйте снова.</p>
+    <a href="{{ request.referrer or url_for('main.index') }}" class="btn btn-primary"
+        style="margin-top: 20px;">Вернуться назад</a>
+</div>
+{% endblock %}

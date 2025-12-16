@@ -100,6 +100,12 @@ def create_app():
     admin_flask = Admin(app, name='Админка')
     admin_flask.add_view(ModelView(Region, db.session, name='Регионы', category='Справочники'))
     
+    # Обработчик ошибок CSRF
+    from flask_wtf.csrf import CSRFError
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(e):
+        return render_template('csrf_error.html', reason=e.description), 400
+
     print("=" * 50)
     print("[SUCCESS] Приложение инициализировано успешно!")
     print("=" * 50)

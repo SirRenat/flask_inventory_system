@@ -156,6 +156,8 @@
                         {% if product.status == product.STATUS_PUBLISHED %}
                         <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" method="POST"
                             class="action-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                             <button type="submit" class="btn-unpublish"
                                 onclick="event.stopPropagation(); return confirm('Снять товар с публикации? Он станет виден только вам.')">
                                 Снять
@@ -165,6 +167,8 @@
                         product.STATUS_UNPUBLISHED %}
                         <form action="{{ url_for('main.renew_product', product_id=product.id) }}" method="POST"
                             class="action-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                             <button type="submit" class="btn-publish" onclick="event.stopPropagation();">
                                 Опубликовать
                             </button>
@@ -174,6 +178,8 @@
                         <form action="{{ url_for('main.delete_product', product_id=product.id) }}" method="POST"
                             class="action-form"
                             onsubmit="event.stopPropagation(); return confirm('Удалить товар? Это действие нельзя отменить.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                             <button type="submit" class="btn-delete" onclick="event.stopPropagation();">
                                 Удалить
                             </button>
@@ -224,6 +230,8 @@
                         {% if product.status == product.STATUS_PUBLISHED %}
                         <form action="{{ url_for('main.unpublish_product', product_id=product.id) }}" method="POST"
                             class="action-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                             <button type="submit" class="btn-unpublish"
                                 onclick="event.stopPropagation(); return confirm('Снять товар с публикации? Он станет виден только вам.')">
                                 Снять
@@ -233,6 +241,8 @@
                         product.STATUS_UNPUBLISHED %}
                         <form action="{{ url_for('main.renew_product', product_id=product.id) }}" method="POST"
                             class="action-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                             <button type="submit" class="btn-publish" onclick="event.stopPropagation();">
                                 Опубликовать
                             </button>
