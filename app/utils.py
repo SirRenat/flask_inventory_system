@@ -1,9 +1,57 @@
-import os
 import uuid
-from flask import current_app
-from PIL import Image
-from werkzeug.utils import secure_filename
-import uuid
+import random
+import io
+from PIL import Image, ImageDraw, ImageFont
+
+def generate_captcha_image():
+    """Generates a numeric captcha image and returns the code and image bytes."""
+    code = str(random.randint(1000, 9999))
+    width, height = 120, 50
+    image = Image.new('RGB', (width, height), (255, 255, 255))
+    draw = ImageDraw.Draw(image)
+    
+    # Add noise
+    for _ in range(50):
+        x = random.randint(0, width)
+        y = random.randint(0, height)
+        draw.point((x, y), fill=(random.randint(0, 200), random.randint(0, 200), random.randint(0, 200)))
+        
+    for _ in range(5):
+        x1 = random.randint(0, width)
+        y1 = random.randint(0, height)
+        x2 = random.randint(0, width)
+        y2 = random.randint(0, height)
+        draw.line((x1, y1, x2, y2), fill=(random.randint(200, 255), random.randint(200, 255), random.randint(200, 255)), width=1)
+
+    # Try to load a font, fallback to default
+    try:
+        font = ImageFont.truetype("arial.ttf", 32)
+    except IOError:
+        font = ImageFont.load_default()
+
+    # Draw text
+    # textlength is new in Pillow 9.2.0, fallback to basic positioning logic if needed
+    try:
+        text_width = draw.textlength(code, font=font)
+    except AttributeError:
+         text_width = 40 # Estimating for default
+
+    x = (width - text_width) / 2
+    y = (height - 40) / 2 
+    
+    if isinstance(font, type(ImageFont.load_default())):
+         # Default font is very small, disable centering logic that might push it off
+         x = 10
+         y = 10
+
+    draw.text((x, y), code, font=font, fill=(0, 0, 0))
+    
+    # Return code and image bytes
+    byte_io = io.BytesIO()
+    image.save(byte_io, 'PNG')
+    byte_io.seek(0)
+    return code, byte_io
+
 
 def allowed_file(filename):
     return '.' in filename and \
