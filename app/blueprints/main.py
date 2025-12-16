@@ -507,12 +507,21 @@ def update_expired_products():
 @login_required
 def toggle_favorite(product_id):
     product = Product.query.get_or_404(product_id)
+    is_favorited = False
     if product in current_user.favorited_products:
         current_user.favorited_products.remove(product)
+        is_favorited = False
     else:
         current_user.favorited_products.append(product)
+        is_favorited = True
+    
     db.session.commit()
-    return redirect(url_for('main.product_detail', product_id=product_id))
+    
+    # Return JSON if requested (for AJAX)
+    if request.is_json or request.accept_mimetypes.accept_json and not request.accept_mimetypes.accept_html:
+        return jsonify({'success': True, 'is_favorited': is_favorited})
+        
+    return redirect(request.referrer or url_for('main.index'))
 
 @main.route('/messages/<int:user_id>/<int:product_id>')
 @login_required

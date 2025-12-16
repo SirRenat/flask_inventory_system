@@ -11,16 +11,6 @@
                 {% if product.region %}{{ product.region }}{% endif %}
             </div>
 
-            <!-- Favorite Badge -->
-            {% if current_user.is_authenticated and product in current_user.favorited_products %}
-            <div class="favorite-btn-v2" title="В избранном">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#FF0000" stroke="#FF0000" stroke-width="1.5">
-                    <path
-                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-            </div>
-            {% endif %}
-
             <!-- Image Logic -->
             {% set image_list = product.images | deserialize_images %}
             {% if image_list | length > 0 %}
@@ -46,19 +36,50 @@
                 {{ "%.0f"|format(product.price) }} ₽
             </div>
 
-            <!-- VAT / Condition (Optional, kept minimal for compact view) -->
-            <!-- <div style="font-size: 10px; color: #999;">
-                {{ 'С НДС' if product.vat_included else 'Без НДС' }}
-            </div> -->
-
-            <!-- Meta: Date & Views -->
+            <!-- Meta: Date, Views, Favorite -->
             <div class="card-meta">
                 <span>{{ product.created_at.strftime('%d.%m') }}</span>
-                <span style="margin-left: auto; display: flex; align-items: center; gap: 4px;">
-                    <img src="{{ url_for('static', filename='icons/eye_icon.svg') }}" alt=""
-                        style="width: 12px; height: 12px; opacity: 0.6;">
-                    {{ product.view_count if product.view_count else 0 }}
-                </span>
+
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+                    <!-- Views -->
+                    <span style="display: flex; align-items: center; gap: 4px;" title="Просмотры">
+                        <img src="{{ url_for('static', filename='icons/eye_icon.svg') }}" alt=""
+                            style="width: 12px; height: 12px; opacity: 0.6;">
+                        {{ product.view_count if product.view_count else 0 }}
+                    </span>
+
+                    <!-- Favorite Heart -->
+                    {% if current_user.is_authenticated %}
+                    <button type="button" class="favorite-toggle-btn"
+                        onclick="toggleFavorite(event, {{ product.id }}, '{{ csrf_token() }}')"
+                        style="background:none; border:none; padding:0; cursor:pointer; display:flex; align-items:center;"
+                        title="В избранное">
+
+                        <div id="favorite-icon-{{ product.id }}" class="favorite-icon-container"
+                            data-is-favorited="{{ 'true' if product in current_user.favorited_products else 'false' }}">
+
+                            <!-- Filled Heart (shown if favorited) -->
+                            <svg class="heart-filled" width="18" height="18" viewBox="0 0 24 24" fill="#FF0000"
+                                stroke="#FF0000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="display: {{ 'block' if product in current_user.favorited_products else 'none' }};">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                </path>
+                            </svg>
+
+                            <!-- Outline Heart (shown if NOT favorited) -->
+                            <svg class="heart-outline" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                stroke="#8D8D8D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                style="display: {{ 'none' if product in current_user.favorited_products else 'block' }};"
+                                onmouseover="this.style.stroke='#FF0000'" onmouseout="this.style.stroke='#8D8D8D'">
+                                <path
+                                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                </path>
+                            </svg>
+                        </div>
+                    </button>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
