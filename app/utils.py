@@ -12,7 +12,7 @@ def generate_captcha_image():
     code = str(random.randint(1000, 9999))
     
     # Image dimensions
-    width, height = 120, 50
+    width, height = 160, 50
     # Create white background
     image = Image.new('RGB', (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
@@ -24,7 +24,10 @@ def generate_captcha_image():
         font = ImageFont.load_default()
     
     # Draw each character with random rotation
-    char_width = width // 4
+    # Reduce char_width slightly or ensure total fits
+    char_spacing = 35
+    start_x = 10
+    
     for i, char in enumerate(code):
         # Create a separate image for the character to rotate it
         # Make it larger than needed to avoid clipping during rotation
@@ -32,7 +35,6 @@ def generate_captcha_image():
         txt_draw = ImageDraw.Draw(txt_img)
         
         # Draw text centered in the small image
-        # Note: Position adjustments might be needed depending on font
         txt_draw.text((10, 5), char, font=font, fill=(0, 0, 0, 255))
         
         # Rotate randomly between -20 and 20 degrees
@@ -40,11 +42,10 @@ def generate_captcha_image():
         rotated_txt = txt_img.rotate(angle, expand=1, resample=Image.BICUBIC)
         
         # Calculate position to paste
-        # Add some random horizontal jitter
         jitter_x = random.randint(-2, 2)
         jitter_y = random.randint(-2, 2)
         
-        paste_x = (i * char_width) + 10 + jitter_x
+        paste_x = start_x + (i * char_spacing) + jitter_x
         paste_y = 5 + jitter_y
         
         image.paste(rotated_txt, (paste_x, paste_y), rotated_txt)
