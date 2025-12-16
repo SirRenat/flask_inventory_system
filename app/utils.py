@@ -173,3 +173,23 @@ def save_uploaded_files(files):
     
     print(f"  🔍 save_uploaded_files: конец, сохранено: {saved_files}")
     return saved_files
+
+def get_category_choices(parent_id=None, level=0):
+    """
+    Рекурсивно получает категории для выпадающего списка с учетом иерархии.
+    Возвращает список словарей: {'id', 'name', 'level', 'display_name'}
+    """
+    from app.models import Category
+    
+    choices = []
+    # Сортировка по алфавиту
+    cats = Category.query.filter_by(parent_id=parent_id).order_by(Category.name).all()
+    for cat in cats:
+        choices.append({
+            'id': cat.id,
+            'name': cat.name,
+            'level': level,
+            'display_name': ('— ' * level) + cat.name
+        })
+        choices.extend(get_category_choices(cat.id, level + 1))
+    return choices

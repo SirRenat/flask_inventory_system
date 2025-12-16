@@ -538,31 +538,32 @@
     }
 
     /* Стили для переключения видов */
+    /* Стили для переключения видов */
     .view-controls {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
-        padding-bottom: 20px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
         border-bottom: 2px solid #F0F0F0;
     }
 
     .view-toggle {
         display: flex;
-        gap: 5px;
+        gap: 2px;
         background: #F8F9FA;
-        border-radius: 8px;
-        padding: 4px;
+        border-radius: 6px;
+        padding: 2px;
         border: 1px solid #E0E0E0;
     }
 
     .view-btn {
         background: none;
         border: none;
-        padding: 8px 12px;
-        border-radius: 6px;
+        padding: 4px 6px;
+        border-radius: 4px;
         cursor: pointer;
-        font-size: 16px;
+        font-size: 14px;
         transition: all 0.2s ease;
         color: #666666;
     }
@@ -1370,7 +1371,7 @@
                     {% for category in categories %}
                     <option value="{{ category.id }}" {% if request.args.get('category_id')==category.id|string
                         %}selected{% endif %}>
-                        {{ category.name }}
+                        {{ category.display_name }}
                     </option>
                     {% endfor %}
                 </select>
@@ -1407,7 +1408,7 @@
 
             <!-- Блок категорий -->
             <div class="categories-section"
-                style="border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px;">
+                style="border-radius: 12px; border: 1px solid var(--border); margin-bottom: 8px;">
                 <div class="container-fluid px-2"> <!-- Changed to fluid/px-2 for better fit -->
                     <div class="categories-container">
 
@@ -1432,7 +1433,7 @@
                             </div>
 
                             <!-- Родительские категории из базы данных -->
-                            {% for category in categories if not category.parent_id %}
+                            {% for category in root_categories %}
                             <div class="main-category-item {% if request.args.get('category_id') == category.id|string %}active{% endif %}"
                                 data-category-id="{{ category.id }}" data-category-name="{{ category.name }}"
                                 onclick="selectCategory(this, '{{ category.id }}')" title="{{ category.name }}">

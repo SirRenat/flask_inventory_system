@@ -57,10 +57,18 @@ def index():
         )
     query = query.options(joinedload(Product.product_category))
     products = query.order_by(Product.created_at.desc()).all()
-    categories = Category.query.all()
+    
+    # Используем иерархический список категорий (список словарей)
+    from app.utils import get_category_choices
+    categories = get_category_choices()
+    
+    # Для плиток категорий (только верхний уровень)
+    root_categories = Category.query.filter_by(parent_id=None).order_by(Category.name).all()
+    
     return render_template('main.html', 
                          products=products, 
                          categories=categories,
+                         root_categories=root_categories,
                          search_term=search_term)
 
 @main.route('/dashboard')

@@ -178,22 +178,9 @@ def admin_categories():
             region.name = cleaned_name
         db.session.commit()
     
-    # Helper для рекурсивного списка категорий (для выпадающего списка)
-    def get_category_choices(parent_id=None, level=0):
-        choices = []
-        # Сортировка по алфавиту
-        cats = Category.query.filter_by(parent_id=parent_id).order_by(Category.name).all()
-        for cat in cats:
-            choices.append({
-                'id': cat.id,
-                'name': cat.name,
-                'level': level,
-                'display_name': ('— ' * level) + cat.name
-            })
-            choices.extend(get_category_choices(cat.id, level + 1))
-        return choices
-
     # Загружаем категории для списка выбора (плоский список с отступами)
+    # Используем helper из utils
+    from app.utils import get_category_choices
     category_choices = get_category_choices()
     
     # Загружаем корневые категории для дерева (сортировка по алфавиту)
