@@ -121,22 +121,25 @@
     .main-category-item {
         display: flex;
         flex-direction: row;
-        /* Horizontal layout for desktop */
         align-items: center;
         width: auto;
-        min-width: 140px;
-        max-width: 320px;
-        /* Prevent single tile from filling whole row */
-        height: 70px;
+        min-width: fit-content;
+        /* Dynamic width */
+        max-width: 300px;
+        /* Slightly reduced max-width */
+        height: 60px;
+        /* Reduced from 70px (- ~15%) */
         cursor: pointer;
         transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         position: relative;
-        padding: 5px 12px;
+        padding: 4px 10px;
+        /* Reduced padding */
         background: white;
-        border-radius: 12px;
+        border-radius: 10px;
+        /* Slightly smaller radius */
         border: 1px solid var(--border);
-        flex-grow: 1;
-        /* Stretch to fill row */
+        flex-grow: 0;
+        /* Don't stretch */
     }
 
     .main-category-item:hover {
