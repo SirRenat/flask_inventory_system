@@ -35,6 +35,10 @@ def privacy_policy():
 def help():
     return render_template('help.html')
 
+@main.route('/system-description')
+def system_description():
+    return render_template('system_description.html')
+
 
 
 @main.route('/')
