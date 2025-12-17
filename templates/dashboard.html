@@ -1,6 +1,33 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    /* CSS сортировка */
+    .sort-icon::before {
+        content: '\f0dc';
+        /* fa-sort */
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        color: #ccc;
+    }
+
+    th.sort-asc .sort-icon::before {
+        content: '\f0de';
+        /* fa-sort-up */
+        color: #007bff;
+    }
+
+    th.sort-desc .sort-icon::before {
+        content: '\f0dd';
+        /* fa-sort-down */
+        color: #007bff;
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        color: #ccc;
+    }
+</style>
 <div class="dashboard-container">
     <div class="dashboard-layout">
         <!-- Левое меню -->
@@ -9,51 +36,43 @@
                 <ul class="nav-menu">
                     <li class="nav-item active">
                         <a href="{{ url_for('main.dashboard') }}" class="nav-link">
-                            <span class="nav-icon">📋</span>
                             <span class="nav-text">Мои объявления</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
-                            <span class="nav-icon">⭐</span>
                             <span class="nav-text">Мои отзывы</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('main.favorites') }}" class="nav-link">
-                            <span class="nav-icon">❤️</span>
                             <span class="nav-text">Избранное</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
-                            <span class="nav-icon">💬</span>
                             <span class="nav-text">Сообщения</span>
                             <span class="badge">3</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
-                            <span class="nav-icon">🔔</span>
                             <span class="nav-text">Уведомления</span>
                             <span class="badge">5</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
-                            <span class="nav-icon">📧</span>
                             <span class="nav-text">Рассылки</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('main.profile') }}" class="nav-link">
-                            <span class="nav-icon">👤</span>
                             <span class="nav-text">Управление профилем</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#" class="nav-link">
-                            <span class="nav-icon">⚙️</span>
                             <span class="nav-text">Настройки</span>
                         </a>
                     </li>
@@ -84,17 +103,17 @@
                 <div class="dashboard-controls">
                     <div class="view-toggle">
                         <button class="view-btn active" data-view="grid" title="Плитка">
-                            ⬜⬜
+                            <i class="fas fa-th-large"></i>
                         </button>
                         <button class="view-btn" data-view="list" title="Список">
-                            ☰
+                            <i class="fas fa-list"></i>
                         </button>
                         <button class="view-btn" data-view="table" title="Таблица">
-                            ══
+                            <i class="fas fa-table"></i>
                         </button>
                     </div>
                     <a href="{{ url_for('main.add_product') }}" class="btn-add-product">
-                        ➕ Добавить товар
+                        <i class="fas fa-plus"></i> Добавить товар
                     </a>
                 </div>
             </div>
@@ -111,7 +130,7 @@
                         <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}"
                             alt="{{ product.title }}">
                         {% else %}
-                        <div class="no-image">📷</div>
+                        <div class="no-image"><i class="fas fa-camera"></i></div>
                         {% endif %}
 
                         <!-- Бейдж статуса -->
@@ -136,7 +155,11 @@
                             {% endif %}
                         </p>
                         <div class="product-views">
-                            <span class="views-count">👁️ {{ product.view_count if product.view_count else 0 }}</span>
+                            <span class="views-count">
+                                <img src="{{ url_for('static', filename='icons/eye_icon.svg') }}" alt=""
+                                    style="width: 14px; height: 14px; vertical-align: middle; opacity: 0.6; margin-right: 4px;">
+                                {{ product.view_count if product.view_count else 0 }}
+                            </span>
                         </div>
                         <p class="product-description">{{ product.description|truncate(100) if product.description else
                             'Нет описания' }}</p>
@@ -200,7 +223,7 @@
                         <img src="{{ url_for('main.serve_uploaded_file', filename=product.image_list[0]) }}"
                             alt="{{ product.title }}">
                         {% else %}
-                        <div class="no-image-small">📷</div>
+                        <div class="no-image-small"><i class="fas fa-camera"></i></div>
                         {% endif %}
                     </div>
 
@@ -262,49 +285,49 @@
                                 <th data-sort="title" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">Название товара</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                                 <th data-sort="price" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">Цена</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                                 <th data-sort="vat_included" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">НДС</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                                 <th data-sort="condition" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">Состояние</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                                 <th data-sort="region" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">Регион</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                                 <th data-sort="city" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">Город</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                                 <th data-sort="delivery" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">Доставка</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                                 <th data-sort="status" class="sortable">
                                     <div class="table-header-content">
                                         <div class="header-text">Статус</div>
-                                        <div class="sort-icon">↕️</div>
+                                        <div class="sort-icon"></div>
                                     </div>
                                 </th>
                             </tr>
@@ -377,11 +400,11 @@
             </div>
             {% else %}
             <div class="empty-state">
-                <div class="empty-icon">📦</div>
+                <div class="empty-icon"><i class="fas fa-box-open"></i></div>
                 <h3>У вас пока нет товаров</h3>
                 <p>Добавьте первый товар, чтобы начать продавать</p>
                 <a href="{{ url_for('main.add_product') }}" class="btn-add-product">
-                    ➕ Добавить товар
+                    <i class="fas fa-plus"></i> Добавить товар
                 </a>
             </div>
             {% endif %}
