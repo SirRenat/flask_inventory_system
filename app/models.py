@@ -113,6 +113,15 @@ class Category(db.Model):
         backref=db.backref('parent', remote_side=[id]),
         lazy=True
     )
+
+    def get_ancestors(self):
+        """Возвращает список предков от корневого до текущего (включая текущий)"""
+        ancestors = [self]
+        curr = self
+        while curr.parent:
+            curr = curr.parent
+            ancestors.append(curr)
+        return ancestors[::-1]
     
     def __repr__(self):
         return f'<Category {self.name}>'

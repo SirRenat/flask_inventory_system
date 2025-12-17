@@ -260,7 +260,7 @@ def add_product():
             db.session.rollback()
             flash(f'Ошибка при добавлении товара: {str(e)}', 'error')
             return redirect(url_for('main.add_product'))
-    categories = Category.query.all()
+    categories = Category.query.filter_by(parent_id=None).order_by(Category.name).all()
     if not categories:
         flash('Прежде чем добавлять товары, создайте хотя бы одну категорию', 'warning')
         return redirect(url_for('main.admin_categories'))
@@ -412,7 +412,7 @@ def edit_product(product_id):
             db.session.rollback()
             flash(f'Ошибка при обновлении товара: {str(e)}', 'error')
             return redirect(url_for('main.edit_product', product_id=product_id))
-    categories = Category.query.all()
+    categories = Category.query.filter_by(parent_id=None).order_by(Category.name).all()
     if not categories:
         flash('Нет доступных категорий', 'error')
         return redirect(url_for('main.index'))
@@ -435,12 +435,17 @@ def edit_product(product_id):
             product_images = []
     else:
         product_images = []
+        
+    # Get category path for pre-filling
+    category_path = product.product_category.get_ancestors() if product.product_category else []
+    
     return render_template('edit_product.html', 
                          product=product, 
                          product_images=product_images,
                          categories=categories,
                          regions=regions,
-                         cities=cities)
+                         cities=cities,
+                         category_path=category_path)
 
 @main.route('/product/<int:product_id>/delete', methods=['POST'])
 @login_required
@@ -790,6 +795,15 @@ def get_category_image_by_size(category_id, size='thumbnail'):
         os.path.join(current_app.config['UPLOAD_FOLDER'], 'categories'),
         filename
     )
+
+@main.route('/api/categories/children/<int:parent_id>')
+def get_child_categories(parent_id):
+    children = Category.query.filter_by(parent_id=parent_id).order_by(Category.name).all()
+    return jsonify([{
+        'id': c.id,
+        'name': c.name,
+        'has_children': bool(c.children)
+    } for c in children])
 
 # Старая функция для обратной совместимости - перенаправляет на новую
 @main.route('/category_image/<filename>')

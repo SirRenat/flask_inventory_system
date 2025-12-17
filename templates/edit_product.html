@@ -28,17 +28,142 @@
                             required>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="category_id">Категория <span class="required">*</span></label>
-                        <select class="form-select" id="category_id" name="category_id" required>
-                            <option value="">Выберите категорию</option>
-                            {% for category in categories %}
-                            <option value="{{ category.id }}" {% if product.category_id==category.id %}selected{% endif
-                                %}>
-                                {{ category.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
+                        <label class="form-label">Категория <span class="required">*</span></label>
+                        <div id="category-container">
+                            <select class="form-select mb-2" onchange="handleCategoryChange(this)" data-level="0">
+                                <option value="">-- Выберите категорию --</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if category_path|length> 0 and category_path[0].id
+                                    == category.id %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="hidden" name="category_id" id="category_id_hidden"
+                            value="{{ product.category_id }}" required>
+                        <div class="form-text text-muted">Выберите категорию</div>
                     </div>
+
+                    <script>
+                        const INITIAL_PATH = [
+                            {% for cat in category_path %}
+                        { id: { { cat.id } }, name: "{{ cat.name }}" },
+                        {% endfor %}
+                        ];
+
+                        document.addEventListener('DOMContentLoaded', function () {
+                            initCategories();
+                        });
+
+                        async function initCategories() {
+                            const container = document.getElementById('category-container');
+
+                            // Iterate through the path starting from root (index 0)
+                            // We need to load children for each item in the path (except the last one which is the leaf)
+                            // and select the NEXT item in the path.
+
+                            for (let i = 0; i < INITIAL_PATH.length - 1; i++) {
+                                const parentId = INITIAL_PATH[i].id;
+                                const nextId = INITIAL_PATH[i + 1].id;
+
+                                await loadNextLevel(parentId, i + 1, nextId);
+                            }
+                        }
+
+                        async function loadNextLevel(parentId, level, selectedId) {
+                            try {
+                                const response = await fetch(`/api/categories/children/${parentId}`);
+                                const children = await response.json();
+
+                                if (children.length > 0) {
+                                    const container = document.getElementById('category-container');
+                                    const newSelect = document.createElement('select');
+                                    newSelect.className = 'form-select mb-2';
+                                    newSelect.setAttribute('data-level', level);
+                                    newSelect.onchange = function () { handleCategoryChange(this); };
+
+                                    const defaultOption = document.createElement('option');
+                                    defaultOption.value = '';
+                                    defaultOption.textContent = '-- Уточните категорию --';
+                                    newSelect.appendChild(defaultOption);
+
+                                    children.forEach(child => {
+                                        const option = document.createElement('option');
+                                        option.value = child.id;
+                                        option.textContent = child.name;
+                                        if (child.id == selectedId) {
+                                            option.selected = true;
+                                        }
+                                        newSelect.appendChild(option);
+                                    });
+
+                                    container.appendChild(newSelect);
+                                }
+                            } catch (err) {
+                                console.error('Error loading categories:', err);
+                            }
+                        }
+
+                        function handleCategoryChange(selectElement) {
+                            const container = document.getElementById('category-container');
+                            const currentLevel = parseInt(selectElement.getAttribute('data-level'));
+                            const selectedId = selectElement.value;
+
+                            updateHiddenInput();
+
+                            // Remove deeper levels
+                            const selects = Array.from(container.querySelectorAll('select'));
+                            selects.forEach(sel => {
+                                if (parseInt(sel.getAttribute('data-level')) > currentLevel) {
+                                    sel.remove();
+                                }
+                            });
+
+                            if (!selectedId) return;
+
+                            // Fetch children
+                            fetch(`/api/categories/children/${selectedId}`)
+                                .then(response => response.json())
+                                .then(children => {
+                                    if (children.length > 0) {
+                                        const newLevel = currentLevel + 1;
+                                        const newSelect = document.createElement('select');
+                                        newSelect.className = 'form-select mb-2';
+                                        newSelect.setAttribute('data-level', newLevel);
+                                        newSelect.onchange = function () { handleCategoryChange(this); };
+
+                                        const defaultOption = document.createElement('option');
+                                        defaultOption.value = '';
+                                        defaultOption.textContent = '-- Уточните категорию --';
+                                        newSelect.appendChild(defaultOption);
+
+                                        children.forEach(child => {
+                                            const option = document.createElement('option');
+                                            option.value = child.id;
+                                            option.textContent = child.name;
+                                            newSelect.appendChild(option);
+                                        });
+
+                                        container.appendChild(newSelect);
+                                    }
+                                })
+                                .catch(err => console.error('Error loading categories:', err));
+                        }
+
+                        function updateHiddenInput() {
+                            const selects = Array.from(document.querySelectorAll('#category-container select'));
+                            let lastSelectedId = '';
+                            for (let sel of selects) {
+                                if (sel.value) {
+                                    lastSelectedId = sel.value;
+                                } else {
+                                    break;
+                                }
+                            }
+                            document.getElementById('category_id_hidden').value = lastSelectedId;
+                        }
+                    </script>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="manufacturer">Производитель</label>

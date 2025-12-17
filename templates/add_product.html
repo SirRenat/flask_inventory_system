@@ -10,8 +10,9 @@
             <h1 class="page-title">Добавить товар</h1>
             <p class="page-subtitle">Разместите новое объявление</p>
         </div>
-        
-        <form method="POST" action="{{ url_for('main.add_product') }}" enctype="multipart/form-data" id="addProductForm">
+
+        <form method="POST" action="{{ url_for('main.add_product') }}" enctype="multipart/form-data"
+            id="addProductForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-grid">
                 <!-- Основная информация -->
@@ -20,72 +21,134 @@
                         <span class="form-section-icon"></span>
                         <h3>Основная информация</h3>
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label" for="title">
                             Название товара <span class="required">*</span>
                         </label>
-                        <input type="text" 
-                               name="title" 
-                               id="title"
-                               class="form-control" 
-                               placeholder="Например: Офисные стулья Herman Miller" 
-                               required>
+                        <input type="text" name="title" id="title" class="form-control"
+                            placeholder="Например: Офисные стулья Herman Miller" required>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label class="form-label" for="category_id">Категория <span class="required">*</span></label>
-                        <select name="category_id" id="category_id" class="form-select" required>
-                            <option value="">-- Выберите категорию --</option>
-                            {% for category in categories %}
+                        <label class="form-label">Категория <span class="required">*</span></label>
+                        <div id="category-container">
+                            <select class="form-select mb-2" onchange="handleCategoryChange(this)" data-level="0">
+                                <option value="">-- Выберите категорию --</option>
+                                {% for category in categories %}
                                 <option value="{{ category.id }}">{{ category.name }}</option>
-                            {% endfor %}
-                        </select>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="hidden" name="category_id" id="category_id_hidden" required>
+                        <div class="form-text text-muted" id="category-help-text">Выберите категорию верхнего уровня,
+                            затем уточняющие подкатегории</div>
                     </div>
-                    
+
+                    <script>
+                        function handleCategoryChange(selectElement) {
+                            const container = document.getElementById('category-container');
+                            const hiddenInput = document.getElementById('category_id_hidden');
+                            const currentLevel = parseInt(selectElement.getAttribute('data-level'));
+                            const selectedId = selectElement.value;
+
+                            // 1. Update hidden input (always the currently selected value, effectively)
+                            // We need to find the *last* selected valid value in the chain.
+                            updateHiddenInput();
+
+                            // 2. Remove all deeper levels
+                            const selects = Array.from(container.querySelectorAll('select'));
+                            selects.forEach(sel => {
+                                if (parseInt(sel.getAttribute('data-level')) > currentLevel) {
+                                    sel.remove();
+                                }
+                            });
+
+                            if (!selectedId) {
+                                // Deselected current level
+                                return;
+                            }
+
+                            // 3. Fetch children
+                            fetch(`/api/categories/children/${selectedId}`)
+                                .then(response => response.json())
+                                .then(children => {
+                                    if (children.length > 0) {
+                                        // Create new select
+                                        const newLevel = currentLevel + 1;
+                                        const newSelect = document.createElement('select');
+                                        newSelect.className = 'form-select mb-2';
+                                        newSelect.setAttribute('data-level', newLevel);
+                                        newSelect.onchange = function () { handleCategoryChange(this); };
+
+                                        const defaultOption = document.createElement('option');
+                                        defaultOption.value = '';
+                                        defaultOption.textContent = '-- Уточните категорию --';
+                                        newSelect.appendChild(defaultOption);
+
+                                        children.forEach(child => {
+                                            const option = document.createElement('option');
+                                            option.value = child.id;
+                                            option.textContent = child.name;
+                                            newSelect.appendChild(option);
+                                        });
+
+                                        container.appendChild(newSelect);
+                                    }
+                                })
+                                .catch(err => console.error('Error loading categories:', err));
+                        }
+
+                        function updateHiddenInput() {
+                            const selects = Array.from(document.querySelectorAll('#category-container select'));
+                            let lastSelectedId = '';
+
+                            // Iterate and find the deepest selected value
+                            // Requirement: "обязателен только верхний уровень" (mandatory is only top level)
+                            // But usually we want the deepest.
+                            // However, the user said "mandatory is only top level". 
+                            // So if I select level 1, and level 2 is available but I don't select it, is it valid?
+                            // "после открывалось поле выбора дочерней категории (если имеется) далее при наличии следующий уровень."
+                            // Usually in e-commerce you must select the leaf.
+                            // But the user said "mandatory is only top level".
+                            // So I will set the value to the deepest *selected* value.
+
+                            for (let sel of selects) {
+                                if (sel.value) {
+                                    lastSelectedId = sel.value;
+                                } else {
+                                    break;
+                                }
+                            }
+                            document.getElementById('category_id_hidden').value = lastSelectedId;
+                        }
+                    </script>
+
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label" for="manufacturer">Производитель</label>
-                            <input type="text" 
-                                   name="manufacturer" 
-                                   id="manufacturer"
-                                   class="form-control" 
-                                   placeholder="Например: IKEA, Herman Miller, Xiaomi">
+                            <input type="text" name="manufacturer" id="manufacturer" class="form-control"
+                                placeholder="Например: IKEA, Herman Miller, Xiaomi">
                         </div>
-                        
+
                         <div class="form-group">
                             <label class="form-label" for="quantity">Количество</label>
-                            <input type="number" 
-                                   name="quantity" 
-                                   id="quantity"
-                                   class="form-control" 
-                                   value="1"
-                                   min="1"
-                                   step="1"
-                                   placeholder="1">
+                            <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1"
+                                step="1" placeholder="1">
                         </div>
                     </div>
-                    
+
                     <!-- ЕДИНСТВЕННОЕ ПОЛЕ ЦЕНЫ С НДС -->
                     <div class="form-group">
                         <label class="form-label">Цена (руб.) <span class="required">*</span></label>
                         <div class="price-input-wrapper">
                             <div class="price-input-container">
-                                <input type="number" 
-                                       name="price" 
-                                       id="price"
-                                       class="form-control" 
-                                       step="0.01" 
-                                       min="0"
-                                       placeholder="0.00" 
-                                       required>
+                                <input type="number" name="price" id="price" class="form-control" step="0.01" min="0"
+                                    placeholder="0.00" required>
                             </div>
                             <span class="price-currency">₽</span>
                             <div class="vat-checkbox-container">
-                                <input type="checkbox" 
-                                       name="vat_included" 
-                                       id="vat_included"
-                                       class="vat-checkbox">
+                                <input type="checkbox" name="vat_included" id="vat_included" class="vat-checkbox">
                                 <label for="vat_included" class="vat-label">с НДС</label>
                             </div>
                         </div>
@@ -94,11 +157,13 @@
                     <div class="form-group">
                         <label class="form-label">Состояние</label>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="condition" id="conditionNew" value="new" checked>
+                            <input class="form-check-input" type="radio" name="condition" id="conditionNew" value="new"
+                                checked>
                             <label class="form-check-label" for="conditionNew">Новое</label>
                         </div>
                         <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="condition" id="conditionUsed" value="used">
+                            <input class="form-check-input" type="radio" name="condition" id="conditionUsed"
+                                value="used">
                             <label class="form-check-label" for="conditionUsed">Б/у</label>
                         </div>
                     </div>
@@ -137,38 +202,32 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="description">Описание</label>
-                        <textarea name="description" 
-                                  id="description"
-                                  class="form-control" 
-                                  rows="5" 
-                                  placeholder="Подробное описание товара, состояние, характеристики, комплектация, размеры..."></textarea>
+                        <textarea name="description" id="description" class="form-control" rows="5"
+                            placeholder="Подробное описание товара, состояние, характеристики, комплектация, размеры..."></textarea>
                         <div class="form-text">Опишите состояние, характеристики, комплектацию и размеры товара</div>
                     </div>
                 </div>
-                
+
                 <!-- Загрузка изображений -->
                 <div class="form-section">
                     <div class="form-section-header">
                         <span class="form-section-icon"></span>
                         <h3>Изображения товара</h3>
                     </div>
-                    
+
                     <!-- Загрузка файлов -->
                     <div class="form-group">
                         <label class="form-label" for="image_files">Загрузить фотографии</label>
-                        
+
                         <div class="file-upload-wrapper">
-                            <input type="file" 
-                                   name="image_files" 
-                                   id="image_files"
-                                   multiple 
-                                   accept="image/*" 
-                                   class="file-input">
-                            
+                            <input type="file" name="image_files" id="image_files" multiple accept="image/*"
+                                class="file-input">
+
                             <div class="file-upload-area" id="file-upload-area">
                                 <div class="upload-placeholder">
                                     <div class="upload-icon">
-                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="1.5">
                                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                             <polyline points="17 8 12 3 7 8"></polyline>
                                             <line x1="12" y1="3" x2="12" y2="15"></line>
@@ -216,20 +275,16 @@
                             <button type="button" class="btn-clear" onclick="clearImages()">Очистить все</button>
                         </div>
                     </div>
-                    
+
                     <!-- Разделитель -->
                     <div class="or-divider">
                         <span>ИЛИ</span>
                     </div>
-                    
+
                     <!-- URL изображений -->
                     <div class="form-group url-field">
                         <label class="form-label" for="image_urls">URL изображений</label>
-                        <textarea name="image_urls" 
-                                  id="image_urls"
-                                  class="form-control" 
-                                  rows="2" 
-                                  placeholder="Введите URL изображений через запятую
+                        <textarea name="image_urls" id="image_urls" class="form-control" rows="2" placeholder="Введите URL изображений через запятую
 Пример: https://example.com/image1.jpg    , https://example.com/image2.jpg    "></textarea>
                         <div class="form-text">
                             Укажите URL изображений через запятую, если нет файлов для загрузки.
@@ -238,7 +293,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Кнопки -->
             <div class="form-actions">
                 <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
@@ -253,549 +308,552 @@
 </div>
 
 <style>
-:root {
-    --avito-blue: #0057FF;
-    --avito-blue-light: #E6F0FF;
-    --avito-blue-hover: #0047D6;
-    --text-primary: #1A1A1A;
-    --text-secondary: #666666;
-    --text-tertiary: #999999;
-    --border: #E0E0E0;
-    --border-light: #F0F0F0;
-    --background-secondary: #F8F9FA;
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    --radius: 8px;
-}
+    :root {
+        --avito-blue: #0057FF;
+        --avito-blue-light: #E6F0FF;
+        --avito-blue-hover: #0047D6;
+        --text-primary: #1A1A1A;
+        --text-secondary: #666666;
+        --text-tertiary: #999999;
+        --border: #E0E0E0;
+        --border-light: #F0F0F0;
+        --background-secondary: #F8F9FA;
+        --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        --radius: 8px;
+    }
 
-.form-container {
-    background: white;
-    border-radius: 12px;
-    padding: 32px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-    margin-bottom: 32px;
-}
-
-.form-section {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.form-section-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.form-section-icon {
-    font-size: 20px;
-}
-
-.form-section h3 {
-    color: var(--text-primary);
-    font-size: 18px;
-    font-weight: 600;
-    margin: 0;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-}
-
-.form-label {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 4px;
-    font-size: 14px;
-}
-
-.required {
-    color: #FF3B30;
-}
-
-.form-control, .form-select {
-    padding: 12px 16px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    font-size: 14px;
-    transition: all 0.2s ease;
-    background: white;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.form-control:focus, .form-select:focus {
-    border-color: var(--avito-blue);
-    box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
-    outline: none;
-}
-
-/* Цена + НДС — горизонтальный контейнер */
-.price-input-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-}
-
-.price-input-container {
-    flex: 1;
-    position: relative;
-}
-
-.price-input-container .form-control {
-    padding-right: 40px;
-    width: 100%;
-}
-
-.price-currency {
-    color: var(--text-secondary);
-    font-weight: 500;
-    font-size: 16px;
-    white-space: nowrap;
-}
-
-.vat-checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.vat-checkbox {
-    margin: 0;
-}
-
-.vat-label {
-    font-size: 13px;
-    color: var(--text-secondary);
-    cursor: pointer;
-}
-
-/* Стили для загрузки файлов */
-.file-upload-wrapper {
-    position: relative;
-}
-
-.file-input {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 10;
-    top: 0;
-    left: 0;
-}
-
-.file-upload-area {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: var(--background-secondary);
-    position: relative;
-    min-height: 180px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.file-upload-area:hover {
-    border-color: var(--avito-blue);
-    background: rgba(0, 87, 255, 0.05);
-}
-
-.file-upload-area.drag-over {
-    border-color: var(--avito-blue);
-    background: rgba(0, 87, 255, 0.1);
-    border-style: solid;
-}
-
-.upload-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 10px;
-    width: 100%;
-    pointer-events: none;
-}
-
-.upload-icon {
-    color: var(--text-tertiary);
-    margin-bottom: 5px;
-}
-
-.upload-icon svg {
-    stroke: var(--text-tertiary);
-}
-
-.file-upload-area:hover .upload-icon svg {
-    stroke: var(--avito-blue);
-}
-
-.upload-text {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    text-align: center;
-}
-
-.upload-text strong {
-    color: var(--text-primary);
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.upload-text span {
-    color: var(--text-secondary);
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-.upload-hint {
-    color: var(--text-tertiary);
-    font-size: 13px;
-    margin-top: 10px;
-    text-align: center;
-    max-width: 400px;
-}
-
-.upload-hint strong {
-    color: var(--text-secondary);
-    font-weight: 600;
-}
-
-.upload-hint ul {
-    list-style: none;
-    padding: 0;
-    margin: 8px 0;
-    text-align: left;
-    display: inline-block;
-}
-
-.upload-hint li {
-    padding: 2px 0;
-    position: relative;
-    padding-left: 15px;
-    color: var(--text-secondary);
-    font-size: 12px;
-}
-
-.upload-hint li:before {
-    content: "•";
-    position: absolute;
-    left: 0;
-    color: var(--avito-blue);
-    font-size: 16px;
-}
-
-/* Разделитель */
-.or-divider {
-    display: flex;
-    align-items: center;
-    margin: 20px 0;
-    color: var(--text-tertiary);
-}
-
-.or-divider:before,
-.or-divider:after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-}
-
-.or-divider span {
-    padding: 0 15px;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-/* URL поле */
-.url-field .form-control {
-    font-family: monospace;
-    font-size: 13px;
-}
-
-.url-field .form-text {
-    background: #f8f9fa;
-    padding: 10px;
-    border-radius: 6px;
-    border-left: 3px solid var(--avito-blue);
-    margin-top: 10px;
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-/* Предпросмотр изображений */
-.image-preview-container {
-    margin-top: 20px;
-    padding: 20px;
-    background: var(--background-secondary);
-    border-radius: var(--radius);
-    border: 1px solid var(--border-light);
-}
-
-.image-preview-container h4 {
-    color: var(--text-primary);
-    margin-bottom: 10px;
-    font-size: 16px;
-    font-weight: 600;
-}
-
-.preview-hint, .cropper-hint {
-    font-size: 13px;
-    color: var(--text-tertiary);
-    margin: 0 0 15px 0;
-    text-align: center;
-}
-
-.image-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.preview-wrapper {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.preview-image {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 3 / 2;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 2px solid var(--border);
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    cursor: pointer;
-}
-
-.preview-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-.remove-image-small {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    background: rgba(255, 0, 0, 0.8);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-    z-index: 10;
-}
-
-.preview-wrapper:hover .remove-image-small {
-    background: rgba(255, 0, 0, 1);
-}
-
-.preview-image:hover {
-    transform: scale(1.03);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.preview-wrapper small {
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--text-secondary);
-    text-align: center;
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.preview-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: var(--text-secondary);
-    font-size: 14px;
-    padding-top: 10px;
-    border-top: 1px solid var(--border-light);
-}
-
-.btn-clear {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--text-secondary);
-    padding: 6px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.2s ease;
-}
-
-.btn-clear:hover {
-    background: var(--background-secondary);
-    color: var(--text-primary);
-    border-color: var(--text-tertiary);
-}
-
-/* Croppie Modal */
-.cropper-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-}
-
-.cropper-content {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 450px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    text-align: center;
-}
-
-.cropper-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 20px;
-}
-
-/* Кнопки */
-.form-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 24px;
-    border-top: 1px solid var(--border-light);
-}
-
-.btn {
-    padding: 12px 24px;
-    border-radius: var(--radius);
-    font-weight: 500;
-    text-decoration: none;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--avito-blue) 0%, var(--avito-blue-hover) 100%);
-    color: white;
-    box-shadow: 0 2px 8px rgba(0, 87, 255, 0.3);
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(0, 87, 255, 0.4);
-    color: white;
-}
-
-.btn-secondary {
-    background: var(--background-secondary);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-}
-
-.btn-secondary:hover {
-    background: var(--border-light);
-    color: var(--text-primary);
-}
-
-/* Адаптивность */
-@media (max-width: 768px) {
     .form-container {
-        padding: 20px;
-        margin: 0 16px;
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border);
+        max-width: 900px;
+        margin: 0 auto;
     }
-    
+
     .form-grid {
-        grid-template-columns: 1fr;
-        gap: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        margin-bottom: 32px;
     }
-    
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-    
-    .form-actions {
+
+    .form-section {
+        display: flex;
         flex-direction: column;
-        gap: 16px;
-        align-items: stretch;
+        gap: 20px;
     }
-    
-    .btn {
-        width: 100%;
-        justify-content: center;
+
+    .form-section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
     }
-    
-    .image-preview-grid {
-        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+
+    .form-section-icon {
+        font-size: 20px;
     }
-    
-    /* Цена и НДС на мобильных — в колонку */
-    .price-input-wrapper {
+
+    .form-section h3 {
+        color: var(--text-primary);
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .form-group {
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
         gap: 8px;
     }
-}
 
-@media (max-width: 480px) {
-    .form-container {
-        padding: 16px;
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
     }
-    
+
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        font-size: 14px;
+    }
+
+    .required {
+        color: #FF3B30;
+    }
+
+    .form-control,
+    .form-select {
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: white;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: var(--avito-blue);
+        box-shadow: 0 0 0 3px rgba(0, 87, 255, 0.1);
+        outline: none;
+    }
+
+    /* Цена + НДС — горизонтальный контейнер */
+    .price-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .price-input-container {
+        flex: 1;
+        position: relative;
+    }
+
+    .price-input-container .form-control {
+        padding-right: 40px;
+        width: 100%;
+    }
+
+    .price-currency {
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 16px;
+        white-space: nowrap;
+    }
+
+    .vat-checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .vat-checkbox {
+        margin: 0;
+    }
+
+    .vat-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        cursor: pointer;
+    }
+
+    /* Стили для загрузки файлов */
+    .file-upload-wrapper {
+        position: relative;
+    }
+
+    .file-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 10;
+        top: 0;
+        left: 0;
+    }
+
+    .file-upload-area {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: var(--background-secondary);
+        position: relative;
+        min-height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .file-upload-area:hover {
+        border-color: var(--avito-blue);
+        background: rgba(0, 87, 255, 0.05);
+    }
+
+    .file-upload-area.drag-over {
+        border-color: var(--avito-blue);
+        background: rgba(0, 87, 255, 0.1);
+        border-style: solid;
+    }
+
+    .upload-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 10px;
+        width: 100%;
+        pointer-events: none;
+    }
+
+    .upload-icon {
+        color: var(--text-tertiary);
+        margin-bottom: 5px;
+    }
+
+    .upload-icon svg {
+        stroke: var(--text-tertiary);
+    }
+
+    .file-upload-area:hover .upload-icon svg {
+        stroke: var(--avito-blue);
+    }
+
+    .upload-text {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        text-align: center;
+    }
+
+    .upload-text strong {
+        color: var(--text-primary);
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .upload-text span {
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .upload-hint {
+        color: var(--text-tertiary);
+        font-size: 13px;
+        margin-top: 10px;
+        text-align: center;
+        max-width: 400px;
+    }
+
+    .upload-hint strong {
+        color: var(--text-secondary);
+        font-weight: 600;
+    }
+
+    .upload-hint ul {
+        list-style: none;
+        padding: 0;
+        margin: 8px 0;
+        text-align: left;
+        display: inline-block;
+    }
+
+    .upload-hint li {
+        padding: 2px 0;
+        position: relative;
+        padding-left: 15px;
+        color: var(--text-secondary);
+        font-size: 12px;
+    }
+
+    .upload-hint li:before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        color: var(--avito-blue);
+        font-size: 16px;
+    }
+
+    /* Разделитель */
+    .or-divider {
+        display: flex;
+        align-items: center;
+        margin: 20px 0;
+        color: var(--text-tertiary);
+    }
+
+    .or-divider:before,
+    .or-divider:after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    .or-divider span {
+        padding: 0 15px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+
+    /* URL поле */
+    .url-field .form-control {
+        font-family: monospace;
+        font-size: 13px;
+    }
+
+    .url-field .form-text {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 6px;
+        border-left: 3px solid var(--avito-blue);
+        margin-top: 10px;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    /* Предпросмотр изображений */
+    .image-preview-container {
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--background-secondary);
+        border-radius: var(--radius);
+        border: 1px solid var(--border-light);
+    }
+
+    .image-preview-container h4 {
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .preview-hint,
+    .cropper-hint {
+        font-size: 13px;
+        color: var(--text-tertiary);
+        margin: 0 0 15px 0;
+        text-align: center;
+    }
+
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .preview-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
     .preview-image {
+        position: relative;
+        width: 100%;
         aspect-ratio: 3 / 2;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 2px solid var(--border);
+        background: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        cursor: pointer;
     }
-}
+
+    .preview-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .remove-image-small {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: rgba(255, 0, 0, 0.8);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        font-size: 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        z-index: 10;
+    }
+
+    .preview-wrapper:hover .remove-image-small {
+        background: rgba(255, 0, 0, 1);
+    }
+
+    .preview-image:hover {
+        transform: scale(1.03);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .preview-wrapper small {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-align: center;
+        max-width: 120px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .preview-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-secondary);
+        font-size: 14px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .btn-clear {
+        background: none;
+        border: 1px solid var(--border);
+        color: var(--text-secondary);
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s ease;
+    }
+
+    .btn-clear:hover {
+        background: var(--background-secondary);
+        color: var(--text-primary);
+        border-color: var(--text-tertiary);
+    }
+
+    /* Croppie Modal */
+    .cropper-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+
+    .cropper-content {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 450px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        text-align: center;
+    }
+
+    .cropper-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+    }
+
+    /* Кнопки */
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 24px;
+        border-top: 1px solid var(--border-light);
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: var(--radius);
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--avito-blue) 0%, var(--avito-blue-hover) 100%);
+        color: white;
+        box-shadow: 0 2px 8px rgba(0, 87, 255, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 16px rgba(0, 87, 255, 0.4);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: var(--background-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+        background: var(--border-light);
+        color: var(--text-primary);
+    }
+
+    /* Адаптивность */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 20px;
+            margin: 0 16px;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .image-preview-grid {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+
+        /* Цена и НДС на мобильных — в колонку */
+        .price-input-wrapper {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .form-container {
+            padding: 16px;
+        }
+
+        .preview-image {
+            aspect-ratio: 3 / 2;
+        }
+    }
 </style>
 
 <!-- Подключаем Croppie -->
@@ -803,227 +861,227 @@
 <script src="https://unpkg.com/croppie@2.6.5/croppie.min.js"></script>
 
 <script>
-let selectedFiles = [];
-let croppieInstance = null;
-let currentFileIndex = null;
+    let selectedFiles = [];
+    let croppieInstance = null;
+    let currentFileIndex = null;
 
-document.addEventListener('DOMContentLoaded', function () {
-    const fileInput = document.getElementById('image_files');
-    const uploadArea = document.getElementById('file-upload-area');
-    const regionSelect = document.getElementById('region_id');
-    const citySelect = document.getElementById('city_id');
+    document.addEventListener('DOMContentLoaded', function () {
+        const fileInput = document.getElementById('image_files');
+        const uploadArea = document.getElementById('file-upload-area');
+        const regionSelect = document.getElementById('region_id');
+        const citySelect = document.getElementById('city_id');
 
-    // Обработчик изменения региона
-    regionSelect.addEventListener('change', function() {
-        loadCitiesForRegion(this.value);
-    });
-
-    fileInput.addEventListener('change', handleFileSelect);
-
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('drag-over');
-    });
-
-    uploadArea.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('drag-over');
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            handleFileSelect({ target: fileInput });
-        }
-    });
-
-    uploadArea.addEventListener('click', function(e) {
-        if (e.target === uploadArea || e.target.closest('.upload-placeholder')) {
-            fileInput.click();
-        }
-    });
-});
-
-// Загрузка городов для выбранного региона
-function loadCitiesForRegion(regionId) {
-    const citySelect = document.getElementById('city_id');
-    
-    if (!regionId) {
-        citySelect.innerHTML = '<option value="">Сначала выберите субъект РФ</option>';
-        citySelect.disabled = true;
-        return;
-    }
-    
-    citySelect.innerHTML = '<option value="">Загрузка городов...</option>';
-    citySelect.disabled = true;
-    
-    // AJAX запрос для получения городов
-    fetch(`/api/cities/by-region/${regionId}`)
-        .then(response => response.json())
-        .then(cities => {
-            citySelect.innerHTML = '<option value="">Выберите город</option>';
-            cities.forEach(city => {
-                const option = document.createElement('option');
-                option.value = city.id;
-                option.textContent = city.name;
-                citySelect.appendChild(option);
-            });
-            citySelect.disabled = false;
-        })
-        .catch(error => {
-            console.error('Ошибка при загрузке городов:', error);
-            citySelect.innerHTML = '<option value="">Ошибка загрузки городов</option>';
+        // Обработчик изменения региона
+        regionSelect.addEventListener('change', function () {
+            loadCitiesForRegion(this.value);
         });
-}
 
-function handleFileSelect(event) {
-    const files = Array.from(event.target.files);
-    
-    if (files.length > 4) {
-        alert('Можно выбрать не более 4 изображений!');
-        event.target.value = '';
-        return;
+        fileInput.addEventListener('change', handleFileSelect);
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect({ target: fileInput });
+            }
+        });
+
+        uploadArea.addEventListener('click', function (e) {
+            if (e.target === uploadArea || e.target.closest('.upload-placeholder')) {
+                fileInput.click();
+            }
+        });
+    });
+
+    // Загрузка городов для выбранного региона
+    function loadCitiesForRegion(regionId) {
+        const citySelect = document.getElementById('city_id');
+
+        if (!regionId) {
+            citySelect.innerHTML = '<option value="">Сначала выберите субъект РФ</option>';
+            citySelect.disabled = true;
+            return;
+        }
+
+        citySelect.innerHTML = '<option value="">Загрузка городов...</option>';
+        citySelect.disabled = true;
+
+        // AJAX запрос для получения городов
+        fetch(`/api/cities/by-region/${regionId}`)
+            .then(response => response.json())
+            .then(cities => {
+                citySelect.innerHTML = '<option value="">Выберите город</option>';
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    citySelect.appendChild(option);
+                });
+                citySelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Ошибка при загрузке городов:', error);
+                citySelect.innerHTML = '<option value="">Ошибка загрузки городов</option>';
+            });
     }
 
-    if (files.some(f => f.size > 5 * 1024 * 1024)) {
-        alert('Один или несколько файлов превышают 5 МБ!');
-        event.target.value = '';
-        return;
+    function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+
+        if (files.length > 4) {
+            alert('Можно выбрать не более 4 изображений!');
+            event.target.value = '';
+            return;
+        }
+
+        if (files.some(f => f.size > 5 * 1024 * 1024)) {
+            alert('Один или несколько файлов превышают 5 МБ!');
+            event.target.value = '';
+            return;
+        }
+
+        selectedFiles = files.map(file => ({
+            originalFile: file,
+            croppedBlob: null,
+            croppedFile: null,
+            url: URL.createObjectURL(file)
+        }));
+
+        renderPreview();
+        document.getElementById('image-preview-container').style.display = 'block';
     }
 
-    selectedFiles = files.map(file => ({
-        originalFile: file,
-        croppedBlob: null,
-        croppedFile: null,
-        url: URL.createObjectURL(file)
-    }));
+    function renderPreview() {
+        const container = document.getElementById('image-preview');
+        container.innerHTML = '';
 
-    renderPreview();
-    document.getElementById('image-preview-container').style.display = 'block';
-}
-
-function renderPreview() {
-    const container = document.getElementById('image-preview');
-    container.innerHTML = '';
-
-    selectedFiles.forEach((item, index) => {
-        const div = document.createElement('div');
-        div.className = 'preview-wrapper';
-        div.innerHTML = `
+        selectedFiles.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'preview-wrapper';
+            div.innerHTML = `
             <div class="preview-image" onclick="openCropper(${index})">
                 <img src="${item.croppedBlob ? URL.createObjectURL(item.croppedBlob) : item.url}" alt="Preview">
             </div>
-            <small>${item.originalFile.name.length > 15 ? item.originalFile.name.substring(0,12) + '...' : item.originalFile.name}</small>
+            <small>${item.originalFile.name.length > 15 ? item.originalFile.name.substring(0, 12) + '...' : item.originalFile.name}</small>
             <button type="button" class="remove-image-small" onclick="event.stopPropagation(); removeImage(${index})">×</button>
         `;
-        container.appendChild(div);
-    });
-
-    document.getElementById('image-count').textContent = selectedFiles.length;
-}
-
-function openCropper(index) {
-    currentFileIndex = index;
-    const imageUrl = selectedFiles[index].url;
-
-    const container = document.getElementById('cropper-container');
-    container.innerHTML = '';
-
-    croppieInstance = new Croppie(container, {
-        viewport: { width: 300, height: 200, type: 'rectangle' },
-        boundary: { width: 350, height: 250 },
-        enableOrientation: true,
-        enableZoom: true,
-        mouseWheelZoom: true
-    });
-
-    croppieInstance.bind({ url: imageUrl });
-    document.getElementById('cropper-modal').style.display = 'flex';
-}
-
-function closeCropper() {
-    if (croppieInstance) {
-        croppieInstance.destroy();
-        croppieInstance = null;
-    }
-    document.getElementById('cropper-modal').style.display = 'none';
-    currentFileIndex = null;
-}
-
-function applyCrop() {
-    if (!croppieInstance || currentFileIndex === null) return;
-
-    croppieInstance.result({
-        type: 'blob',
-        size: { width: 600, height: 400 },
-        format: 'jpeg',
-        quality: 0.92
-    }).then(blob => {
-        const originalFile = selectedFiles[currentFileIndex].originalFile;
-        const newFile = new File([blob], originalFile.name.replace(/\.[^/.]+$/, "") + ".jpg", {
-            type: 'image/jpeg',
-            lastModified: Date.now()
+            container.appendChild(div);
         });
 
-        selectedFiles[currentFileIndex].croppedBlob = blob;
-        selectedFiles[currentFileIndex].croppedFile = newFile;
+        document.getElementById('image-count').textContent = selectedFiles.length;
+    }
 
-        closeCropper();
-        renderPreview();
-    });
-}
+    function openCropper(index) {
+        currentFileIndex = index;
+        const imageUrl = selectedFiles[index].url;
 
-function removeImage(index) {
-    if (confirm('Удалить это изображение?')) {
-        selectedFiles.splice(index, 1);
-        renderPreview();
-        if (selectedFiles.length === 0) {
+        const container = document.getElementById('cropper-container');
+        container.innerHTML = '';
+
+        croppieInstance = new Croppie(container, {
+            viewport: { width: 300, height: 200, type: 'rectangle' },
+            boundary: { width: 350, height: 250 },
+            enableOrientation: true,
+            enableZoom: true,
+            mouseWheelZoom: true
+        });
+
+        croppieInstance.bind({ url: imageUrl });
+        document.getElementById('cropper-modal').style.display = 'flex';
+    }
+
+    function closeCropper() {
+        if (croppieInstance) {
+            croppieInstance.destroy();
+            croppieInstance = null;
+        }
+        document.getElementById('cropper-modal').style.display = 'none';
+        currentFileIndex = null;
+    }
+
+    function applyCrop() {
+        if (!croppieInstance || currentFileIndex === null) return;
+
+        croppieInstance.result({
+            type: 'blob',
+            size: { width: 600, height: 400 },
+            format: 'jpeg',
+            quality: 0.92
+        }).then(blob => {
+            const originalFile = selectedFiles[currentFileIndex].originalFile;
+            const newFile = new File([blob], originalFile.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                type: 'image/jpeg',
+                lastModified: Date.now()
+            });
+
+            selectedFiles[currentFileIndex].croppedBlob = blob;
+            selectedFiles[currentFileIndex].croppedFile = newFile;
+
+            closeCropper();
+            renderPreview();
+        });
+    }
+
+    function removeImage(index) {
+        if (confirm('Удалить это изображение?')) {
+            selectedFiles.splice(index, 1);
+            renderPreview();
+            if (selectedFiles.length === 0) {
+                document.getElementById('image-preview-container').style.display = 'none';
+            }
+        }
+    }
+
+    function clearImages() {
+        if (confirm('Очистить все изображения?')) {
+            selectedFiles = [];
+            document.getElementById('image_files').value = '';
             document.getElementById('image-preview-container').style.display = 'none';
         }
     }
-}
 
-function clearImages() {
-    if (confirm('Очистить все изображения?')) {
-        selectedFiles = [];
-        document.getElementById('image_files').value = '';
-        document.getElementById('image-preview-container').style.display = 'none';
-    }
-}
+    // Перед отправкой — подменяем файлы на обрезанные
+    document.getElementById('addProductForm').addEventListener('submit', function (e) {
+        const dataTransfer = new DataTransfer();
+        let hasImages = false;
 
-// Перед отправкой — подменяем файлы на обрезанные
-document.getElementById('addProductForm').addEventListener('submit', function(e) {
-    const dataTransfer = new DataTransfer();
-    let hasImages = false;
+        selectedFiles.forEach(item => {
+            if (item.croppedFile) {
+                dataTransfer.items.add(item.croppedFile);
+                hasImages = true;
+            } else if (item.originalFile) {
+                dataTransfer.items.add(item.originalFile);
+                hasImages = true;
+            }
+        });
 
-    selectedFiles.forEach(item => {
-        if (item.croppedFile) {
-            dataTransfer.items.add(item.croppedFile);
-            hasImages = true;
-        } else if (item.originalFile) {
-            dataTransfer.items.add(item.originalFile);
-            hasImages = true;
+        if (hasImages) {
+            document.getElementById('image_files').files = dataTransfer.files;
+        }
+
+        // Заполняем старые поля для обратной совместимости
+        const regionSelect = document.getElementById('region_id');
+        const citySelect = document.getElementById('city_id');
+        const regionOption = regionSelect.options[regionSelect.selectedIndex];
+        const cityOption = citySelect.options[citySelect.selectedIndex];
+
+        if (regionOption && regionOption.dataset.regionName) {
+            document.getElementById('old_region').value = regionOption.dataset.regionName;
+        }
+        if (cityOption) {
+            document.getElementById('old_city').value = cityOption.textContent;
         }
     });
-
-    if (hasImages) {
-        document.getElementById('image_files').files = dataTransfer.files;
-    }
-    
-    // Заполняем старые поля для обратной совместимости
-    const regionSelect = document.getElementById('region_id');
-    const citySelect = document.getElementById('city_id');
-    const regionOption = regionSelect.options[regionSelect.selectedIndex];
-    const cityOption = citySelect.options[citySelect.selectedIndex];
-    
-    if (regionOption && regionOption.dataset.regionName) {
-        document.getElementById('old_region').value = regionOption.dataset.regionName;
-    }
-    if (cityOption) {
-        document.getElementById('old_city').value = cityOption.textContent;
-    }
-});
 </script>
 {% endblock %}
