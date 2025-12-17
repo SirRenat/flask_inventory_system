@@ -21,4 +21,4 @@ Flask-Migrate==4.1.0
 alembic==1.17.2
 Pillow
 requests
-
+psutil
