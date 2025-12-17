@@ -12,33 +12,36 @@ def generate_captcha_image():
     code = str(random.randint(1000, 9999))
     
     # Image dimensions
-    width, height = 160, 50
+    width, height = 180, 60  # Increased size slightly
     # Create white background
     image = Image.new('RGB', (width, height), (255, 255, 255))
     draw = ImageDraw.Draw(image)
     
     # Load font (try various system fonts or fallback)
     try:
-        font = ImageFont.truetype("arial.ttf", 28)
+        font = ImageFont.truetype("arial.ttf", 40) # Increased font size
     except IOError:
-        font = ImageFont.load_default()
+        try:
+             font = ImageFont.truetype("segoeui.ttf", 40)
+        except IOError:
+            font = ImageFont.load_default()
     
     # Draw each character with random rotation
     # Reduce char_width slightly or ensure total fits
-    char_spacing = 35
+    char_spacing = 40 # Increased spacing
     start_x = 10
     
     for i, char in enumerate(code):
         # Create a separate image for the character to rotate it
         # Make it larger than needed to avoid clipping during rotation
-        txt_img = Image.new('RGBA', (40, 40), (255, 255, 255, 0))
+        txt_img = Image.new('RGBA', (50, 50), (255, 255, 255, 0))
         txt_draw = ImageDraw.Draw(txt_img)
         
         # Draw text centered in the small image
         txt_draw.text((10, 5), char, font=font, fill=(0, 0, 0, 255))
         
-        # Rotate randomly between -20 and 20 degrees
-        angle = random.randint(-20, 20)
+        # Rotate randomly between -10 and 10 degrees (Reduced rotation)
+        angle = random.randint(-10, 10)
         rotated_txt = txt_img.rotate(angle, expand=1, resample=Image.BICUBIC)
         
         # Calculate position to paste
@@ -50,8 +53,8 @@ def generate_captcha_image():
         
         image.paste(rotated_txt, (paste_x, paste_y), rotated_txt)
 
-    # Add noise: lines
-    for _ in range(8):
+    # Add noise: lines (Reduced noise)
+    for _ in range(5):
         x1 = random.randint(0, width)
         y1 = random.randint(0, height)
         x2 = random.randint(0, width)
@@ -59,8 +62,8 @@ def generate_captcha_image():
         color = (random.randint(50, 200), random.randint(50, 200), random.randint(50, 200))
         draw.line((x1, y1, x2, y2), fill=color, width=1)
         
-    # Add noise: points
-    for _ in range(100):
+    # Add noise: points (Reduced noise)
+    for _ in range(50):
         x = random.randint(0, width)
         y = random.randint(0, height)
         color = (random.randint(100, 200), random.randint(100, 200), random.randint(100, 200))
