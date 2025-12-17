@@ -115,6 +115,44 @@ def create_app():
     def handle_csrf_error(e):
         return render_template('csrf_error.html', reason=e.description), 400
 
+    # Обработчик всех 500-х ошибок
+    @app.errorhandler(500)
+    def handle_internal_error(e):
+        if telegram_bot:
+            telegram_bot.send_error_notification(e)
+        return render_template('500.html'), 500
+
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        # Pass through HTTP errors
+        if hasattr(e, 'code'):
+            return e
+            
+        # Handle non-HTTP exceptions
+        if telegram_bot:
+            telegram_bot.send_error_notification(e)
+        # We can return a generic 500 page or let Flask handle it (which will trigger 500 handler usually)
+        # But handle_exception catches everything.
+        print(f"[ERROR-HANDLER] {e}")
+        return render_template('500.html'), 500
+
+    # Регистрация хуков запуска и остановки
+    import atexit
+    
+    def on_exit():
+        if telegram_bot:
+            telegram_bot.send_shutdown_notification()
+            print("[INFO] System stop notification sent.")
+
+    atexit.register(on_exit)
+    
+    # Уведомление о запуске (только для основного процесса, не релоадера)
+    if telegram_bot and not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+         try:
+             telegram_bot.send_startup_notification()
+         except:
+             print("[WARN] Could not send startup notification")
+
     print("=" * 50)
     print("[SUCCESS] Приложение инициализировано успешно!")
     print("=" * 50)
