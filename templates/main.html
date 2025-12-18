@@ -1408,7 +1408,8 @@
                 <div class="container-fluid px-2"> <!-- Changed to fluid/px-2 for better fit -->
                     <div class="categories-container">
 
-                        <div class="categories-grid" id="categoriesGrid">
+                        <div class="categories-grid" id="categoriesGrid"
+                            style="display: flex; flex-wrap: nowrap; overflow-x: auto; gap: 12px; align-items: stretch;">
                             <!-- Все категории -->
                             <div class="main-category-item {% if not request.args.get('category_id') %}active{% endif %}"
                                 data-category-id="" data-category-name="Все категории"
