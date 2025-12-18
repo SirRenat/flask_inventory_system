@@ -1756,6 +1756,12 @@
             padding: 8px;
         }
     }
+
+    @media (min-width: 769px) {
+        .mobile-favorite-icon {
+            display: none !important;
+        }
+    }
 </style>
 <!-- Модальное окно выбора города/региона -->
 {% include 'partials/location_modal.html' %}
@@ -2185,28 +2191,40 @@
 
 
         // AJAX Favorite Toggle
+        // AJAX Favorite Toggle
         window.toggleFavorite = function (event, productId, csrfToken) {
             event.preventDefault();
             event.stopPropagation();
 
-            const container = document.getElementById(`favorite-icon-${productId}`);
-            if (!container) return;
+            // Select ALL heart containers for this product (desktop, mobile, list view, etc.)
+            const containers = document.querySelectorAll(`.favorite-icon-container[data-product-id="${productId}"]`);
+            if (containers.length === 0) return;
 
-            // Optimistic update
-            const filledHeart = container.querySelector('.heart-filled');
-            const outlineHeart = container.querySelector('.heart-outline');
-            const currentlyFavorited = container.getAttribute('data-is-favorited') === 'true';
+            // Determine new state based on the first container found
+            const firstContainer = containers[0];
+            const currentlyFavorited = firstContainer.getAttribute('data-is-favorited') === 'true';
+            const newState = !currentlyFavorited;
 
-            // Toggle immediately
-            if (currentlyFavorited) {
-                filledHeart.style.display = 'none';
-                outlineHeart.style.display = 'block';
-                container.setAttribute('data-is-favorited', 'false');
-            } else {
-                filledHeart.style.display = 'block';
-                outlineHeart.style.display = 'none';
-                container.setAttribute('data-is-favorited', 'true');
-            }
+            // Optimistic update for ALL containers
+            containers.forEach(container => {
+                const filledHeart = container.querySelector('.heart-filled');
+                const outlineHeart = container.querySelector('.heart-outline');
+
+                if (newState) {
+                    if (filledHeart) filledHeart.style.display = 'block';
+                    if (outlineHeart) outlineHeart.style.display = 'none';
+                    container.setAttribute('data-is-favorited', 'true');
+                    // Also toggle active class on button if it exists
+                    const btn = container.closest('.favorite-icon-btn');
+                    if (btn) btn.classList.add('active');
+                } else {
+                    if (filledHeart) filledHeart.style.display = 'none';
+                    if (outlineHeart) outlineHeart.style.display = 'block';
+                    container.setAttribute('data-is-favorited', 'false');
+                    const btn = container.closest('.favorite-icon-btn');
+                    if (btn) btn.classList.remove('active');
+                }
+            });
 
             fetch(`/product/${productId}/favorite`, {
                 method: 'POST',
@@ -2223,31 +2241,42 @@
                     throw new Error('Network response form favorite toggle was not ok');
                 })
                 .then(data => {
-                    // Verify state matches server
                     if (data && data.success) {
-                        if (data.is_favorited) {
-                            filledHeart.style.display = 'block';
-                            outlineHeart.style.display = 'none';
-                            container.setAttribute('data-is-favorited', 'true');
-                        } else {
-                            filledHeart.style.display = 'none';
-                            outlineHeart.style.display = 'block';
-                            container.setAttribute('data-is-favorited', 'false');
-                        }
+                        // Ensure state matches server (verification)
+                        const serverState = data.is_favorited;
+                        containers.forEach(container => {
+                            const filledHeart = container.querySelector('.heart-filled');
+                            const outlineHeart = container.querySelector('.heart-outline');
+
+                            if (serverState) {
+                                if (filledHeart) filledHeart.style.display = 'block';
+                                if (outlineHeart) outlineHeart.style.display = 'none';
+                                container.setAttribute('data-is-favorited', 'true');
+                            } else {
+                                if (filledHeart) filledHeart.style.display = 'none';
+                                if (outlineHeart) outlineHeart.style.display = 'block';
+                                container.setAttribute('data-is-favorited', 'false');
+                            }
+                        });
                     }
                 })
                 .catch(error => {
                     console.error('Error toggling favorite:', error);
                     // Revert on error
-                    if (currentlyFavorited) {
-                        filledHeart.style.display = 'block';
-                        outlineHeart.style.display = 'none';
-                        container.setAttribute('data-is-favorited', 'true');
-                    } else {
-                        filledHeart.style.display = 'none';
-                        outlineHeart.style.display = 'block';
-                        container.setAttribute('data-is-favorited', 'false');
-                    }
+                    containers.forEach(container => {
+                        const filledHeart = container.querySelector('.heart-filled');
+                        const outlineHeart = container.querySelector('.heart-outline');
+
+                        if (currentlyFavorited) {
+                            if (filledHeart) filledHeart.style.display = 'block';
+                            if (outlineHeart) outlineHeart.style.display = 'none';
+                            container.setAttribute('data-is-favorited', 'true');
+                        } else {
+                            if (filledHeart) filledHeart.style.display = 'none';
+                            if (outlineHeart) outlineHeart.style.display = 'block';
+                            container.setAttribute('data-is-favorited', 'false');
+                        }
+                    });
                 });
         };
 
