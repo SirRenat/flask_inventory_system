@@ -34,6 +34,13 @@
             <!-- Price -->
             <div class="card-price">
                 {{ product.price|format_price }} ₽
+                {% if product.vat_included %}
+                <span class="vat-status" style="font-size: 13px; margin-left: 6px; font-weight: bold; color: #28a745;">с
+                    НДС</span>
+                {% else %}
+                <span class="vat-status"
+                    style="font-size: 13px; margin-left: 6px; font-weight: bold; color: #dc3545;">без НДС</span>
+                {% endif %}
             </div>
 
             <!-- Meta: Date, Views, Favorite -->
