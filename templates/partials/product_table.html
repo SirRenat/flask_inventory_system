@@ -64,7 +64,7 @@
                                 else 'Без категории' }}</div>
                         </td>
                         <td class="product-price-cell">
-                            <span class="table-price">{{ "%.2f"|format(product.price) }} ₽</span>
+                            <span class="table-price">{{ product|format_product_price }}</span>
                         </td>
                         <td class="product-vat-cell">
                             {% if product.vat_included %}
