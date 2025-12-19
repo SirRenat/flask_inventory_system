@@ -114,55 +114,57 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: space-between;
+        justify-content: center;
+        /* Center text since icon is gone */
         width: auto;
         min-width: fit-content;
-        /* Dynamic width */
         max-width: 300px;
-        /* Slightly reduced max-width */
-        height: 60px;
-        /* Reduced from 70px (- ~15%) */
+        height: 40px;
+        /* Reduced vertical height */
         cursor: pointer;
         transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
         position: relative;
-        padding: 4px 10px;
-        /* Reduced padding */
-        gap: 10px;
-        /* Consistent gap matching padding */
+        padding: 4px 12px;
+        gap: 0;
+        /* No gap needed if icon removed */
         background: white;
         border-radius: 10px;
-        /* Slightly smaller radius */
         border: 1px solid var(--border);
         flex-grow: 1;
-        /* Allow stretch */
     }
 
     .main-category-item:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 87, 255, 0.25);
-        background: var(--avito-blue);
-        border-color: var(--avito-blue);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        /* Subtle shadow */
+        background: #f5f5f5;
+        /* Pale gray hover */
+        border-color: #d0d0d0;
         z-index: 2;
     }
 
     .main-category-item:hover .category-tile-name {
-        color: white;
+        color: var(--text-primary);
+        /* Keep text color */
     }
 
     .category-tile-name {
         display: -webkit-box;
-        -webkit-line-clamp: 2;
+        -webkit-line-clamp: 1;
+        /* Single line preferred for small tiles */
         -webkit-box-orient: vertical;
         overflow: hidden;
-        white-space: normal;
+        white-space: nowrap;
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 400;
+        /* Non-bold text */
         color: var(--text-primary);
         line-height: 1.25;
         margin-right: 0;
         z-index: 2;
         transition: color 0.2s ease;
         max-width: 100%;
+        text-align: center;
     }
 
     /* Иконка категории */
@@ -260,22 +262,24 @@
     /* Production-matched Mobile Styles */
     @media (max-width: 768px) {
         .main-category-item {
-            width: 140px;
-            height: 85px;
+            width: auto;
+            /* Fit content */
+            height: 40px;
+            /* Same as desktop */
             flex: 0 0 auto;
-            padding: 10px;
+            padding: 4px 12px;
             background: white;
-            border-radius: 12px;
+            border-radius: 10px;
             position: relative;
             overflow: hidden;
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            flex-direction: row;
+            /* Horizontal like desktop */
+            align-items: center;
+            justify-content: center;
             border: 1px solid var(--border);
             min-width: 0;
-            /* Override desktop min-width */
             max-width: none;
-            /* Override desktop max-width */
         }
 
         .main-category-item.active {
@@ -287,14 +291,15 @@
         .category-tile-name {
             font-size: 13px;
             margin-right: 0;
-            margin-bottom: 5px;
-            white-space: normal;
+            margin-bottom: 0;
+            white-space: nowrap;
+            /* Single line */
+            text-align: center;
         }
 
         .main-category-icon {
-            margin-left: 0;
-            align-self: flex-end;
-            /* Push icon to bottom right like original design or keep standard? Production said justify-content: space-between */
+            display: none;
+            /* Ensure icon is hidden if somehow present */
         }
     }
 
@@ -1414,19 +1419,7 @@
                             <div class="main-category-item {% if not request.args.get('category_id') %}active{% endif %}"
                                 data-category-id="" data-category-name="Все категории"
                                 onclick="selectCategory(this, '')" title="Все категории">
-                                <span class="category-tile-name">Все<br>категории</span>
-                                <div class="main-category-icon">
-                                    <div class="main-category-icon-inner">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                                            stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="3" width="7" height="7" rx="1"></rect>
-                                            <rect x="14" y="3" width="7" height="7" rx="1"></rect>
-                                            <rect x="14" y="14" width="7" height="7" rx="1"></rect>
-                                            <rect x="3" y="14" width="7" height="7" rx="1"></rect>
-                                        </svg>
-                                    </div>
-                                </div>
+                                <span class="category-tile-name">Все категории</span>
                             </div>
 
                             <!-- Родительские категории из базы данных -->
@@ -1435,23 +1428,6 @@
                                 data-category-id="{{ category.id }}" data-category-name="{{ category.name }}"
                                 onclick="selectCategory(this, '{{ category.id }}')" title="{{ category.name }}">
                                 <span class="category-tile-name">{{ category.name }}</span>
-                                <div class="main-category-icon">
-                                    <div class="main-category-icon-inner">
-                                        {% if category.image %}
-                                        <img src="{{ url_for('main.get_category_image_by_size', category_id=category.id, size='thumbnail') }}"
-                                            alt="{{ category.name }}"
-                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                        <div class="category-fallback" style="display: none;">
-                                            {{ category.name|first|upper }}
-                                        </div>
-                                        {% else %}
-                                        <div class="category-fallback">
-                                            {{ category.name|first|upper }}
-                                        </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-
                             </div>
                             {% endfor %}
                         </div>
