@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="list-product-price">
-                <span class="price-value">{{ "%.2f"|format(product.price) }} ₽</span>
+                <span class="price-value">{{ product|format_product_price }}</span>
                 {% if product.vat_included %}
                 <span class="vat-label vat-included">С НДС</span>
                 {% else %}

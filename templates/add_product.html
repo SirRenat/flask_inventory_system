@@ -138,20 +138,31 @@
                         </div>
                     </div>
 
-                    <!-- ЕДИНСТВЕННОЕ ПОЛЕ ЦЕНЫ С НДС -->
+                    <!-- ЕДИНСТВЕННОЕ ПОЛЕ ЦЕНЫ С НДС И ТИПОМ ЦЕНЫ -->
                     <div class="form-group">
-                        <label class="form-label">Цена (руб.) <span class="required">*</span></label>
+                        <label class="form-label">Цена (руб.)</label>
                         <div class="price-input-wrapper">
+                            <!-- Выбор типа цены -->
+                            <select class="form-select price-type-select" name="price_type"
+                                style="width: 110px; flex: 0 0 auto;">
+                                <option value="fixed">Равная</option>
+                                <option value="from">От</option>
+                            </select>
+
+                            <!-- Поле ввода цены -->
                             <div class="price-input-container">
                                 <input type="number" name="price" id="price" class="form-control" step="0.01" min="0"
-                                    placeholder="0.00" required>
+                                    placeholder="0.00">
                             </div>
                             <span class="price-currency">₽</span>
+
+                            <!-- Чекбокс НДС -->
                             <div class="vat-checkbox-container">
                                 <input type="checkbox" name="vat_included" id="vat_included" class="vat-checkbox">
                                 <label for="vat_included" class="vat-label">с НДС</label>
                             </div>
                         </div>
+                        <div class="form-text">Оставьте пустым, чтобы указать "Договорная"</div>
                     </div>
                     <!-- Состояние товара -->
                     <div class="form-group">

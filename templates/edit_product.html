@@ -48,7 +48,7 @@
                     <script>
                         const INITIAL_PATH = [
                             {% for cat in category_path %}
-                        { id: {{ cat.id }}, name: {{ cat.name | tojson }} },
+                        { id: { { cat.id } }, name: { { cat.name | tojson } } },
                         {% endfor %}
                         ];
 
@@ -184,11 +184,20 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Цена <span class="required">*</span></label>
+                        <label class="form-label">Цена</label>
                         <div class="price-input-wrapper">
+                            <!-- Выбор типа цены -->
+                            <select class="form-select price-type-select" name="price_type"
+                                style="width: 110px; flex: 0 0 auto;">
+                                <option value="fixed" {% if product.price_type=='fixed' or not product.price_type
+                                    %}selected{% endif %}>Равная</option>
+                                <option value="from" {% if product.price_type=='from' %}selected{% endif %}>От</option>
+                            </select>
+
                             <div class="price-input-container">
                                 <input type="number" class="form-control" id="price" name="price"
-                                    value="{{ product.price }}" step="0.01" min="0" required>
+                                    value="{{ product.price if product.price is not none else '' }}" step="0.01"
+                                    min="0">
                             </div>
                             <span class="price-currency">₽</span>
                             <div class="vat-checkbox-container">
@@ -197,6 +206,7 @@
                                 <label for="vat_included" class="vat-label">с НДС</label>
                             </div>
                         </div>
+                        <div class="form-text">Оставьте пустым, чтобы указать "Договорная"</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Состояние</label>

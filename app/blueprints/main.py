@@ -171,9 +171,13 @@ def add_product():
             if not title:
                 flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.add_product'))
-            if not price:
-                flash('Цена товара обязательна для заполнения', 'error')
+            if not title:
+                flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.add_product'))
+            # Price is now optional
+            # if not price:
+            #    flash('Цена товара обязательна для заполнения', 'error')
+            #    return redirect(url_for('main.add_product'))
             if not category_id_str:
                 flash('Категория товара обязательна для выбора', 'error')
                 return redirect(url_for('main.add_product'))
@@ -235,10 +239,23 @@ def add_product():
                         file.save(file_path)
                         new_images.append(unique_filename)
 
+            # === ЦЕНА И ТИП ЦЕНЫ ===
+            price_val = request.form.get('price')
+            price_type = request.form.get('price_type', 'fixed')
+            
+            final_price = None
+            if not price_val or price_val.strip() == '':
+                price_type = 'negotiable'
+                final_price = None
+            else:
+                final_price = float(price_val)
+            # =======================
+
             new_product = Product(
                 title=title,
                 description=description,
-                price=float(price),
+                price=final_price,
+                price_type=price_type,
                 quantity=quantity,
                 manufacturer=manufacturer,
                 category_id=category_id_int,
@@ -325,9 +342,13 @@ def edit_product(product_id):
             if not title:
                 flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
-            if not price:
-                flash('Цена товара обязательна для заполнения', 'error')
+            if not title:
+                flash('Название товара обязательно для заполнения', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
+            # Price IS optional now
+            # if not price:
+            #     flash('Цена товара обязательна для заполнения', 'error')
+            #     return redirect(url_for('main.edit_product', product_id=product_id))
             if not category_id:
                 flash('Категория товара обязательна для выбора', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
@@ -357,9 +378,21 @@ def edit_product(product_id):
             if not city_name:
                 flash('Город обязателен для выбора', 'error')
                 return redirect(url_for('main.edit_product', product_id=product_id))
+            # === ЦЕНА И ТИП ЦЕНЫ (Edit) ===
+            price_val = request.form.get('price')
+            price_type = request.form.get('price_type', 'fixed')
+            
+            if not price_val or price_val.strip() == '':
+                product.price_type = 'negotiable'
+                product.price = None
+            else:
+                product.price = float(price_val)
+                product.price_type = price_type
+            # ==============================
+
             product.title = title
             product.description = description
-            product.price = float(price)
+            # Price updated above
             product.quantity = int(request.form.get('quantity', 1))
             product.manufacturer = request.form.get('manufacturer')
             product.category_id = int(category_id)

@@ -147,7 +147,7 @@
                     <div class="product-info">
                         <h3 class="product-title">{{ product.title }}</h3>
                         <p class="product-price">
-                            {{ product.price|format_price }} ₽
+                            {{ product|format_product_price }}
                             {% if product.vat_included %}
                             <span class="vat-label vat-included">С НДС</span>
                             {% else %}
@@ -241,7 +241,7 @@
                     </div>
 
                     <div class="list-product-price">
-                        <span class="price-value">{{ "%.2f"|format(product.price) }} ₽</span>
+                        <span class="price-value">{{ product|format_product_price }}</span>
                         {% if product.vat_included %}
                         <span class="vat-label vat-included">С НДС</span>
                         {% else %}
@@ -343,7 +343,7 @@
                                         product.product_category else 'Без категории' }}</div>
                                 </td>
                                 <td class="product-price-cell">
-                                    <span class="table-price">{{ "%.2f"|format(product.price) }} ₽</span>
+                                    <span class="table-price">{{ product|format_product_price }}</span>
                                 </td>
                                 <td class="product-vat-cell">
                                     {% if product.vat_included %}

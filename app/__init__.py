@@ -63,8 +63,9 @@ def create_app():
     login_manager.login_message_category = 'info'
     
     # Регистрация фильтров
-    from app.utils import format_price
+    from app.utils import format_price, format_product_price
     app.jinja_env.filters['format_price'] = format_price
+    app.jinja_env.filters['format_product_price'] = format_product_price
 
     
     @login_manager.user_loader

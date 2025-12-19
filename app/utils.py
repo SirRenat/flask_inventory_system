@@ -270,7 +270,28 @@ def format_price(value):
     if value is None:
         return ""
     try:
-        # Приводим к float, форматируем без десятичных знаков, заменяем запятую на пробел
-        return "{:,.0f}".format(float(value)).replace(",", " ")
+        # Приводим к float
+        val = float(value)
+        # Если целое число, то без дробной части, иначе с двумя знаками
+        if val.is_integer():
+             return "{:,.0f}".format(val).replace(",", " ")
+        return "{:,.2f}".format(val).replace(",", " ").replace(".", ",")
     except (ValueError, TypeError):
         return str(value)
+
+def format_product_price(product):
+    """
+    Форматирует цену товара с учетом типа цены (от, договорная).
+    Возвращает готовую HTML строку или текст.
+    """
+    if product.price is None:
+        return "Договорная"
+    
+    price_str = format_price(product.price)
+    suffix = " ₽"
+    prefix = ""
+    
+    if product.price_type == 'from':
+        prefix = "от "
+    
+    return f"{prefix}{price_str}{suffix}"
