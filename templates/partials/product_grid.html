@@ -1,6 +1,9 @@
 <div class="product-grid-v2">
     {% for product in products %}
-    <div class="product-card-v2" onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
+    {% set root_category = product.product_category.get_ancestors()[0] if product.product_category else none %}
+    {% set border_color = root_category.color if root_category and root_category.color else '#e0e0e0' %}
+    <div class="product-card-v2" style="border: 2px solid {{ border_color }};"
+        onclick="location.href='{{ url_for('main.product_detail', product_id=product.id) }}'">
 
         <!-- Image Area -->
         <div class="card-image-wrapper">
