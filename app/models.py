@@ -135,7 +135,7 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text)
-    price = db.Column(db.Float, nullable=True)
+    price = db.Column(db.Float, nullable=False)
     price_type = db.Column(db.String(20), default='fixed') # fixed, from, negotiable
     quantity = db.Column(db.Integer, default=1)
     manufacturer = db.Column(db.String(100))
