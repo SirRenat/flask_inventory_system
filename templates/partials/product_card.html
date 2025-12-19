@@ -2,13 +2,30 @@
     <div class="product-image">
         {% if product.images and product.images[0] %}
         <img src="{{ url_for('static', filename='uploads/' + product.images[0]) }}" alt="{{ product.title }}"
-            onerror="this.style.display='none';">
-        <div class="image-fallback" style="display: none;">
-            <i class="fas fa-image"></i>
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+        <div class="image-fallback" style="display: none; padding: 0; overflow: hidden; width: 100%; height: 100%;">
+            <svg class="category-placeholder" width="100%" height="100%" viewBox="0 0 150 150"
+                preserveAspectRatio="none" data-category-id="{{ product.category.id if product.category else '' }}">
+                <rect width="100%" height="100%"
+                    fill="{{ product.category.color|default('#ccc') if product.category else '#ccc' }}" />
+                <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial" font-size="16" fill="white"
+                    font-weight="500">
+                    {{ product.category.name|truncate(15) if product.category else 'No Category' }}
+                </text>
+            </svg>
         </div>
         {% else %}
-        <i
-            class="fas fa-{{ 'mobile-alt' if product.category and product.category.name == 'Электроника' else 'tshirt' if product.category and 'Одежда' in product.category.name else 'book' if product.category and 'Книги' in product.category.name else 'home' if product.category and 'Мебель' in product.category.name else 'football-ball' if product.category and 'Спорт' in product.category.name else 'box' }}"></i>
+        <div class="image-fallback" style="padding: 0; overflow: hidden; width: 100%; height: 100%;">
+            <svg class="category-placeholder" width="100%" height="100%" viewBox="0 0 150 150"
+                preserveAspectRatio="none" data-category-id="{{ product.category.id if product.category else '' }}">
+                <rect width="100%" height="100%"
+                    fill="{{ product.category.color|default('#ccc') if product.category else '#ccc' }}" />
+                <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial" font-size="16" fill="white"
+                    font-weight="500">
+                    {{ product.category.name|truncate(15) if product.category else 'No Category' }}
+                </text>
+            </svg>
+        </div>
         {% endif %}
     </div>
     <div class="product-info">

@@ -17,20 +17,32 @@
                 {% if image_list | length > 0 %}
                 <img src="{{ url_for('main.serve_uploaded_file', filename=image_list[0]) }}" alt="{{ product.title }}"
                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="no-photo-small" style="display: none;">
-                    <div
-                        style="width:100%; height:100%; background:#ccc; display:flex; align-items:center; justify-content:center; color:#666; flex-direction:column;">
-                        <span style="font-size:48px; opacity:0.6;">🖼️</span>
-                        <span style="font-size:14px; color:#999;">Нет фото</span>
-                    </div>
+                <div class="no-photo-small" style="display: none; padding: 0; overflow: hidden;">
+                    <svg class="category-placeholder" width="100%" height="100%" viewBox="0 0 150 150"
+                        preserveAspectRatio="none"
+                        data-category-id="{{ product.product_category.id if product.product_category else '' }}">
+                        <rect width="100%" height="100%"
+                            fill="{{ product.product_category.color|default('#ccc') if product.product_category else '#ccc' }}" />
+                        <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial" font-size="16"
+                            fill="white" font-weight="500">
+                            {{ product.product_category.name|truncate(15) if product.product_category else 'No Category'
+                            }}
+                        </text>
+                    </svg>
                 </div>
                 {% else %}
-                <div class="no-photo-small">
-                    <div
-                        style="width:100%; height:100%; background:#ccc; display:flex; align-items:center; justify-content:center; color:#666; flex-direction:column;">
-                        <span style="font-size:48px; opacity:0.6;">🖼️</span>
-                        <span style="font-size:14px; color:#999;">Нет фото</span>
-                    </div>
+                <div class="no-photo-small" style="padding: 0; overflow: hidden;">
+                    <svg class="category-placeholder" width="100%" height="100%" viewBox="0 0 150 150"
+                        preserveAspectRatio="none"
+                        data-category-id="{{ product.product_category.id if product.product_category else '' }}">
+                        <rect width="100%" height="100%"
+                            fill="{{ product.product_category.color|default('#ccc') if product.product_category else '#ccc' }}" />
+                        <text x="50%" y="50%" text-anchor="middle" dy=".3em" font-family="Arial" font-size="16"
+                            fill="white" font-weight="500">
+                            {{ product.product_category.name|truncate(15) if product.product_category else 'No Category'
+                            }}
+                        </text>
+                    </svg>
                 </div>
                 {% endif %}
             </div>
